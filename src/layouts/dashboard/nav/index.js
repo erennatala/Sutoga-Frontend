@@ -61,11 +61,11 @@ export default function Nav({ openNav, onCloseNav }) {
 
             <Box sx={{ ml: 2 }}>
               <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                ass
+                keremmican
               </Typography>
 
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                sa
+                rookie
               </Typography>
             </Box>
           </StyledAccount>

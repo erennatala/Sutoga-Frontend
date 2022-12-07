@@ -10,9 +10,25 @@ const navConfig = [
     path: '/home',
     icon: icon('ic_user'),
   }, {
+    title: 'messages',
+    path: '/messages',
+    icon: icon('ic_user'),
+  }, {
+    title: 'games',
+    path: '/games',
+    icon: icon('ic_user'),
+  },{
   title: 'profile',
   path: '/profile',
   icon: icon('ic_user'),
+  }, {
+    title: 'logout',
+    path: '/login',
+    icon: icon('ic_user'),
+  }, {
+    title: 'help',
+    path: '/help',
+    icon: icon('ic_user')
   },
   {
     title: 'dashboard',
