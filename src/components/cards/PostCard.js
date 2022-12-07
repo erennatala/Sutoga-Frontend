@@ -7,8 +7,8 @@ export default function PostCard() {
     return(
         <>
             <Container sx={{ mb: 3, mt: 1 }}>
-                <Card>
-                    <CardHeader title="keremmican">
+                <Card sx={{height: "400px"}}>
+                    <CardHeader title="post">
                         <Box/>
                     </CardHeader>
                 </Card>
