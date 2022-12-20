@@ -1,5 +1,5 @@
 import React from "react";
-import {Grid, Container, Typography, Card, CardHeader, Box} from '@mui/material';
+import {Grid, Container, Typography, Card, CardHeader, Box, Button, ButtonGroup} from '@mui/material';
 
 
 export default function PostCard() {
@@ -11,6 +11,11 @@ export default function PostCard() {
                     <CardHeader title="post">
                         <Box/>
                     </CardHeader>
+                    <ButtonGroup variant="text" aria-label="text button group">
+                        <Button>One</Button>
+                        <Button>Two</Button>
+                        <Button>Three</Button>
+                    </ButtonGroup>
                 </Card>
             </Container>
         </>
