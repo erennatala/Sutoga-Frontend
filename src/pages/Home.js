@@ -2,8 +2,8 @@ import { Helmet } from 'react-helmet-async';
 import { faker } from '@faker-js/faker';
 import React, {useState, useEffect} from "react";
 // @mui
-import { useTheme } from '@mui/material/styles';
-import {Grid, Container, Typography, Card, CardHeader, Box} from '@mui/material';
+import {alpha, useTheme} from '@mui/material/styles';
+import {Grid, Container, Typography, Card, CardHeader, Box, Stack, Button} from '@mui/material';
 // components
 import Iconify from '../components/iconify';
 import PostCard from "../components/cards/PostCard";
@@ -15,6 +15,7 @@ export default function Home() {
     const [friendRec, setFriendRec] = useState([]) // TODO 3 veya 5 elemanlı user objeleri
 
     const data = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+    const friendData = [0,0,0]
 
     const [windowSize, setWindowSize] = useState(getWindowSize());
 
@@ -45,22 +46,32 @@ export default function Home() {
                 <title> Home </title>
             </Helmet>
 
-            <Container maxWidth="xl">
-                <Typography variant="h4" sx={{ mb: 5 }}>
+            <Container maxWidth="xl" columns={10}>
+                <Typography xs={4} variant="h4" sx={{ mb: 5 }}>
                     Good morning Kerem!
                 </Typography>
+                <Stack direction="row" spacing={2} xs={6}>
+                    <Button variant="text">Share</Button>
+                    <Button variant="text">Share</Button>
+                    <Button variant="text">Share</Button>
+                </Stack>
             </Container>
 
 
 
-                <Grid container spacing={12} columns={12}>
-                    <Grid item xs={8}>
+                <Grid container columns={16}>
+                    <Grid spacing={2} xs={11}>
                         {data.map((card) =>
                             <PostCard />
                         )}
                     </Grid>
-                    <Grid item xs={4}>
-                        <FriendRecCard />
+                    <Grid xs={4}>
+                        <Container columns={4} xs={4} sx={{position: "fixed", height: "400px"}}>
+                            <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius) * 1.5}}>
+                                {friendData.map((card) => <FriendRecCard />)}
+                            </Grid>
+                            <Button variant="text">See more like this</Button>
+                        </Container>
                     </Grid>
                 </Grid>
         </>

@@ -13,11 +13,11 @@ import NotificationsPopover from './NotificationsPopover';
 
 // ----------------------------------------------------------------------
 
-const NAV_WIDTH = 280;
+const NAV_WIDTH = 220;
 
 const HEADER_MOBILE = 64;
 
-const HEADER_DESKTOP = 92;
+const HEADER_DESKTOP = 70;
 
 const StyledRoot = styled(AppBar)(({ theme }) => ({
   ...bgBlur({ color: theme.palette.background.default }),

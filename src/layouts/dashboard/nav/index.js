@@ -14,7 +14,7 @@ import navConfig from './config';
 
 // ----------------------------------------------------------------------
 
-const NAV_WIDTH = 280;
+const NAV_WIDTH = 220;
 
 const StyledAccount = styled('div')(({ theme }) => ({
   display: 'flex',
