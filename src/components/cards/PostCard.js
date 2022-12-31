@@ -1,8 +1,18 @@
-import React from "react";
-import {Grid, Container, Typography, Card, CardHeader, Box, Button, ButtonGroup} from '@mui/material';
+import React, {useState} from "react";
+import {Grid, Container, Typography, Card, CardHeader, Box, Button, ButtonGroup, IconButton} from '@mui/material';
+import Iconify from "../iconify";
 
 
 export default function PostCard() {
+    const [isClicked, setIsClicked] = useState(false);
+
+    const handleLike = () => {
+        setIsClicked(!isClicked)
+    }
+
+    const handleShare = () => {
+
+    }
 
     return(
         <>
@@ -12,9 +22,12 @@ export default function PostCard() {
                         <Box/>
                     </CardHeader>
                     <ButtonGroup variant="text" aria-label="text button group">
-                        <Button>One</Button>
-                        <Button>Two</Button>
-                        <Button>Three</Button>
+                        <IconButton onClick={handleLike}>
+                            {!isClicked ? (<Iconify icon="icon-park-outline:like" />):(<Iconify icon="flat-color-icons:like" />)}
+                        </IconButton>
+                        <IconButton onClick={handleShare}>
+                            <Iconify icon="material-symbols:ios-share" />
+                        </IconButton>
                     </ButtonGroup>
                 </Card>
             </Container>

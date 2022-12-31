@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Grid, Container, Typography, Card, CardHeader, Box, Avatar, Button, Link} from '@mui/material';
+import {Grid, Container, Typography, Card, CardHeader, Box, Avatar, Button, Link, ButtonBase} from '@mui/material';
 import {alpha, styled} from "@mui/material/styles";
 
 export default function FriendRecCard(props) {
@@ -17,11 +17,12 @@ export default function FriendRecCard(props) {
 
                 <Grid>
                     <Box>
+                        <ButtonBase>
                         <Link underline="none">
                             <StyledAccount>
                                 <Avatar src="" alt="photoURL" />
 
-                                <Box sx={{ ml: 2}}>
+                                <Box sx={{ ml: 2}} onClick={(e) => console.log(e)}>
                                     <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
                                         keremmican
                                     </Typography>
@@ -32,10 +33,11 @@ export default function FriendRecCard(props) {
                                 </Box>
 
                                 <Box sx={{ ml: 2 }}>
-                                    <Button> + Add Friend</Button>
+                                    <Button> + Add</Button>
                                 </Box>
                             </StyledAccount>
                         </Link>
+                        </ButtonBase>
                     </Box>
                 </Grid>
         </>

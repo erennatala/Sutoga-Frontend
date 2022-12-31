@@ -46,19 +46,6 @@ export default function Home() {
                 <title> Home </title>
             </Helmet>
 
-            <Container maxWidth="xl" columns={10}>
-                <Typography xs={4} variant="h4" sx={{ mb: 5 }}>
-                    Good morning Kerem!
-                </Typography>
-                <Stack direction="row" spacing={2} xs={6}>
-                    <Button variant="text">Share</Button>
-                    <Button variant="text">Share</Button>
-                    <Button variant="text">Share</Button>
-                </Stack>
-            </Container>
-
-
-
                 <Grid container columns={16}>
                     <Grid spacing={2} xs={11}>
                         {data.map((card) =>

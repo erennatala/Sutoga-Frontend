@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
-import { Box, Link, Button, Drawer, Typography, Avatar, Stack } from '@mui/material';
+import {Box, Link, Button, Drawer, Typography, Avatar, Stack, ButtonBase} from '@mui/material';
 // hooks
 import useResponsive from '../../../hooks/useResponsive';
 // components
@@ -33,15 +33,20 @@ Nav.propTypes = {
 
 export default function Nav({ openNav, onCloseNav }) {
   const { pathname } = useLocation();
-
+  const navigate = useNavigate();
   const isDesktop = useResponsive('up', 'lg');
 
   useEffect(() => {
     if (openNav) {
       onCloseNav();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
+
+
+  const routeChange = () =>{
+    const path = `profile`;
+    navigate(path);
+  }
 
   const renderContent = (
     <Scrollbar
@@ -50,11 +55,12 @@ export default function Nav({ openNav, onCloseNav }) {
         '& .simplebar-content': { height: 1, display: 'flex', flexDirection: 'column' },
       }}
     >
-      <Box sx={{ px: 2.5, py: 3, display: 'inline-flex', maxWidth: "70%", pl: 10 }}>
+      <Box sx={{ px: 2.5, py: 3, display: 'inline-flex', maxWidth: "80%", ml: 3 }}>
         <img src="/assets/images/brand/main-logo.png" alt="sidebar-logo"/>
       </Box>
 
       <Box sx={{ mb: 5, mx: 2.5 }}>
+        <ButtonBase onClick={routeChange}>
         <Link underline="none">
           <StyledAccount>
             <Avatar src="" alt="photoURL" />
@@ -70,6 +76,7 @@ export default function Nav({ openNav, onCloseNav }) {
             </Box>
           </StyledAccount>
         </Link>
+        </ButtonBase>
       </Box>
 
       <NavSection data={navConfig} />
