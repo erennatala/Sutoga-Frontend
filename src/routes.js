@@ -11,6 +11,7 @@ import ProductsPage from './pages/ProductsPage';
 import DashboardAppPage from './pages/DashboardAppPage';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
+import RegisterPage from "./pages/RegisterPage";
 
 // ----------------------------------------------------------------------
 
@@ -26,12 +27,16 @@ export default function Router() {
         { path: 'products', element: <ProductsPage /> },
         { path: 'blog', element: <BlogPage /> },
         { path: 'home', element: <Home />},
-        { path: 'profile', element: <Profile />}
+        { path: 'profile', element: <Profile />},
       ],
     },
     {
       path: 'login',
       element: <LoginPage />,
+    },
+    {
+      path: 'register',
+      element: <RegisterPage />,
     },
     {
       element: <SimpleLayout />,
