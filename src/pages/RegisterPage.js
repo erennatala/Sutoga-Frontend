@@ -58,7 +58,7 @@ export default function RegisterPage() {
             <Container maxWidth="sm">
                 <StyledContent>
                     <Typography variant="h4" gutterBottom>
-                        Sign in to Sutoga
+                        Sign up to Sutoga
                     </Typography>
 
                 <Stack spacing={3}>

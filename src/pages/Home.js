@@ -48,14 +48,17 @@ export default function Home() {
 
                 <Grid container columns={16}>
                     <Grid spacing={2} xs={11}>
-                        {data.map((card) =>
-                            <PostCard />
-                        )}
+
+                        <PostCard img="https://i.ytimg.com/vi/WSwUSIfgA4M/maxresdefault.jpg"/>
+                        <PostCard img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
+                        <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
                     </Grid>
                     <Grid xs={4}>
                         <Container columns={4} xs={4} sx={{position: "fixed", height: "400px"}}>
                             <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius) * 1.5}}>
-                                {friendData.map((card) => <FriendRecCard />)}
+                                <FriendRecCard nickname="farukkislakci" title="çaylak"/>
+                                <FriendRecCard nickname="deagleahmet" title="nişancı"/>
+                                <FriendRecCard nickname="lalenur" title="dropcu"/>
                             </Grid>
                             <Button variant="text">See more like this</Button>
                         </Container>
