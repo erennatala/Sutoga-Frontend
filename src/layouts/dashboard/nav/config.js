@@ -29,46 +29,18 @@ const navConfig = [
     path: '/login',
     icon: alternativeIcon('material-symbols:logout'),
   },
-  {
-    title: 'register',
-    path: '/register',
-    icon: alternativeIcon('material-symbols:live-help-outline')
-  },
+
   {
     title: 'help',
     path: '/help',
     icon: alternativeIcon('material-symbols:live-help-outline')
-  },
-  {
-    title: 'dashboard',
-    path: '/app',
-    icon: icon('ic_analytics'),
-  },
-  {
-    title: 'user',
-    path: '/user',
-    icon: icon('ic_user'),
-  },
-  {
-    title: 'product',
-    path: '/products',
-    icon: icon('ic_cart'),
-  },
-  {
-    title: 'blog',
-    path: '/blog',
-    icon: icon('ic_blog'),
-  },
-  {
-    title: 'login',
-    path: '/login',
-    icon: icon('ic_lock'),
-  },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: icon('ic_disabled'),
-  },
+  }
 ];
 
 export default navConfig;
+
+// {
+//     title: 'register',
+//     path: '/register',
+//     icon: alternativeIcon('material-symbols:live-help-outline')
+//   },

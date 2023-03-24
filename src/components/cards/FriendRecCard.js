@@ -23,13 +23,17 @@ export default function FriendRecCard(props) {
                                 <Avatar src="" alt="photoURL" />
 
                                 <Box sx={{ ml: 2}} onClick={(e) => console.log(e)}>
-                                    <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                                        keremmican
-                                    </Typography>
+                                    <Grid>
+                                        <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
+                                            {props.nickname}
+                                        </Typography>
+                                    </Grid>
 
-                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                        rookie
-                                    </Typography>
+                                    <Grid>
+                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                            {props.title}
+                                        </Typography>
+                                    </Grid>
                                 </Box>
 
                                 <Box sx={{ ml: 2 }}>
