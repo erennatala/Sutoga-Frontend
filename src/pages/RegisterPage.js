@@ -13,7 +13,7 @@ import {
     IconButton, Checkbox, Select, MenuItem, Box
 } from '@mui/material';
 import {useNavigate} from "react-router-dom";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {DatePicker, LoadingButton, LocalizationProvider} from "@mui/lab";
 import AdapterDayjs from "@mui/lab/AdapterDayjs";
 import Iconify from "../components/iconify";
@@ -38,11 +38,23 @@ export default function RegisterPage() {
 
     const [showPassword, setShowPassword] = useState(false);
 
+    const [steamId, setSteamId] = useState();
+
     const [userName, setUserName] = useState();
     const [email, setEmail] = useState();
     const [pwd, setPwd] = useState();
     const [birthDate, setBirthDate] = useState();
     const [gender, setGender] = useState();
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        console.log(urlParams)
+        const steamIdFromUrl = urlParams.get('steamid');
+        console.log(steamIdFromUrl)
+        if (steamIdFromUrl) {
+            setSteamId(steamIdFromUrl);
+        }
+    }, []);
 
     const handleClick = () => {
         navigate('/home', { replace: true });
@@ -63,6 +75,8 @@ export default function RegisterPage() {
 
                 <Stack spacing={3}>
                     <TextField name="username" label="Username" />
+
+                    <div>{steamId}</div>
 
                     <TextField name="email" label="Email address" />
 
