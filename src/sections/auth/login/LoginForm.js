@@ -17,9 +17,9 @@ export default function LoginForm() {
   const handleClick = async () => {
 
       try {
-
+          //
       } catch (err) {
-
+          //
       }
 
     navigate('/home', { replace: true }); // burdaki replace geri dönmemesini sağlıyor
