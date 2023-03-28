@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles';
 import { Link, Container, Typography, Divider, Stack, Button } from '@mui/material';
 // hooks
 import {useNavigate} from "react-router-dom";
+import {useEffect, useState} from "react";
 import useResponsive from '../hooks/useResponsive';
 // components
 import Iconify from '../components/iconify';
@@ -43,6 +44,22 @@ const StyledContent = styled('div')(({ theme }) => ({
 export default function LoginPage() {
   const navigate = useNavigate();
 
+  const [steamId, setSteamId] = useState(null);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const steamIdFromUrl = urlParams.get('steamid');
+    if (steamIdFromUrl) {
+      setSteamId(steamIdFromUrl);
+    }
+  }, []);
+
+  // functions
+
+  const handleSteamClick = () => {
+    window.location.href = "http://localhost:3001/auth/steam";
+  }
+
   return (
     <>
       <Helmet>
@@ -65,7 +82,7 @@ export default function LoginPage() {
             </Typography>
 
             <Stack direction="row" spacing={2}>
-              <Button fullWidth size="large" color="inherit" variant="outlined">
+              <Button fullWidth size="large" color="inherit" variant="outlined" onClick={handleSteamClick}>
                 <Iconify icon="mdi:steam" width={30} height={30} />
               </Button>
             </Stack>

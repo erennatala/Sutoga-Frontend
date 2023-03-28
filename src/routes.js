@@ -35,6 +35,10 @@ export default function Router() {
       element: <LoginPage />,
     },
     {
+      path: 'auth/steam/return',
+      element: <RegisterPage />
+    },
+    {
       path: 'register',
       element: <RegisterPage />,
     },
