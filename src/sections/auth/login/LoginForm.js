@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 // @mui
 import {Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Typography, Grid} from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -13,7 +14,14 @@ export default function LoginForm() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = async () => {
+
+      try {
+
+      } catch (err) {
+
+      }
+
     navigate('/home', { replace: true }); // burdaki replace geri dönmemesini sağlıyor
   };
 
