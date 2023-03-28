@@ -48,9 +48,7 @@ export default function RegisterPage() {
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        console.log(urlParams)
         const steamIdFromUrl = urlParams.get('steamid');
-        console.log(steamIdFromUrl)
         if (steamIdFromUrl) {
             setSteamId(steamIdFromUrl);
         }
@@ -75,8 +73,6 @@ export default function RegisterPage() {
 
                 <Stack spacing={3}>
                     <TextField name="username" label="Username" />
-
-                    <div>{steamId}</div>
 
                     <TextField name="email" label="Email address" />
 

@@ -31,7 +31,7 @@ passport.deserializeUser((identifier, done) => {
 
 
 passport.use(new SteamStrategy({
-            returnURL: 'http://localhost:3000/register',
+            returnURL: 'http://localhost:3001/auth/steam/return',
             realm: 'http://localhost:3001/',
             apiKey: '4D3BE17D82F44DE7727A8287A7F0F869'
         },
@@ -56,7 +56,7 @@ app.get('/auth/steam/return',
     (req, res) => {
         const { _json: { steamid } } = req.user;
         // res.redirect(`http://localhost:3001/?steamid=${steamid}`);
-        res.redirect(`http://localhost:3000/register/?steamid=${steamid}`);
+        res.redirect(`http://localhost:3000/register?steamid=${steamid}`);
     });
 
 // ...
