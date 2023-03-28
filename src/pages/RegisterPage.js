@@ -33,6 +33,8 @@ const StyledContent = styled('div')(({ theme }) => ({
     flexDirection: 'column',
 }));
 
+const BASE_URL = process.env.REACT_APP_URL
+
 export default function RegisterPage() {
     const navigate = useNavigate();
 
