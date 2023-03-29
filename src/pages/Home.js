@@ -1,8 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 import { faker } from '@faker-js/faker';
+import React, {useState, useEffect} from "react";
 // @mui
-import { useTheme } from '@mui/material/styles';
-import {Grid, Container, Typography, Card, CardHeader, Box} from '@mui/material';
+import {alpha, useTheme} from '@mui/material/styles';
+import {Grid, Container, Typography, Card, CardHeader, Box, Stack, Button} from '@mui/material';
 // components
 import Iconify from '../components/iconify';
 import PostCard from "../components/cards/PostCard";
@@ -11,7 +12,33 @@ import FriendRecCard from "../components/cards/FriendRecCard";
 export default function Home() {
     const theme = useTheme();
 
-    const data = [0,0,0];
+    const [friendRec, setFriendRec] = useState([]) // TODO 3 veya 5 elemanlı user objeleri
+
+    const data = [0,0,0,0,0,0,0,0,0,0,0,0,0];
+    const friendData = [0,0,0]
+
+    const [windowSize, setWindowSize] = useState(getWindowSize());
+
+    useEffect(() => {
+        console.log(windowSize.innerHeight)
+    }, [])
+
+    useEffect(() => {
+        function handleWindowResize() {
+            setWindowSize(getWindowSize());
+        }
+
+        window.addEventListener('resize', handleWindowResize);
+
+        return () => {
+            window.removeEventListener('resize', handleWindowResize);
+        };
+    }, []);
+
+    function getWindowSize() {
+        const {innerWidth, innerHeight} = window;
+        return {innerWidth, innerHeight};
+    }
 
     return(
         <>
@@ -19,26 +46,24 @@ export default function Home() {
                 <title> Home </title>
             </Helmet>
 
-            <Container maxWidth="xl">
-                <Typography variant="h4" sx={{ mb: 5 }}>
-                    Hoşgeldin Kerem!
-                </Typography>
+                <Grid container columns={16}>
+                    <Grid spacing={2} xs={11}>
 
-                <Grid container spacing={2} columns={12}>
-                    <Grid xs={8}>
-                        <Card>
-                            {data.map((card) =>
-                            <PostCard />
-                            )}
-                        </Card>
+                        <PostCard img="https://i.ytimg.com/vi/WSwUSIfgA4M/maxresdefault.jpg"/>
+                        <PostCard img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
+                        <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
                     </Grid>
-
                     <Grid xs={4}>
-                        <FriendRecCard />
+                        <Container columns={4} xs={4} sx={{position: "fixed", height: "400px"}}>
+                            <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius) * 1.5}}>
+                                <FriendRecCard nickname="farukkislakci" title="çaylak"/>
+                                <FriendRecCard nickname="deagleahmet" title="nişancı"/>
+                                <FriendRecCard nickname="lalenur" title="dropcu"/>
+                            </Grid>
+                            <Button variant="text">See more like this</Button>
+                        </Container>
                     </Grid>
                 </Grid>
-
-            </Container>
         </>
     );
 }
