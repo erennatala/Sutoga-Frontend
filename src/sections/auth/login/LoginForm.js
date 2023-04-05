@@ -1,20 +1,27 @@
+import {useDispatch, useSelector} from 'react-redux';
+
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // @mui
 import {Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Typography, Grid} from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+import { setToken, setUserName } from '../../../actions/authActions';
 // components
 import Iconify from '../../../components/iconify';
+import user from "../../../_mock/user";
 
 // ----------------------------------------------------------------------
 const BASE_URL = process.env.REACT_APP_URL
+
 export default function LoginForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const dispatch = useDispatch();
 
   const handleClick = async () => {
     try {
@@ -23,14 +30,39 @@ export default function LoginForm() {
         password,
       });
       const responseBody = response.data; // get response body
+      const { token } = responseBody;
+      dispatch(setToken(token));
+      dispatch(setUserName(email));
+      navigate('/home', {replace: true});
       console.log(responseBody); // display response body in the console
-    } catch (err) {
+    } catch(err) {
       console.log(err);
     }
   };
-  
 
-  // const handleClick = async () => {
+
+// ...
+
+
+
+    // const handleOnClick = async () => {
+    //     try {
+    //         const response = await axios.post(`${BASE_URL}auth/login`, {
+    //             username: email,
+    //             password,
+    //         });
+    //         const responseBody = response.data;
+    //         const { token } = responseBody;
+    //         dispatch(setToken(token)); // dispatch the SET_TOKEN action with the token
+    //         navigate('/home', { replace: true });
+    //     } catch (err) {
+    //         console.log(err);
+    //     }
+    // };
+
+
+
+    // const handleClick = async () => {
 
   //     try {
   //       const response = await axios.post

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
 import {Box, Stack, AppBar, Toolbar, IconButton, Typography} from '@mui/material';
 // utils
+import { useSelector} from "react-redux";
 import { bgBlur } from '../../../utils/cssStyles';
 // components
 import Iconify from '../../../components/iconify';
@@ -42,10 +43,11 @@ Header.propTypes = {
 };
 
 export default function Header({ onOpenNav }) {
+    const userName = useSelector((state) => state.auth.userName);
   return (
     <StyledRoot>
       <StyledToolbar>
-          <Typography variant="h5" color="common.black">Stay up to game Kenreks!</Typography>
+          <Typography variant="h5" color="common.black">{userName}</Typography>
 
         <IconButton
           onClick={onOpenNav}

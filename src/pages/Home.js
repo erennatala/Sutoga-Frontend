@@ -5,13 +5,14 @@ import React, {useState, useEffect} from "react";
 import {alpha, useTheme} from '@mui/material/styles';
 import {Grid, Container, Typography, Card, CardHeader, Box, Stack, Button} from '@mui/material';
 // components
+import {useSelector} from "react-redux";
 import Iconify from '../components/iconify';
 import PostCard from "../components/cards/PostCard";
 import FriendRecCard from "../components/cards/FriendRecCard";
 
 export default function Home() {
     const theme = useTheme();
-
+    const userName = useSelector((state)=> state.auth.userName);
     const [friendRec, setFriendRec] = useState([]) // TODO 3 veya 5 elemanlı user objeleri
 
     const data = [0,0,0,0,0,0,0,0,0,0,0,0,0];

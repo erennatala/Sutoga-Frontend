@@ -5,7 +5,9 @@ import { Link, Container, Typography, Divider, Stack, Button } from '@mui/materi
 // hooks
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
-import useResponsive from '../hooks/useResponsive';
+import { Provider} from "react-redux";
+import store from "../store"
+
 // components
 import Iconify from '../components/iconify';
 // sections
