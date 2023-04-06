@@ -109,8 +109,8 @@ export default function RegisterPage() {
         </Helmet>
 
             <Snackbar open={toastOpen} autoHideDuration={3000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-                    This is a success message!
+                <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                    Error
                 </Alert>
             </Snackbar>
 
@@ -122,13 +122,13 @@ export default function RegisterPage() {
                     </Typography>
 
                 <Stack spacing={3}>
-                    <Stack direction="row">
-                        <TextField  name="firstName" label="First Name" onChange={(e) => setFirstName(e.target.value)}/>
 
-                        <Box sx={{ flexGrow: 1 }} />
+                    <Stack direction="row" spacing={2}>
+                        <TextField sx={{width: "100%"}} name="firstName" label="First Name" onChange={(e) => setFirstName(e.target.value)}/>
 
-                        <TextField  name="lastName" label="Last Name" onChange={(e) => setLastName(e.target.value)}/>
+                        <TextField sx={{width: "100%"}} name="lastName" label="Last Name" onChange={(e) => setLastName(e.target.value)}/>
                     </Stack>
+
                     <TextField name="username" label="Username" onChange={(e) => setUserName(e.target.value)}/>
 
                     <TextField name="email" label="Email address" onChange={(e) => setEmail(e.target.value)}/>
@@ -149,7 +149,7 @@ export default function RegisterPage() {
                         }}
                     />
 
-                    <Stack direction="row">
+                    <Stack direction="row" spacing={2}>
                         <TextField
                             id="date"
                             label="Birthday"
@@ -166,7 +166,7 @@ export default function RegisterPage() {
 
                         <PhoneInput
                             country={"tr"}
-                            inputStyle={{ borderRadius: "13px", height: "40px", width: "100%" }}
+                            inputStyle={{ borderRadius: "13px", height: "100%", width: "100%" }}
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e)}
                         />

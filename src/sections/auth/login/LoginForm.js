@@ -15,9 +15,9 @@ import user from "../../../_mock/user";
 // ----------------------------------------------------------------------
 const BASE_URL = process.env.REACT_APP_URL
 
-export default function LoginForm() {
+export default function LoginForm(props) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,24 +26,22 @@ export default function LoginForm() {
   const handleClick = async () => {
     try {
       const response = await axios.post(`${BASE_URL}auth/login`, {
-        username: email,
-        password,
+        username: username,
+        password: password,
       });
       const responseBody = response.data; // get response body
       const { token } = responseBody;
       dispatch(setToken(token));
-      dispatch(setUserName(email));
+      dispatch(setUserName(username));
       navigate('/home', {replace: true});
       console.log(responseBody); // display response body in the console
     } catch(err) {
+        console.log("sa")
+        // eslint-disable-next-line react/prop-types
+        props.onError()
       console.log(err);
     }
   };
-
-
-// ...
-
-
 
     // const handleOnClick = async () => {
     //     try {
@@ -77,7 +75,7 @@ export default function LoginForm() {
   return (
     <>
       <Stack spacing={3}>
-        <TextField name="email" label="Email address" onChange={(e) => setEmail(e.target.value)} />
+        <TextField name="username" label="Username" onChange={(e) => setUsername(e.target.value)} />
 
         <TextField
           name="password"
