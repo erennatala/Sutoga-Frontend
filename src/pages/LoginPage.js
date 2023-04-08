@@ -1,11 +1,12 @@
 import { Helmet } from 'react-helmet-async';
 // @mui
 import { styled } from '@mui/material/styles';
-import { Link, Container, Typography, Divider, Stack, Button } from '@mui/material';
+import {Link, Container, Typography, Divider, Stack, Button, Snackbar} from '@mui/material';
 // hooks
 import {useNavigate} from "react-router-dom";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import { Provider} from "react-redux";
+import {Alert} from "@mui/lab";
 import store from "../store"
 
 // components
@@ -49,6 +50,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const [steamId, setSteamId] = useState(null);
+  const [open, setOpen] = useState(false);
+
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -59,6 +62,19 @@ export default function LoginPage() {
   }, []);
 
   // functions
+
+  const handleError = () => {
+    console.log("as")
+    setOpen(true)
+  }
+
+  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   const handleSteamClick = () => {
     window.location.href = "http://localhost:3001/auth/steam";
@@ -97,7 +113,13 @@ export default function LoginPage() {
               </Typography>
             </Divider>
 
-            <LoginForm />
+            <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
+              <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                Wrong username or password
+              </Alert>
+            </Snackbar>
+
+            <LoginForm onError={handleError}/>
           </StyledContent>
         </Container>
       </StyledRoot>

@@ -1,7 +1,7 @@
 import {useDispatch, useSelector} from 'react-redux';
 
 
-import { useState } from 'react';
+import {useRef, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // @mui
@@ -10,14 +10,13 @@ import { LoadingButton } from '@mui/lab';
 import { setToken, setUserName } from '../../../actions/authActions';
 // components
 import Iconify from '../../../components/iconify';
-import user from "../../../_mock/user";
 
 // ----------------------------------------------------------------------
 const BASE_URL = process.env.REACT_APP_URL
 
-export default function LoginForm() {
+export default function LoginForm(props) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,24 +25,29 @@ export default function LoginForm() {
   const handleClick = async () => {
     try {
       const response = await axios.post(`${BASE_URL}auth/login`, {
-        username: email,
-        password,
+        username: username,
+        password: password,
       });
       const responseBody = response.data; // get response body
       const { token } = responseBody;
       dispatch(setToken(token));
-      dispatch(setUserName(email));
+      dispatch(setUserName(username));
       navigate('/home', {replace: true});
       console.log(responseBody); // display response body in the console
     } catch(err) {
+        props.onError()
       console.log(err);
     }
   };
 
+    const ref = useRef();
 
-// ...
-
-
+    function handleKeyUp(event) {
+        // Enter
+        if (event.keyCode === 13) {
+            handleClick();
+        }
+    }
 
     // const handleOnClick = async () => {
     //     try {
@@ -77,7 +81,8 @@ export default function LoginForm() {
   return (
     <>
       <Stack spacing={3}>
-        <TextField name="email" label="Email address" onChange={(e) => setEmail(e.target.value)} />
+          {/* eslint-disable-next-line react/jsx-no-bind */}
+        <TextField name="username" label="Username" onChange={(e) => setUsername(e.target.value)} ref={ref} onKeyUp={handleKeyUp}/>
 
         <TextField
           name="password"
@@ -93,6 +98,7 @@ export default function LoginForm() {
             ),
           }}
           onChange={(e) => setPassword(e.target.value)}
+          ref={ref} onKeyUp={handleKeyUp}
         />
       </Stack>
 
@@ -106,7 +112,7 @@ export default function LoginForm() {
         </Link>
       </Stack>
 
-      <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick}>
+      <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} onSubmit={handleClick}>
         Login
       </LoadingButton>
     </>
