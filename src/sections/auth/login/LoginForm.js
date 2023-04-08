@@ -1,7 +1,7 @@
 import {useDispatch, useSelector} from 'react-redux';
 
 
-import { useState } from 'react';
+import {useRef, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // @mui
@@ -10,7 +10,6 @@ import { LoadingButton } from '@mui/lab';
 import { setToken, setUserName } from '../../../actions/authActions';
 // components
 import Iconify from '../../../components/iconify';
-import user from "../../../_mock/user";
 
 // ----------------------------------------------------------------------
 const BASE_URL = process.env.REACT_APP_URL
@@ -36,12 +35,19 @@ export default function LoginForm(props) {
       navigate('/home', {replace: true});
       console.log(responseBody); // display response body in the console
     } catch(err) {
-        console.log("sa")
-        // eslint-disable-next-line react/prop-types
         props.onError()
       console.log(err);
     }
   };
+
+    const ref = useRef();
+
+    function handleKeyUp(event) {
+        // Enter
+        if (event.keyCode === 13) {
+            handleClick();
+        }
+    }
 
     // const handleOnClick = async () => {
     //     try {
@@ -75,7 +81,8 @@ export default function LoginForm(props) {
   return (
     <>
       <Stack spacing={3}>
-        <TextField name="username" label="Username" onChange={(e) => setUsername(e.target.value)} />
+          {/* eslint-disable-next-line react/jsx-no-bind */}
+        <TextField name="username" label="Username" onChange={(e) => setUsername(e.target.value)} ref={ref} onKeyUp={handleKeyUp}/>
 
         <TextField
           name="password"
@@ -91,6 +98,7 @@ export default function LoginForm(props) {
             ),
           }}
           onChange={(e) => setPassword(e.target.value)}
+          ref={ref} onKeyUp={handleKeyUp}
         />
       </Stack>
 
@@ -104,7 +112,7 @@ export default function LoginForm(props) {
         </Link>
       </Stack>
 
-      <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick}>
+      <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} onSubmit={handleClick}>
         Login
       </LoadingButton>
     </>
