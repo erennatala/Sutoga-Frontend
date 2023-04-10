@@ -49,35 +49,6 @@ export default function LoginForm(props) {
         }
     }
 
-    // const handleOnClick = async () => {
-    //     try {
-    //         const response = await axios.post(`${BASE_URL}auth/login`, {
-    //             username: email,
-    //             password,
-    //         });
-    //         const responseBody = response.data;
-    //         const { token } = responseBody;
-    //         dispatch(setToken(token)); // dispatch the SET_TOKEN action with the token
-    //         navigate('/home', { replace: true });
-    //     } catch (err) {
-    //         console.log(err);
-    //     }
-    // };
-
-
-
-    // const handleClick = async () => {
-
-  //     try {
-  //       const response = await axios.post
-  //         //
-  //     } catch (err) {
-  //         //
-  //     }
-
-  //   navigate('/home', { replace: true }); // burdaki replace geri dönmemesini sağlıyor
-  // };
-
   return (
     <>
       <Stack spacing={3}>
