@@ -44,6 +44,7 @@ Header.propTypes = {
 
 export default function Header({ onOpenNav }) {
     const userName = useSelector((state) => state.auth.userName);
+
   return (
     <StyledRoot>
       <StyledToolbar>
@@ -61,10 +62,6 @@ export default function Header({ onOpenNav }) {
         </IconButton>
 
         <Box sx={{ flexGrow: 1 }} />
-
-          <IconButton >
-              <Iconify icon="material-symbols:add-box-outline"/>
-          </IconButton>
 
         <Stack
           direction="row"

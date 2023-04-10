@@ -1814,6 +1814,13 @@
   "resolved" "https://registry.npmjs.org/@popperjs/core/-/core-2.11.6.tgz"
   "version" "2.11.6"
 
+"@react-gifs/tools@^0.1.2":
+  "integrity" "sha512-KC4IXwoT/teTMlkLy8Qp6i/NlYx3kEJsPgRKlXwfTjjmhCLo2tCobnET2am0R7bB0KegDDTO7h10+NbBPRbs5A=="
+  "resolved" "https://registry.npmjs.org/@react-gifs/tools/-/tools-0.1.2.tgz"
+  "version" "0.1.2"
+  dependencies:
+    "gifuct-js" "^2.0.0"
+
 "@remix-run/router@1.0.2":
   "integrity" "sha512-GRSOFhJzjGN+d4sKHTMSvNeUPoZiDHWmRnXfzaxrqe7dE/Nzlc8BiMSJdLDESZlndM7jIUrZ/F4yWqVYlI0rwQ=="
   "resolved" "https://registry.npmjs.org/@remix-run/router/-/router-1.0.2.tgz"
@@ -4883,6 +4890,13 @@
     "call-bind" "^1.0.2"
     "get-intrinsic" "^1.1.1"
 
+"gifuct-js@^2.0.0":
+  "integrity" "sha512-rI2asw77u0mGgwhV3qA+OEgYqaDn5UNqgs+Bx0FGwSpuqfYn+Ir6RQY5ENNQ8SbIiG/m5gVa7CD5RriO4f4Lsg=="
+  "resolved" "https://registry.npmjs.org/gifuct-js/-/gifuct-js-2.1.2.tgz"
+  "version" "2.1.2"
+  dependencies:
+    "js-binary-schema-parser" "^2.0.3"
+
 "glob-parent@^5.1.2":
   "integrity" "sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow=="
   "resolved" "https://registry.npmjs.org/glob-parent/-/glob-parent-5.1.2.tgz"
@@ -6022,6 +6036,11 @@
     "@jest/core" "^27.5.1"
     "import-local" "^3.0.2"
     "jest-cli" "^27.5.1"
+
+"js-binary-schema-parser@^2.0.3":
+  "integrity" "sha512-xezGJmOb4lk/M1ZZLTR/jaBHQ4gG/lqQnJqdIv4721DMggsa1bDVlHXNeHYogaIEHD9vCRv0fcL4hMA+Coarkg=="
+  "resolved" "https://registry.npmjs.org/js-binary-schema-parser/-/js-binary-schema-parser-2.0.3.tgz"
+  "version" "2.0.3"
 
 "js-tokens@^3.0.0 || ^4.0.0", "js-tokens@^4.0.0":
   "integrity" "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="
