@@ -14,14 +14,17 @@ const MENU_OPTIONS = [
   {
     label: 'Home',
     icon: 'eva:home-fill',
+    path: '/home'
   },
   {
     label: 'Profile',
     icon: 'eva:person-fill',
+    path: '/profile'
   },
   {
     label: 'Settings',
     icon: 'eva:settings-2-fill',
+    path: '/settings'
   },
 ];
 

@@ -8,9 +8,9 @@ import { bgBlur } from '../../../utils/cssStyles';
 // components
 import Iconify from '../../../components/iconify';
 //
-import Searchbar from './Searchbar';
 import AccountPopover from './AccountPopover';
 import NotificationsPopover from './NotificationsPopover';
+import React from "react";
 
 // ----------------------------------------------------------------------
 
@@ -48,7 +48,10 @@ export default function Header({ onOpenNav }) {
   return (
     <StyledRoot>
       <StyledToolbar>
-          <Typography variant="h5" color="common.black">{userName}</Typography>
+          <Typography variant="h5" color="common.black">Welcome back</Typography>
+          <Typography>&nbsp;</Typography>
+          <Typography variant="h5" color="common.black" fontWeight={"bold"}>{userName}</Typography>
+          <Typography variant="h5" color="common.black">!</Typography>
 
         <IconButton
           onClick={onOpenNav}
