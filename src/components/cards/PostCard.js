@@ -66,7 +66,7 @@ export default function PostCard(props) {
                         <Grid sx={{mt: 2, ml: 12}}>
                             <ButtonGroup variant="text" aria-label="text button group">
                                 <IconButton onClick={handleLike}>
-                                    {!isClicked ? (<Iconify icon="icon-park-outline:like" />):(<Iconify icon="flat-color-icons:like" />)}
+                                    <Iconify icon={isClicked ? ("flat-color-icons:like") : ("icon-park-outline:like")} />
                                 </IconButton>
                                 <IconButton onClick={handleShare}>
                                     <Iconify icon="material-symbols:ios-share" />

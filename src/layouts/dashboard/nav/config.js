@@ -20,21 +20,22 @@ const navConfig = [
     title: 'games',
     path: '/games',
     icon: alternativeIcon('ph:game-controller-fill'),
-  },{
-  title: 'profile',
-  path: '/profile',
-  icon: alternativeIcon('gg:profile'),
-  }, {
-    title: 'logout',
-    path: '/login',
-    icon: alternativeIcon('material-symbols:logout'),
   },
-
-  {
-    title: 'help',
-    path: '/help',
-    icon: alternativeIcon('material-symbols:live-help-outline')
-  }
+  // {
+  // title: 'profile',
+  // path: '/profile',
+  // icon: alternativeIcon('gg:profile'),
+  // },
+  // {
+  //   title: 'logout',
+  //   path: '/login',
+  //   icon: alternativeIcon('material-symbols:logout'),
+  // },
+  // {
+  //   title: 'help',
+  //   path: '/help',
+  //   icon: alternativeIcon('material-symbols:live-help-outline')
+  // }
 ];
 
 export default navConfig;

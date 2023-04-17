@@ -23,6 +23,7 @@ import PostCard from "../components/cards/PostCard";
 import FriendRecCard from "../components/cards/FriendRecCard";
 import {TabPanelProps} from "@mui/lab";
 import {useNavigate} from "react-router-dom";
+import GameCard from "../components/cards/GameCard";
 
 
 function TabPanel(props: TabPanelProps) {
@@ -90,9 +91,7 @@ export default function Profile() {
                             <CardContent>
                                 <Stack direction="row" spacing={8}>
                                     <Grid>
-                                        <Card>
-                                            <Avatar src="" alt="photoURL" sx={{ width: 250, height: 250 }}/>
-                                        </Card>
+                                        <Avatar src="" alt="photoURL" sx={{ minWidth: 250, minHeight: 250 }}/>
                                     </Grid>
 
                                     <Grid direction="column" sx={{paddingY: 6}} xs={6}>
@@ -105,36 +104,69 @@ export default function Profile() {
                                         </Typography>
                                     </Grid>
 
-                                    <Grid container direction="column" sx={{paddingY: 6}} spacing={5} justifyContent={"space-around"}>
-                                        <Grid item xs={5}>
-                                            <Button variant="contained" color="inherit">
-                                                Edit profile
-                                            </Button>
+                                    <Grid container direction="column" sx={{pl: 7, py: 6}}>
+
+
+                                        <Grid item sx={{mt: 1}}>
+                                            <Stack direction={"row"}>
+                                                <Typography fontWeight={"bold"}>
+                                                    78
+                                                </Typography>
+
+                                                <Typography>
+                                                    &nbsp;
+                                                </Typography>
+
+                                                <Typography>
+                                                    friends
+                                                </Typography>
+                                            </Stack>
                                         </Grid>
 
-                                        <Box sx={{ flexGrow: 0.5 }} />
+                                        <Box sx={{ flexGrow: 0.2 }} />
 
-                                        <Grid item>
-                                            <Typography>
-                                                78 friends
-                                            </Typography>
+                                        <Grid item sx={{mt: 1}}>
+                                            <Stack direction={"row"}>
+                                                <Typography fontWeight={"bold"}>
+                                                    11
+                                                </Typography>
+
+                                                <Typography>
+                                                    &nbsp;
+                                                </Typography>
+
+                                                <Typography>
+                                                    posts
+                                                </Typography>
+                                            </Stack>
                                         </Grid>
 
-                                        <Box sx={{ flexGrow: 0.5 }} />
+                                        <Box sx={{ flexGrow: 0.2 }} />
 
-                                        <Typography>
-                                            11 posts
-                                        </Typography>
+                                        <Grid item sx={{mt: 1}}>
+                                            <Stack direction={"row"}>
+                                                <Typography fontWeight={"bold"}>
+                                                    53
+                                                </Typography>
 
-                                        <Box sx={{ flexGrow: 0.5 }} />
+                                                <Typography>
+                                                    &nbsp;
+                                                </Typography>
 
-                                        <Typography>
-                                            53 games
-                                        </Typography>
+                                                <Typography>
+                                                    games
+                                                </Typography>
+                                            </Stack>
+                                        </Grid>
                                     </Grid>
                                 </Stack>
                             </CardContent>
                         </Card>
+                    </Grid>
+                    <Grid xs={3} alignItems="center" justifyContent="center">
+                        <Button variant="contained" color="inherit">
+                            Edit profile
+                        </Button>
                     </Grid>
                 </Grid>
 
@@ -161,11 +193,13 @@ export default function Profile() {
                                         </Grid>
                                     </Grid>
                                 </TabPanel>
-                                <TabPanel value={tab} index={1}>
-                                    Item Two
+                                <TabPanel value={tab-1} index={1}>
+                                    <GameCard />
                                 </TabPanel>
-                                <TabPanel value={tab} index={2}>
-                                    Item Three
+                                <TabPanel value={tab-2} index={2}>
+                                    <Card>
+                                        sa
+                                    </Card>
                                 </TabPanel>
                             </Box>
                         </Card>

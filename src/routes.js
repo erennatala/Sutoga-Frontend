@@ -12,7 +12,8 @@ import DashboardAppPage from './pages/DashboardAppPage';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import RegisterPage from "./pages/RegisterPage";
-
+import Games from "./pages/Games";
+import Messages from "./pages/Messages";
 // ----------------------------------------------------------------------
 
 export default function Router() {
@@ -28,6 +29,8 @@ export default function Router() {
         { path: 'blog', element: <BlogPage /> },
         { path: 'home', element: <Home />},
         { path: 'profile', element: <Profile />},
+        { path: 'games', element: <Games />},
+        { path: 'messages', element: <Messages />},
       ],
     },
     {
