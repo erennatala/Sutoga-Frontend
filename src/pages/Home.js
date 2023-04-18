@@ -21,6 +21,8 @@ import {useSelector} from "react-redux";
 import Iconify from '../components/iconify';
 import PostCard from "../components/cards/PostCard";
 import FriendRecCard from "../components/cards/FriendRecCard";
+import PostCardLeft from "../components/cards/PostCardLeft";
+import PostCardRight from "../components/cards/PostCardRight";
 
 export default function Home() {
     const theme = useTheme();
@@ -104,7 +106,7 @@ export default function Home() {
                     <Grid container xs={10} alignItems="center"
                           justifyContent="center">
                         <ClickAwayListener onClickAway={handleClickAway}>
-                            <Grid item sx={{pb: 5}}>
+                            <Grid item sx={{pb: 1}}>
                                 <Collapse in={collapse} collapsedSize={100}>
                                     <TextField
                                         InputLabelProps={{shrink: false}}
