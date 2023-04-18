@@ -84,7 +84,6 @@ export default function Profile() {
                 </Alert>
             </Snackbar>
 
-            <Container sx={{ mb: 3, mt: 1 }}>
                 <Grid container columns={16}>
                     <Grid xs={12}>
                         <Card sx={{height: "300px"}}>
@@ -109,7 +108,7 @@ export default function Profile() {
 
                                         <Grid item sx={{mt: 1}}>
                                             <Stack direction={"row"}>
-                                                <Typography fontWeight={"bold"}>
+                                                <Typography fontWeight={"bold"} fontSize={22}>
                                                     78
                                                 </Typography>
 
@@ -127,7 +126,7 @@ export default function Profile() {
 
                                         <Grid item sx={{mt: 1}}>
                                             <Stack direction={"row"}>
-                                                <Typography fontWeight={"bold"}>
+                                                <Typography fontWeight={"bold"} fontSize={22}>
                                                     11
                                                 </Typography>
 
@@ -145,7 +144,7 @@ export default function Profile() {
 
                                         <Grid item sx={{mt: 1}}>
                                             <Stack direction={"row"}>
-                                                <Typography fontWeight={"bold"}>
+                                                <Typography fontWeight={"bold"} fontSize={22}>
                                                     53
                                                 </Typography>
 
@@ -159,15 +158,23 @@ export default function Profile() {
                                             </Stack>
                                         </Grid>
                                     </Grid>
+
+                                    <Grid item xs={3} alignItems="center" justifyContent="center" sx={{py: 6}}>
+                                        <Button variant="contained" color="primary" sx={{height: 50, mb: 2, mt: 2}}>
+                                            Edit profile
+                                        </Button>
+
+                                        <Box sx={{ flexGrow: 1 }} />
+
+                                        <Button variant="contained" color="primary" sx={{height: 50}}>
+                                            Account settings
+                                        </Button>
+                                    </Grid>
                                 </Stack>
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Grid xs={3} alignItems="center" justifyContent="center">
-                        <Button variant="contained" color="inherit">
-                            Edit profile
-                        </Button>
-                    </Grid>
+
                 </Grid>
 
                 <Grid container columns={16}>
@@ -197,9 +204,11 @@ export default function Profile() {
                                     <GameCard />
                                 </TabPanel>
                                 <TabPanel value={tab-2} index={2}>
-                                    <Card>
-                                        sa
-                                    </Card>
+                                    <Grid container columns={16}>
+                                        <Grid spacing={2} xs={16}>
+                                            <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
+                                        </Grid>
+                                    </Grid>
                                 </TabPanel>
                             </Box>
                         </Card>
@@ -220,7 +229,6 @@ export default function Profile() {
                         </CardContent>
                     </Grid>
                 </Grid>
-            </Container>
         </>
     );
 }
