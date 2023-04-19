@@ -73,11 +73,7 @@ export default function LoginForm(props) {
         />
       </Stack>
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-          <Stack direction="row">
-              <Checkbox name="remember" label="Remember me"/>
-              <Typography variant="subtitle2" sx={{mt: 1}}> Remember me </Typography>
-          </Stack>
+      <Stack direction="row" alignItems="center" justifyContent="end" sx={{ my: 2 }}>
         <Link variant="subtitle2" underline="hover">
           Forgot password?
         </Link>
