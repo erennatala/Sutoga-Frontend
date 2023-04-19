@@ -44,7 +44,7 @@ export default function Games() {
 
     return (
         <>
-            <Grid container justifyContent={"center"} sx={{pb: 3}}>
+            <Grid container justifyContent={"space-around"} sx={{pb: 3}}>
                 <Grid item>
                     <Card sx={{bgcolor: "background.default"}}>
                         <Box sx={{pl: 2, flexGrow: 1, width: 200}}>

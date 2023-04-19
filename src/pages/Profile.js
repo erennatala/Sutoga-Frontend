@@ -183,7 +183,7 @@ export default function Profile() {
                             <Box sx={{ width: '100%' }}>
                                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                     <Tabs value={tab} onChange={handleTabChange} aria-label="basic tabs" centered>
-                                        <Tab label="Flow" {...a11yProps(0)} />
+                                        <Tab label="Posts" {...a11yProps(0)} />
                                         <Box sx={{ flexGrow: 0.1 }} />
                                         <Tab label="Games" {...a11yProps(1)} />
                                         <Box sx={{ flexGrow: 0.1 }} />
@@ -201,7 +201,21 @@ export default function Profile() {
                                     </Grid>
                                 </TabPanel>
                                 <TabPanel value={tab-1} index={1}>
-                                    <GameCard />
+                                    <Grid container justifyContent={"center"}>
+                                        <Grid item>
+                                            <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
+                                        </Grid>
+                                        <Grid item>
+                                            <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
+                                        </Grid>
+                                        <Grid item>
+                                            <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
+                                        </Grid>
+
+                                        <Grid item>
+                                            <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
+                                        </Grid>
+                                    </Grid>
                                 </TabPanel>
                                 <TabPanel value={tab-2} index={2}>
                                     <Grid container columns={16}>

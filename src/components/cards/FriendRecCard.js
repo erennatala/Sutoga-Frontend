@@ -1,6 +1,6 @@
 import React, {useState} from "react";
-import {Grid, Container, Typography, Card, CardHeader, Box, Avatar, Button, Link, ButtonBase} from '@mui/material';
-import {alpha, styled} from "@mui/material/styles";
+import {Grid, Typography, Box, Avatar, Button, Link, ButtonBase} from '@mui/material';
+import {styled} from "@mui/material/styles";
 
 export default function FriendRecCard(props) {
 
@@ -11,6 +11,10 @@ export default function FriendRecCard(props) {
         alignItems: 'center',
         padding: theme.spacing(2, 2.5),
     }));
+
+    const handleAdd = () => {
+
+    }
 
     return(
         <>
@@ -28,16 +32,10 @@ export default function FriendRecCard(props) {
                                             {props.nickname}
                                         </Typography>
                                     </Grid>
-
-                                    <Grid>
-                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                            {props.title}
-                                        </Typography>
-                                    </Grid>
                                 </Box>
 
-                                <Box sx={{ ml: 2 }}>
-                                    <Button> + Add</Button>
+                                <Box sx={{ ml: 2 }} justifyContent={"end"} alignItems={"end"}>
+                                    <Button onClick={handleAdd}> + Add</Button>
                                 </Box>
                             </StyledAccount>
                         </Link>

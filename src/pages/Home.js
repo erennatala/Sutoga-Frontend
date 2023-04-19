@@ -1,28 +1,23 @@
 import { Helmet } from 'react-helmet-async';
-import { faker } from '@faker-js/faker';
 import React, {useState, useEffect} from "react";
 // @mui
 import {alpha, useTheme} from '@mui/material/styles';
 import {
     Grid,
     Container,
-    Typography,
-    Card,
-    CardHeader,
-    Box,
     Stack,
     Button,
-    Accordion,
     TextField,
-    AccordionSummary, AccordionDetails, ClickAwayListener, Collapse, InputAdornment, IconButton, StepIcon, Avatar, Icon
+    ClickAwayListener, Collapse, InputAdornment, IconButton
 } from '@mui/material';
 // components
 import {useSelector} from "react-redux";
+import axios from "axios";
 import Iconify from '../components/iconify';
 import PostCard from "../components/cards/PostCard";
 import FriendRecCard from "../components/cards/FriendRecCard";
-import PostCardLeft from "../components/cards/PostCardLeft";
-import PostCardRight from "../components/cards/PostCardRight";
+
+const BASE_URL = process.env.REACT_APP_URL
 
 export default function Home() {
     const theme = useTheme();
@@ -45,6 +40,7 @@ export default function Home() {
     const [windowSize, setWindowSize] = useState(getWindowSize());
 
     useEffect(() => {
+        getFriendRecs()
         console.log(windowSize.innerHeight)
     }, [])
 
@@ -95,6 +91,22 @@ export default function Home() {
 
     }
 
+    const getFriendRecs = async () => {
+        try {
+            const recresponse = axios.get(`${BASE_URL  }users/getFriendRecommendations?userId=${  19}`)
+
+            // eslint-disable-next-line no-unused-vars
+            let data;
+            await recresponse.then((result) => {
+                // eslint-disable-next-line no-return-assign,prefer-destructuring
+                return data = result.data;
+            })
+            setFriendRec(data)
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
     return(
         <>
             <Helmet>
@@ -128,9 +140,6 @@ export default function Home() {
                                                         <IconButton edge="end" color="black">
                                                             <Iconify icon={"material-symbols:broken-image-outline"} />
                                                         </IconButton>
-                                                        <IconButton edge="end" color="black">
-                                                            <Iconify icon={"material-symbols:gif-box-outline"} />
-                                                        </IconButton>
                                                         <IconButton edge="end" color={canSend ? ("primary") : ("black")} disabled={!canSend} onClick={handlePost}>
                                                             <Iconify icon={canSend ? ("material-symbols:arrow-circle-right") : ("material-symbols:arrow-circle-right-outline")} />
                                                         </IconButton>
@@ -139,9 +148,6 @@ export default function Home() {
                                                     <InputAdornment position={"end"}>
                                                         <IconButton edge="end" color="black">
                                                             <Iconify icon={"material-symbols:broken-image-outline"} />
-                                                        </IconButton>
-                                                        <IconButton edge="end" color="black">
-                                                            <Iconify icon={"material-symbols:gif-box-outline"} />
                                                         </IconButton>
                                                     </InputAdornment>
                                                     )}
@@ -163,9 +169,10 @@ export default function Home() {
                     <Grid xs={4} sx={{mr: 3}}>
                         <Container columns={4} sx={{position: "fixed", height: "400px"}}>
                             <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
-                                <FriendRecCard nickname="farukkislakci" title="çaylak"/>
-                                <FriendRecCard nickname="deagleahmet" title="nişancı"/>
-                                <FriendRecCard nickname="lalenur" title="dropcu"/>
+
+                                {friendRec.map((user, index) => <React.Fragment key={index}>
+                                    <FriendRecCard nickname={user} />
+                                </React.Fragment>)}
                             </Grid>
                             <Button variant="text">See more like this</Button>
                         </Container>

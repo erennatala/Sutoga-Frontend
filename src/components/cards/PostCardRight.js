@@ -68,12 +68,12 @@ export default function PostCardRight(props) {
                     </Grid>
 
                     <Grid item sx={{flexGrow: 0.5,
-                        maxHeight: { xs: 220, md: 200 },
+                        maxHeight: { xs: 220, md: 250 },
                         }} direction={"row"}>
                         <Box sx={{maxHeight: '100%', overflow: "auto", overflowY: "auto"}}
 
                         >
-                            <CommentCard nickname="erenatala" comment="yeşillikler iyi gözüküyo"/>
+                            <CommentCard nickname="erenatala" comment="yeşillikler iyi gözüküyooooooohh"/>
                             <CommentCard nickname="erenatala" comment="yeşillikler iyi gözüküyo"/>
                             <CommentCard nickname="erenatala" comment="yeşillikler iyi gözüküyo"/>
                             <CommentCard nickname="erenatala" comment="yeşillikler iyi gözüküyo"/>
@@ -91,7 +91,9 @@ export default function PostCardRight(props) {
 
                     <Grid item sx={{px: 3, py:1, flexGrow: 0.5}}>
                         <Stack direction={"row"}>
-                            <Avatar src="" alt="photoURL" />
+                            <Avatar src="" alt="photoURL"/>
+
+                            <Box sx={{flexGrow: 1}} />
 
                             <TextField name={"comment_input"}
                                        label={"Caption this..."}
