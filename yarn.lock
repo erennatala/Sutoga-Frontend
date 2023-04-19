@@ -1341,6 +1341,13 @@
   "resolved" "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz"
   "version" "1.2.1"
 
+"@iconify/icons-mdi@^1.2.44":
+  "integrity" "sha512-j1hw1Ar1EMz74Ehg1BwQ5h69gO++9GZqJYye2huvl9jPgvXqlNmwAFWOVZQ3EoLTfoAwcp8awfQh3FcMvaqyuA=="
+  "resolved" "https://registry.npmjs.org/@iconify/icons-mdi/-/icons-mdi-1.2.44.tgz"
+  "version" "1.2.44"
+  dependencies:
+    "@iconify/types" "*"
+
 "@iconify/react@^4.0.0":
   "integrity" "sha512-YE+z5PCegYyuJtLR6KBbJNlssmuVgRyFyRxcgxSPVkN3Gsm7npSzrUh+gWlBxrNb5g4Q6Nnb1gczPBNcwtUpng=="
   "resolved" "https://registry.npmjs.org/@iconify/react/-/react-4.0.0.tgz"
@@ -1348,7 +1355,7 @@
   dependencies:
     "@iconify/types" "^2.0.0"
 
-"@iconify/types@^2.0.0":
+"@iconify/types@*", "@iconify/types@^2.0.0":
   "integrity" "sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg=="
   "resolved" "https://registry.npmjs.org/@iconify/types/-/types-2.0.0.tgz"
   "version" "2.0.0"
