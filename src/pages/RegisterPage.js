@@ -4,7 +4,6 @@ import 'react-phone-input-2/lib/style.css'
 import { styled } from '@mui/material/styles';
 import * as React from 'react';
 import {
-    Link,
     Container,
     Typography,
     Divider,
@@ -16,8 +15,7 @@ import {
 } from '@mui/material';
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {Alert, DatePicker, LoadingButton, LocalizationProvider} from "@mui/lab";
-import AdapterDayjs from "@mui/lab/AdapterDayjs";
+import {Alert, LoadingButton} from "@mui/lab";
 import axios from "axios";
 import Iconify from "../components/iconify";
 
@@ -46,14 +44,53 @@ export default function RegisterPage() {
 
     const [steamId, setSteamId] = useState();
 
-    const [userName, setUserName] = useState(null);
-    const [email, setEmail] = useState(null);
-    const [pwd, setPwd] = useState(null);
-    const [birthDate, setBirthDate] = useState(null);
-    const [gender, setGender] = useState(null);
+    const [userName, setUserName] = useState("");
+    const [email, setEmail] = useState("");
+    const [pwd, setPwd] = useState("");
+    const [birthDate, setBirthDate] = useState("");
     const [phoneNumber, setPhoneNumber] = useState(0);
-    const [firstName, setFirstName] = useState(null);
-    const [lastName, setLastName] = useState(null);
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+
+    const [feedbackList, setFeedbackList] = useState({
+        firstName: [firstName, false, "", 2],
+        lastName: [lastName, false, "", 2],
+        email: [email, false, "", 10],
+        username: [userName, false, "", 3, 15],
+        pwd: [pwd, false, "", 8],
+        phoneNumber: [phoneNumber, false, "", 2],
+        birthDate: [birthDate, false, "", 2]})
+
+    function validation(e){
+
+        let tempFeedbackList = {
+            firstName: [firstName, false, "Enter your name", 2],
+            lastName: [lastName, false, "Enter your last name", 2],
+            email: [email, false, "Enter a valid email adress", 10],
+            username: [userName, false, "Enter a valid username (min 3, max 15 characters)", 3, 15],
+            pwd: [pwd, false, "Password must be 8 characters at least", 8],
+            phoneNumber: [phoneNumber, false, "Enter a phone number", 2],
+            birthDate: [birthDate, false, "", 2]}
+        setFeedbackList(tempFeedbackList);
+
+        let count = 0;
+
+        for (let key in tempFeedbackList) {
+            if (tempFeedbackList[key][0] === '' && e === "submit" || tempFeedbackList[key][0].length < tempFeedbackList[key][3] && e === "dynamic" && tempFeedbackList[key][0].length > 0) {
+                tempFeedbackList[key][1] = true;
+                setFeedbackList(tempFeedbackList);
+                count++;
+            } else if(key !== 'emailInput') {
+                tempFeedbackList[key][1] = false;
+            }
+        }
+
+        return count === 0;
+    }
+
+    useEffect(() => {
+        validation('dynamic')
+    }, [firstName, lastName, userName, pwd])
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -61,10 +98,16 @@ export default function RegisterPage() {
         if (steamIdFromUrl) {
             setSteamId(steamIdFromUrl);
         }
+        console.log(steamIdFromUrl)
     }, []);
 
     const handleClick = async (e) => {
         e.preventDefault();
+
+        if (!validation("submit")) {
+            setSuccess(false)
+            return;
+        }
 
         try {
             const signuprequest = JSON.stringify({
@@ -74,7 +117,8 @@ export default function RegisterPage() {
                 email: email,
                 password: pwd,
                 phoneNumber: phoneNumber,
-                birthDate: birthDate
+                birthDate: birthDate,
+                steamId: steamId
             });
 
             const response = axios.post(`${BASE_URL}auth/register`, signuprequest, {
@@ -90,7 +134,7 @@ export default function RegisterPage() {
             setToastOpen(true)
             navigate('/home', { replace: true });
         } catch(err) {
-            console.log("hTA")
+            console.log("error")
         }
     }
 
@@ -101,6 +145,10 @@ export default function RegisterPage() {
 
         setToastOpen(false);
     };
+
+    const handleBack = () => {
+        navigate('/login', {replace: true})
+    }
 
     return(
         <>
@@ -117,27 +165,34 @@ export default function RegisterPage() {
         <StyledRoot>
             <Container maxWidth="sm">
                 <StyledContent>
-                    <Typography variant="h4" gutterBottom>
+                    <Typography variant="h4" gutterBottom sx={{mb: 3}}>
                         Sign up to Sutoga
                     </Typography>
 
                 <Stack spacing={3}>
 
                     <Stack direction="row" spacing={2}>
-                        <TextField sx={{width: "100%"}} name="firstName" label="First Name" onChange={(e) => setFirstName(e.target.value)}/>
+                        <TextField sx={{width: "100%"}} name="firstName" label="First Name" onChange={(e) => setFirstName(e.target.value)}
+                                   required error={feedbackList['firstName'][1]}/>
 
-                        <TextField sx={{width: "100%"}} name="lastName" label="Last Name" onChange={(e) => setLastName(e.target.value)}/>
+                        <TextField sx={{width: "100%"}} name="lastName" label="Last Name" onChange={(e) => setLastName(e.target.value)}
+                                    required error={feedbackList['lastName'][1]}/>
                     </Stack>
 
-                    <TextField name="username" label="Username" onChange={(e) => setUserName(e.target.value)}/>
+                    <TextField name="username" label="Username" onChange={(e) => setUserName(e.target.value)}
+                               required error={feedbackList['username'][1]}
+                               />
 
-                    <TextField name="email" label="Email address" onChange={(e) => setEmail(e.target.value)}/>
+                    <TextField name="email" label="Email address" onChange={(e) => setEmail(e.target.value)}
+                               required error={feedbackList['email'][1]}
+                               />
 
                     <TextField
                         name="password"
                         label="Password"
                         type={showPassword ? 'text' : 'password'}
                         onChange={(e) => setPwd(e.target.value)}
+                        required error={feedbackList['pwd'][1]}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -156,6 +211,7 @@ export default function RegisterPage() {
                             type="date"
                             defaultValue="2000-01-01"
                             sx={{ width: 250 }}
+                            required error={feedbackList['birthDate'][1]}
                             onChange={(e) => setBirthDate(e.target.value)}
                             InputLabelProps={{
                                 shrink: true,
@@ -174,9 +230,15 @@ export default function RegisterPage() {
 
                 </Stack>
 
-                <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} sx={{mt: 2}}>
-                    Sign Up
-                </LoadingButton>
+                <Stack direction={"row"}>
+                    <Button fullWidth size="large" variant="contained" color={"warning"} sx={{mt: 2, mr: 3}} onClick={handleBack}>
+                        Back
+                    </Button>
+
+                    <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} sx={{mt: 2}}>
+                        Sign Up
+                    </LoadingButton>
+                </Stack>
                 </StyledContent>
             </Container>
         </StyledRoot>
