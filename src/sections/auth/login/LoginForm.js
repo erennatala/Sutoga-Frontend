@@ -31,9 +31,8 @@ export default function LoginForm(props) {
       const responseBody = response.data; // get response body
       const { token } = responseBody;
       dispatch(setToken(token));
-      dispatch(setUserName(username));
+      // dispatch(setUserName(username));
       navigate('/home', {replace: true});
-      console.log(responseBody); // display response body in the console
     } catch(err) {
         props.onError()
       console.log(err);
@@ -53,7 +52,7 @@ export default function LoginForm(props) {
     <>
       <Stack spacing={3}>
           {/* eslint-disable-next-line react/jsx-no-bind */}
-        <TextField name="username" label="Username" onChange={(e) => setUsername(e.target.value)} ref={ref} onKeyUp={handleKeyUp}/>
+        <TextField name="Email" label="Email" onChange={(e) => setUsername(e.target.value)} ref={ref} onKeyUp={handleKeyUp}/>
 
         <TextField
           name="password"

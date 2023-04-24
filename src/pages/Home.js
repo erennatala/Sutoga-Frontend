@@ -22,7 +22,7 @@ const BASE_URL = process.env.REACT_APP_URL
 export default function Home() {
     const theme = useTheme();
     const userName = useSelector((state)=> state.auth.userName);
-    const [friendRec, setFriendRec] = useState([]) // TODO 3 veya 5 elemanlı user objeleri
+    const [friendRec, setFriendRec] = useState([])
 
     const [openCreate, setOpenCreate] = useState(false);
     const [collapse, setCollapse] = useState(false);
@@ -33,15 +33,12 @@ export default function Home() {
 
     const [postLabel, setPostLabel] = useState("What's happening?")
     const [postText, setPostText] = useState("");
-
-    const data = [0,0,0,0,0,0,0,0,0,0,0,0,0];
     const friendData = [0,0,0]
 
     const [windowSize, setWindowSize] = useState(getWindowSize());
 
     useEffect(() => {
         getFriendRecs()
-        console.log(windowSize.innerHeight)
     }, [])
 
     useEffect(() => {
@@ -115,7 +112,7 @@ export default function Home() {
 
             <Grid container columns={16} direction="column">
                 <Stack direction="row">
-                    <Grid container xs={10} alignItems="center"
+                    <Grid container xs={12} alignItems="center"
                           justifyContent="center">
                         <ClickAwayListener onClickAway={handleClickAway}>
                             <Grid item sx={{pb: 1}}>
@@ -164,18 +161,6 @@ export default function Home() {
                             <PostCard img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
                             <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
                         </Grid>
-                    </Grid>
-
-                    <Grid xs={4} sx={{mr: 3}}>
-                        <Container columns={4} sx={{position: "fixed", height: "400px"}}>
-                            <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
-
-                                {friendRec.map((user, index) => <React.Fragment key={index}>
-                                    <FriendRecCard nickname={user} />
-                                </React.Fragment>)}
-                            </Grid>
-                            <Button variant="text">See more like this</Button>
-                        </Container>
                     </Grid>
                 </Stack>
             </Grid>

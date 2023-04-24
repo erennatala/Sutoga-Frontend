@@ -1,20 +1,23 @@
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 // @mui
-import { styled, alpha } from '@mui/material/styles';
-import {Box, Link, Button, Drawer, Typography, Avatar, Stack, ButtonBase} from '@mui/material';
+import {styled, alpha, useTheme} from '@mui/material/styles';
+import {Box, Link, Button, Drawer, Typography, Avatar, Stack, Grid, Container, ButtonBase} from '@mui/material';
 // hooks
+import axios from "axios";
 import useResponsive from '../../../hooks/useResponsive';
 // components
 import Scrollbar from '../../../components/scrollbar';
 import NavSection from '../../../components/nav-section';
 //
 import navConfig from './config';
+import FriendRecCard from "../../../components/cards/FriendRecCard";
 
 // ----------------------------------------------------------------------
 
 const NAV_WIDTH = 220;
+const BASE_URL = process.env.REACT_APP_URL
 
 const StyledAccount = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -32,9 +35,12 @@ Nav.propTypes = {
 };
 
 export default function Nav({ openNav, onCloseNav }) {
+  const theme = useTheme();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const isDesktop = useResponsive('up', 'lg');
+
+  const [friendRec, setFriendRec] = useState([])
 
   useEffect(() => {
     if (openNav) {
@@ -42,6 +48,25 @@ export default function Nav({ openNav, onCloseNav }) {
     }
   }, [pathname]);
 
+  useEffect(() => {
+    getFriendRecs()
+  }, [])
+
+  const getFriendRecs = async () => {
+    try {
+      const recresponse = axios.get(`${BASE_URL  }users/getFriendRecommendations?userId=${  19}`)
+
+      // eslint-disable-next-line no-unused-vars
+      let data;
+      await recresponse.then((result) => {
+        // eslint-disable-next-line no-return-assign,prefer-destructuring
+        return data = result.data;
+      })
+      setFriendRec(data)
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   const routeChange = () =>{
     const path = `profile`;
@@ -81,7 +106,21 @@ export default function Nav({ openNav, onCloseNav }) {
 
       <NavSection data={navConfig} />
 
-      <Box sx={{ flexGrow: 1 }} />
+      <Box sx={{ flexGrow: 0.1 }} />
+
+      <Box>
+        <Grid xs={4} sx={{mr: 3}}>
+          <Container columns={4} sx={{position: "fixed", height: "400px"}}>
+            <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
+
+              {friendRec.map((user, index) => <React.Fragment key={index}>
+                <FriendRecCard nickname={user} />
+              </React.Fragment>)}
+            </Grid>
+            <Button variant="text">See more like this</Button>
+          </Container>
+        </Grid>
+      </Box>
     </Scrollbar>
   );
 
