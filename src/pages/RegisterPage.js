@@ -14,7 +14,7 @@ import {
     IconButton, Checkbox, Select, MenuItem, Box, Snackbar
 } from '@mui/material';
 import {useNavigate} from "react-router-dom";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Alert, LoadingButton} from "@mui/lab";
 import axios from "axios";
 import Iconify from "../components/iconify";
@@ -38,6 +38,7 @@ const BASE_URL = process.env.REACT_APP_URL
 
 export default function RegisterPage() {
     const navigate = useNavigate();
+    const ref = useRef();
     const [toastOpen, setToastOpen] = useState(false)
     const [showPassword, setShowPassword] = useState(false);
     const [success, setSuccess] = useState(false)
@@ -150,6 +151,13 @@ export default function RegisterPage() {
         navigate('/login', {replace: true})
     }
 
+    function handleKeyUp(event) {
+        // Enter
+        if (event.keyCode === 13) {
+            handleClick();
+        }
+    }
+
     return(
         <>
         <Helmet>
@@ -231,11 +239,11 @@ export default function RegisterPage() {
                 </Stack>
 
                 <Stack direction={"row"}>
-                    <Button fullWidth size="large" variant="contained" color={"warning"} sx={{mt: 2, mr: 3}} onClick={handleBack}>
+                    <Button fullWidth size="large" variant="contained" sx={{mt: 2, mr: 3}} onClick={handleBack}>
                         Back
                     </Button>
 
-                    <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} sx={{mt: 2}}>
+                    <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} onKeyUp={handleKeyUp} sx={{mt: 2}}>
                         Sign Up
                     </LoadingButton>
                 </Stack>
