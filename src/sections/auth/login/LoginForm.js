@@ -25,7 +25,7 @@ export default function LoginForm(props) {
   const handleClick = async () => {
     try {
       const response = await axios.post(`${BASE_URL}auth/login`, {
-        username: username,
+        email: username,
         password: password,
       });
       const responseBody = response.data; // get response body

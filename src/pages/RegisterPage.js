@@ -4,7 +4,6 @@ import 'react-phone-input-2/lib/style.css'
 import { styled } from '@mui/material/styles';
 import * as React from 'react';
 import {
-    Link,
     Container,
     Typography,
     Divider,
@@ -99,6 +98,7 @@ export default function RegisterPage() {
         if (steamIdFromUrl) {
             setSteamId(steamIdFromUrl);
         }
+        console.log(steamIdFromUrl)
     }, []);
 
     const handleClick = async (e) => {
@@ -117,7 +117,8 @@ export default function RegisterPage() {
                 email: email,
                 password: pwd,
                 phoneNumber: phoneNumber,
-                birthDate: birthDate
+                birthDate: birthDate,
+                steamId: steamId
             });
 
             const response = axios.post(`${BASE_URL}auth/register`, signuprequest, {
@@ -133,7 +134,7 @@ export default function RegisterPage() {
             setToastOpen(true)
             navigate('/home', { replace: true });
         } catch(err) {
-            console.log("hTA")
+            console.log("error")
         }
     }
 
@@ -144,6 +145,10 @@ export default function RegisterPage() {
 
         setToastOpen(false);
     };
+
+    const handleBack = () => {
+        navigate('/login', {replace: true})
+    }
 
     return(
         <>
@@ -160,7 +165,7 @@ export default function RegisterPage() {
         <StyledRoot>
             <Container maxWidth="sm">
                 <StyledContent>
-                    <Typography variant="h4" gutterBottom>
+                    <Typography variant="h4" gutterBottom sx={{mb: 3}}>
                         Sign up to Sutoga
                     </Typography>
 
@@ -225,9 +230,15 @@ export default function RegisterPage() {
 
                 </Stack>
 
-                <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} sx={{mt: 2}}>
-                    Sign Up
-                </LoadingButton>
+                <Stack direction={"row"}>
+                    <Button fullWidth size="large" variant="contained" color={"warning"} sx={{mt: 2, mr: 3}} onClick={handleBack}>
+                        Back
+                    </Button>
+
+                    <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} sx={{mt: 2}}>
+                        Sign Up
+                    </LoadingButton>
+                </Stack>
                 </StyledContent>
             </Container>
         </StyledRoot>
