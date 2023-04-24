@@ -1,12 +1,30 @@
-const { app, BrowserWindow, screen } = require('electron');
+const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('path');
 const isDev = require('electron-is-dev');
+const Store = require('electron-store');
+
+const store = new Store();
 
 if (isDev) {
+    // eslint-disable-next-line global-require
     require('electron-reloader')(module, {
         watchRenderer: true,
     });
 }
+
+ipcMain.handle('setCredentials', async (event, { token, userId, userName }) => {
+    store.set('token', token);
+    store.set('userId', userId);
+    store.set('userName', userName);
+});
+
+ipcMain.handle('getCredentials', async () => {
+    const token = store.get('token');
+    const userId = store.get('userId');
+    const userName = store.get('userName');
+
+    return { token, userId, userName };
+});
 
 function createWindow() {
     const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;

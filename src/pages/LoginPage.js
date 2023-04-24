@@ -46,7 +46,7 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 const BASE_URL = process.env.REACT_APP_URL
 
-export default function LoginPage() {
+export default function LoginPage({ isAuthenticated, setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const [steamId, setSteamId] = useState(null);
@@ -119,7 +119,7 @@ export default function LoginPage() {
               </Alert>
             </Snackbar>
 
-            <LoginForm onError={handleError}/>
+            <LoginForm onError={handleError} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}/>
           </StyledContent>
         </Container>
       </StyledRoot>

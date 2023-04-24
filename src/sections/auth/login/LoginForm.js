@@ -30,6 +30,10 @@ export default function LoginForm(props) {
       });
       const responseBody = response.data; // get response body
       const { token } = responseBody;
+
+        await ipcRenderer.invoke('setCredentials', { token, userId, userName });
+
+        props.setIsAuthenticated(true);
       dispatch(setToken(token));
       // dispatch(setUserName(username));
       navigate('/home', {replace: true});
