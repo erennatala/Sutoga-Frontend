@@ -1,12 +1,14 @@
 import {useEffect, useState} from 'react';
 import { useSelector, useDispatch} from "react-redux";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 // @mui
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
 import {logout} from "../../../actions/authActions";
 // mocks_
 import account from '../../../_mock/account';
+import { setAuthenticated } from '../../../actions/authActions';
+const { ipcRenderer } = window.electron;
 
 // ----------------------------------------------------------------------
 
@@ -30,20 +32,11 @@ const MENU_OPTIONS = [
 
 // ----------------------------------------------------------------------
 
-export default function AccountPopover() {
+export default function AccountPopover({ setIsAuthenticated }) {
   const [open, setOpen] = useState(null);
   const dispatch = useDispatch();
   const username = useSelector((state) => state.auth.userName);
   const navigate = useNavigate()
-
-  // useEffect(() => {
-  //   console.log(username)
-  //
-  //   if (username === null) {
-  //     console.log("boş bu")
-  //   }
-  //   // navigate("/login")
-  // })
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -53,10 +46,15 @@ export default function AccountPopover() {
     setOpen(null);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login', {replace: true});
+  const handleLogout = async () => {
+    try {
+      await ipcRenderer.invoke('logout');
+      dispatch(setAuthenticated(false));
+    } catch (error) {
+      console.error('Error while calling ipcRenderer.invoke(\'logout\'):', error);
+    }
   };
+
 
   return (
     <>

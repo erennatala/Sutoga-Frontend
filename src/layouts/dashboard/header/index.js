@@ -39,10 +39,12 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 Header.propTypes = {
-  onOpenNav: PropTypes.func,
+    onOpenNav: PropTypes.func,
+    setIsAuthenticated: PropTypes.func,
 };
 
-export default function Header({ onOpenNav }) {
+
+export default function Header({ onOpenNav, isAuthenticated, setIsAuthenticated }) {
     const userName = useSelector((state) => state.auth.userName);
 
   return (
@@ -75,7 +77,8 @@ export default function Header({ onOpenNav }) {
           }}
         >
           <NotificationsPopover />
-          <AccountPopover />
+            <AccountPopover/>
+
         </Stack>
       </StyledToolbar>
     </StyledRoot>

@@ -18,6 +18,7 @@ import FriendRecCard from "../../../components/cards/FriendRecCard";
 
 const NAV_WIDTH = 220;
 const BASE_URL = process.env.REACT_APP_URL
+const { electron } = window;
 
 const StyledAccount = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -54,8 +55,8 @@ export default function Nav({ openNav, onCloseNav }) {
 
   const getFriendRecs = async () => {
     try {
-      const recresponse = axios.get(`${BASE_URL  }users/getFriendRecommendations?userId=${  19}`)
-
+      //const recresponse = axios.get(`${BASE_URL  }users/getFriendRecommendations?userId=${  19}`)
+      const recresponse = axios.get(`/users/getFriendRecommendations?userId=${19}`);
       // eslint-disable-next-line no-unused-vars
       let data;
       await recresponse.then((result) => {

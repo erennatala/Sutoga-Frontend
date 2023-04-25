@@ -8,6 +8,8 @@ import React, {useEffect, useState} from "react";
 import { Provider} from "react-redux";
 import {Alert} from "@mui/lab";
 import store from "../store"
+import { useDispatch } from 'react-redux';
+
 
 // components
 import Iconify from '../components/iconify';
@@ -46,8 +48,9 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 const BASE_URL = process.env.REACT_APP_URL
 
-export default function LoginPage({ isAuthenticated, setIsAuthenticated }) {
+export default function LoginPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [steamId, setSteamId] = useState(null);
   const [open, setOpen] = useState(false);
@@ -119,7 +122,7 @@ export default function LoginPage({ isAuthenticated, setIsAuthenticated }) {
               </Alert>
             </Snackbar>
 
-            <LoginForm onError={handleError} isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}/>
+            <LoginForm onError={handleError}/>
           </StyledContent>
         </Container>
       </StyledRoot>

@@ -5052,7 +5052,7 @@
     "normalize-path" "^3.0.0"
     "schema-utils" "^4.0.0"
 
-"eslint@^8.3.0", "eslint@8.22.0":
+"eslint@8.22.0":
   "integrity" "sha512-ci4t0sz6vSRKdmkOGmprBo6fmI4PrphDFMy5JEq/fNS0gQkJM3rLmrqcp8ipMcdobH3KtUP40KniAE9W19S4wA=="
   "resolved" "https://registry.npmjs.org/eslint/-/eslint-8.22.0.tgz"
   "version" "8.22.0"
@@ -5969,7 +5969,7 @@
     "agent-base" "6"
     "debug" "4"
 
-"http-proxy-middleware@^2.0.3":
+"http-proxy-middleware@^2.0.3", "http-proxy-middleware@^2.0.6":
   "integrity" "sha512-ya/UeJ6HVBYxrgYotAZo1KvPWlgB48kUJLDePFeneHsVujFaW5WNj2NgWCAE//B1Dl02BIfYlpNgBy8Kf8Rjmw=="
   "resolved" "https://registry.npmjs.org/http-proxy-middleware/-/http-proxy-middleware-2.0.6.tgz"
   "version" "2.0.6"
@@ -8787,61 +8787,6 @@
   dependencies:
     "@remix-run/router" "1.0.2"
 
-"react-scripts@^5.0.1":
-  "integrity" "sha512-8VAmEm/ZAwQzJ+GOMLbBsTdDKOpuZh7RPs0UymvBR2vRk4iZWCskjbFnxqjrzoIvlNNRZ3QJFx6/qDSi6zSnaQ=="
-  "resolved" "https://registry.npmjs.org/react-scripts/-/react-scripts-5.0.1.tgz"
-  "version" "5.0.1"
-  dependencies:
-    "@babel/core" "^7.16.0"
-    "@pmmmwh/react-refresh-webpack-plugin" "^0.5.3"
-    "@svgr/webpack" "^5.5.0"
-    "babel-jest" "^27.4.2"
-    "babel-loader" "^8.2.3"
-    "babel-plugin-named-asset-import" "^0.3.8"
-    "babel-preset-react-app" "^10.0.1"
-    "bfj" "^7.0.2"
-    "browserslist" "^4.18.1"
-    "camelcase" "^6.2.1"
-    "case-sensitive-paths-webpack-plugin" "^2.4.0"
-    "css-loader" "^6.5.1"
-    "css-minimizer-webpack-plugin" "^3.2.0"
-    "dotenv" "^10.0.0"
-    "dotenv-expand" "^5.1.0"
-    "eslint" "^8.3.0"
-    "eslint-config-react-app" "^7.0.1"
-    "eslint-webpack-plugin" "^3.1.1"
-    "file-loader" "^6.2.0"
-    "fs-extra" "^10.0.0"
-    "html-webpack-plugin" "^5.5.0"
-    "identity-obj-proxy" "^3.0.0"
-    "jest" "^27.4.3"
-    "jest-resolve" "^27.4.2"
-    "jest-watch-typeahead" "^1.0.0"
-    "mini-css-extract-plugin" "^2.4.5"
-    "postcss" "^8.4.4"
-    "postcss-flexbugs-fixes" "^5.0.2"
-    "postcss-loader" "^6.2.1"
-    "postcss-normalize" "^10.0.1"
-    "postcss-preset-env" "^7.0.1"
-    "prompts" "^2.4.2"
-    "react-app-polyfill" "^3.0.0"
-    "react-dev-utils" "^12.0.1"
-    "react-refresh" "^0.11.0"
-    "resolve" "^1.20.0"
-    "resolve-url-loader" "^4.0.0"
-    "sass-loader" "^12.3.0"
-    "semver" "^7.3.5"
-    "source-map-loader" "^3.0.0"
-    "style-loader" "^3.3.1"
-    "tailwindcss" "^3.0.2"
-    "terser-webpack-plugin" "^5.2.5"
-    "webpack" "^5.64.4"
-    "webpack-dev-server" "^4.6.0"
-    "webpack-manifest-plugin" "^4.0.2"
-    "workbox-webpack-plugin" "^6.4.1"
-  optionalDependencies:
-    "fsevents" "^2.3.2"
-
 "react-spinners@^0.13.8":
   "integrity" "sha512-3e+k56lUkPj0vb5NDXPVFAOkPC//XyhKPJjvcGjyMNPWsBKpplfeyialP74G7H7+It7KzhtET+MvGqbKgAqpZA=="
   "resolved" "https://registry.npmjs.org/react-spinners/-/react-spinners-0.13.8.tgz"
@@ -9312,29 +9257,35 @@
   "resolved" "https://registry.npmjs.org/semver-compare/-/semver-compare-1.0.0.tgz"
   "version" "1.0.0"
 
-"semver@^6.0.0", "semver@^6.1.1", "semver@^6.1.2", "semver@^6.2.0", "semver@^6.3.0":
+"semver@^6.0.0":
   "integrity" "sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw=="
   "resolved" "https://registry.npmjs.org/semver/-/semver-6.3.0.tgz"
   "version" "6.3.0"
 
-"semver@^7.3.2":
-  "integrity" "sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A=="
-  "resolved" "https://registry.npmjs.org/semver/-/semver-7.3.8.tgz"
-  "version" "7.3.8"
-  dependencies:
-    "lru-cache" "^6.0.0"
+"semver@^6.1.1":
+  "integrity" "sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw=="
+  "resolved" "https://registry.npmjs.org/semver/-/semver-6.3.0.tgz"
+  "version" "6.3.0"
 
-"semver@^7.3.5":
+"semver@^6.1.2":
+  "integrity" "sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw=="
+  "resolved" "https://registry.npmjs.org/semver/-/semver-6.3.0.tgz"
+  "version" "6.3.0"
+
+"semver@^6.2.0":
+  "integrity" "sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw=="
+  "resolved" "https://registry.npmjs.org/semver/-/semver-6.3.0.tgz"
+  "version" "6.3.0"
+
+"semver@^6.3.0":
+  "integrity" "sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw=="
+  "resolved" "https://registry.npmjs.org/semver/-/semver-6.3.0.tgz"
+  "version" "6.3.0"
+
+"semver@^7.3.2", "semver@^7.3.5", "semver@^7.3.7":
   "integrity" "sha512-+XC0AD/R7Q2mPSRuy2Id0+CGTZ98+8f+KvwirxOKIEyid+XSx6HbC63p+O4IndTHuX5Z+JxQ0TghCkO5Cg/2HA=="
   "resolved" "https://registry.npmjs.org/semver/-/semver-7.5.0.tgz"
   "version" "7.5.0"
-  dependencies:
-    "lru-cache" "^6.0.0"
-
-"semver@^7.3.7":
-  "integrity" "sha512-NB1ctGL5rlHrPJtFDVIVzTyQylMLu9N9VICA6HSFJo8MCGVTMW6gfpicwKmmK/dAjTOrqu5l63JJOpDSrAis3A=="
-  "resolved" "https://registry.npmjs.org/semver/-/semver-7.3.8.tgz"
-  "version" "7.3.8"
   dependencies:
     "lru-cache" "^6.0.0"
 

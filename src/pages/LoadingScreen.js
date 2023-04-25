@@ -2,6 +2,7 @@
 import React from 'react';
 import { css } from '@emotion/react';
 import ClipLoader from 'react-spinners/ClipLoader';
+import {MoonLoader, PropagateLoader} from "react-spinners";
 
 const override = css`
   display: block;
@@ -12,7 +13,7 @@ const override = css`
 const LoadingScreen = () => {
     return (
         <div style={styles.container}>
-            <ClipLoader color="#123abc" loading={true} css={override} size={150} />
+                <MoonLoader color="#FFA500" loading={true} css={override} size={50} />
         </div>
     );
 };

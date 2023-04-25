@@ -1,5 +1,6 @@
 const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('path');
+const axios = require('axios');
 const isDev = require('electron-is-dev');
 const Store = require('electron-store');
 
@@ -13,10 +14,25 @@ if (isDev) {
 }
 
 ipcMain.handle('setCredentials', async (event, { token, userId, userName }) => {
-    store.set('token', token);
-    store.set('userId', userId);
-    store.set('userName', userName);
+    if (token !== null && token !== undefined) {
+        store.set('token', token);
+    } else {
+        store.delete('token');
+    }
+
+    if (userId !== null && userId !== undefined) {
+        store.set('userId', userId);
+    } else {
+        store.delete('userId');
+    }
+
+    if (userName !== null && userName !== undefined) {
+        store.set('userName', userName);
+    } else {
+        store.delete('userName');
+    }
 });
+
 
 ipcMain.handle('getCredentials', async () => {
     const token = store.get('token');
@@ -25,6 +41,22 @@ ipcMain.handle('getCredentials', async () => {
 
     return { token, userId, userName };
 });
+
+ipcMain.handle('clearCredentials', async () => {
+    store.delete('token');
+    store.delete('userId');
+    store.delete('userName');
+});
+
+ipcMain.handle('logout', async () => {
+    console.log("Logout called in main process");
+    store.delete('token');
+    store.delete('userId');
+    store.delete('userName');
+    return "Logged out";
+});
+
+
 
 function createWindow() {
     const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
@@ -41,9 +73,11 @@ function createWindow() {
         minHeight: 800, // Set minimum height (optional)
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false,
+            contextIsolation: true,
+            preload: path.join(app.getAppPath(), 'public', 'preload.js'),
         },
     });
+    win.webContents.openDevTools();
 
     const url = isDev
         ? 'http://localhost:3000'
