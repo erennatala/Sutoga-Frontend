@@ -14,23 +14,35 @@ import Profile from './pages/Profile';
 import RegisterPage from "./pages/RegisterPage";
 import Games from "./pages/Games";
 import Messages from "./pages/Messages";
+import ProtectedRoute from './pages/ProtectedRoute';
+import LoadingScreen from "./pages/LoadingScreen";
 // ----------------------------------------------------------------------
 
-export default function Router() {
+export default function Router({ isLoading, isAuthenticated }) {
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
   const routes = useRoutes([
     {
       path: '/',
-      element: <DashboardLayout />,
+      element: <DashboardLayout/>,
       children: [
-        { element: <Navigate to="/login" />, index: true },
-        { path: 'app', element: <DashboardAppPage /> },
-        { path: 'user', element: <UserPage /> },
-        { path: 'products', element: <ProductsPage /> },
-        { path: 'blog', element: <BlogPage /> },
-        { path: 'home', element: <Home />},
-        { path: 'profile', element: <Profile />},
-        { path: 'games', element: <Games />},
-        { path: 'messages', element: <Messages />},
+        {
+          element: isAuthenticated ? (
+              <Navigate to="/home" />
+          ) : (
+              <Navigate to="/login" />
+          ),
+          index: true,
+        },
+        { path: 'app', element: <ProtectedRoute><DashboardAppPage /></ProtectedRoute> },
+        { path: 'user', element: <ProtectedRoute><UserPage /></ProtectedRoute> },
+        { path: 'products', element: <ProtectedRoute><ProductsPage /></ProtectedRoute> },
+        { path: 'blog', element: <ProtectedRoute><BlogPage /></ProtectedRoute> },
+        { path: 'home', element: <ProtectedRoute><Home /></ProtectedRoute> },
+        { path: 'profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
+        { path: 'games', element: <ProtectedRoute><Games /></ProtectedRoute> },
+        { path: 'messages', element: <ProtectedRoute><Messages /></ProtectedRoute> },
       ],
     },
     {

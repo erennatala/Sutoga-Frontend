@@ -8,6 +8,8 @@ import React, {useEffect, useState} from "react";
 import { Provider} from "react-redux";
 import {Alert} from "@mui/lab";
 import store from "../store"
+import { useDispatch } from 'react-redux';
+
 
 // components
 import Iconify from '../components/iconify';
@@ -48,6 +50,7 @@ const BASE_URL = process.env.REACT_APP_URL
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [steamId, setSteamId] = useState(null);
   const [open, setOpen] = useState(false);
