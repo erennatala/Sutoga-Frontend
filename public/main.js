@@ -1,7 +1,8 @@
 const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('path');
 const axios = require('axios');
-const isDev = require('electron-is-dev');
+//const isDev = require('electron-is-dev');
+const isDev = app.isPackaged ? false : require('electron-is-dev');
 const Store = require('electron-store');
 
 const store = new Store();
@@ -74,7 +75,9 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: true,
-            preload: path.join(app.getAppPath(), 'public', 'preload.js'),
+            //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
+            //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
+            preload: path.join(__dirname, '..', 'public', 'preload.js'), // setupluda error verdi. macde dev runda çalıştı
         },
     });
     win.webContents.openDevTools();

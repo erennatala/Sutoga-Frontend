@@ -21,6 +21,36 @@
     "electron:start": "wait-on tcp:3000 && electron .",
     "electron-dev": "concurrently \"BROWSER=none npm run start\" \"wait-on http://localhost:3000 && electron .\""
   },
+  "build": {
+    "productName": "Sutoga",
+    "appId": "com.sutoga.app",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico",
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "keremmican",
+          "repo": "sutoga-build",
+          "token": "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"
+        }
+      ]
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "build/main.js"
+    }
+  },
   "eslintConfig": {
     "extends": [
       "react-app"
@@ -136,7 +166,7 @@
     "concurrently": "^8.0.1",
     "cross-env": "^7.0.3",
     "electron": "^19.1.9",
-    "electron-builder": "^23.6.0",
+    "electron-builder": "^22.14.13",
     "electron-is-dev": "^2.0.0",
     "electron-reloader": "^1.2.3",
     "eslint": "8.22.0",
