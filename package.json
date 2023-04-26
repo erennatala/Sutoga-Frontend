@@ -21,6 +21,20 @@
     "electron:start": "wait-on tcp:3000 && electron .",
     "electron-dev": "concurrently \"BROWSER=none npm run start\" \"wait-on http://localhost:3000 && electron .\""
   },
+  "build": {
+    "productName": "Sutoga",
+    "appId": "com.sutoga.app",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": ["nsis", "msi", "zip"]
+    }
+  },
+
   "eslintConfig": {
     "extends": [
       "react-app"
