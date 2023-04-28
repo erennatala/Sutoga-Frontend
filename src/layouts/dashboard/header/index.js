@@ -10,7 +10,7 @@ import Iconify from '../../../components/iconify';
 //
 import AccountPopover from './AccountPopover';
 import NotificationsPopover from './NotificationsPopover';
-import React from "react";
+import React, {useEffect, useState} from "react";
 
 // ----------------------------------------------------------------------
 
@@ -40,19 +40,30 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 
 Header.propTypes = {
     onOpenNav: PropTypes.func,
-    setIsAuthenticated: PropTypes.func,
 };
 
 
-export default function Header({ onOpenNav, isAuthenticated, setIsAuthenticated }) {
-    const userName = useSelector((state) => state.auth.userName);
+export default function Header({ onOpenNav }) {
 
-  return (
+    const [localUsername, setLocalUsername] = useState('');
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const username = await window.electron.ipcRenderer.invoke('getUsername');
+                setLocalUsername(username);
+            } catch (error) {
+                console.log(error);
+            }
+        })();
+    }, []);
+
+    return (
     <StyledRoot>
       <StyledToolbar>
           <Typography variant="h5" color="common.black">Welcome back</Typography>
           <Typography>&nbsp;</Typography>
-          <Typography variant="h5" color="common.black" fontWeight={"bold"}>{userName}</Typography>
+          <Typography variant="h5" color="common.black" fontWeight={"bold"}>{localUsername}</Typography>
           <Typography variant="h5" color="common.black">!</Typography>
 
         <IconButton

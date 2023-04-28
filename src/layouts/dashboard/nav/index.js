@@ -43,6 +43,19 @@ export default function Nav({ openNav, onCloseNav }) {
 
   const [friendRec, setFriendRec] = useState([])
 
+  const [localUsername, setLocalUsername] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const username = await window.electron.ipcRenderer.invoke('getUsername');
+        setLocalUsername(username);
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, []);
+
   useEffect(() => {
     if (openNav) {
       onCloseNav();
@@ -85,19 +98,15 @@ export default function Nav({ openNav, onCloseNav }) {
         <img src="/assets/images/brand/main-logo.png" alt="sidebar-logo"/>
       </Box>
 
-      <Box sx={{ mb: 5, mx: 2.5 }}>
+      <Box sx={{ mb: 5, mx: 1 }}>
         <ButtonBase onClick={routeChange}>
         <Link underline="none">
           <StyledAccount>
             <Avatar src="" alt="photoURL" />
 
-            <Box sx={{ ml: 2 }}>
+            <Box sx={{ pl: 2 }}>
               <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                keremmican
-              </Typography>
-
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                rookie
+                {localUsername}
               </Typography>
             </Box>
           </StyledAccount>

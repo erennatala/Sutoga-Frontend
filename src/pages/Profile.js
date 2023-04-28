@@ -17,12 +17,9 @@ import {
     Tabs, Tab
 } from '@mui/material';
 // components
-import { useSelector} from "react-redux";
-import Iconify from '../components/iconify';
+import {useDispatch, useSelector} from "react-redux";
 import PostCard from "../components/cards/PostCard";
-import FriendRecCard from "../components/cards/FriendRecCard";
 import {TabPanelProps} from "@mui/lab";
-import {useNavigate} from "react-router-dom";
 import GameCard from "../components/cards/GameCard";
 
 
@@ -55,9 +52,23 @@ function a11yProps(index: number) {
 
 export default function Profile() {
     const theme = useTheme();
-    const username = useSelector((state) => state.auth.userName);
     const [toastOpen, setToastOpen] = useState(false);
     const [tab, setTab] = useState(0);
+    const dispatch = useDispatch();
+    const [username, setUsername] = useState('');
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const username = await window.electron.ipcRenderer.invoke('getUsername');
+                setUsername(username);
+            } catch (error) {
+                console.log(error);
+            }
+        })();
+    }, []);
+
+
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTab(newValue);
@@ -85,7 +96,7 @@ export default function Profile() {
             </Snackbar>
 
                 <Grid container columns={16}>
-                    <Grid xs={12}>
+                    <Grid xs={16}>
                         <Card sx={{height: "300px"}}>
                             <CardContent>
                                 <Stack direction="row" spacing={8}>
@@ -95,7 +106,7 @@ export default function Profile() {
 
                                     <Grid direction="column" sx={{paddingY: 6}} xs={6}>
                                         <Typography variant="h3" sx={{fontWeight: "bold"}} gutterBottom>
-                                            Keremmican
+                                            {username}
                                         </Typography>
 
                                         <Typography flexWrap variant="h7" gutterBottom>
@@ -178,7 +189,7 @@ export default function Profile() {
                 </Grid>
 
                 <Grid container columns={16}>
-                    <Grid xs={12}>
+                    <Grid xs={16}>
                         <Card sx={{mt: 1}}>
                             <Box sx={{ width: '100%' }}>
                                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -226,21 +237,6 @@ export default function Profile() {
                                 </TabPanel>
                             </Box>
                         </Card>
-                    </Grid>
-
-                    <Grid xs={4}>
-                        <CardContent>
-                            <Grid>
-                                <Container columns={4} xs={4} sx={{position: "fixed", height: "400px"}}>
-                                    <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
-                                        <FriendRecCard nickname="farukkislakci" title="çaylak"/>
-                                        <FriendRecCard nickname="deagleahmet" title="nişancı"/>
-                                        <FriendRecCard nickname="lalenur" title="dropcu"/>
-                                    </Grid>
-                                    <Button variant="text">See more like this</Button>
-                                </Container>
-                            </Grid>
-                        </CardContent>
                     </Grid>
                 </Grid>
         </>
