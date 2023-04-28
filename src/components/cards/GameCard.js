@@ -12,7 +12,7 @@ export default function GameCard(props) {
 
     return(
         <Container sx={{py: 2}}>
-            <Card sx={{width: 400}}>
+            <Card sx={{width: 300}}>
                 <Grid container direction={"column"}>
                     <Grid item style={{height: '%100'}}>
                         <Box

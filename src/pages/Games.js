@@ -55,7 +55,7 @@ export default function Games() {
 
                 <Grid item>
                     <Card>
-                        <Box sx={{ maxWidth: 600, flexGrow: 1 }}>
+                        <Box sx={{ maxWidth: 500, flexGrow: 1 }}>
                             <Paper
                                 square
                                 elevation={0}

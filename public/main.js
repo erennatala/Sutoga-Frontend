@@ -14,7 +14,18 @@ if (isDev) {
     });
 }
 
-ipcMain.handle('setCredentials', async (event, { token, userId, userName }) => {
+ipcMain.handle('getStore', () => {
+    // Return the Electron store instance to the renderer process
+    return store;
+});
+
+ipcMain.handle('getUsername', () => {
+    // Return only the username from the Electron store instance
+    return store.get('username');
+});
+
+
+ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
     if (token !== null && token !== undefined) {
         store.set('token', token);
     } else {
@@ -27,10 +38,10 @@ ipcMain.handle('setCredentials', async (event, { token, userId, userName }) => {
         store.delete('userId');
     }
 
-    if (userName !== null && userName !== undefined) {
-        store.set('userName', userName);
+    if (username !== null && username !== undefined) {
+        store.set('username', username);
     } else {
-        store.delete('userName');
+        store.delete('username');
     }
 });
 
@@ -38,7 +49,7 @@ ipcMain.handle('setCredentials', async (event, { token, userId, userName }) => {
 ipcMain.handle('getCredentials', async () => {
     const token = store.get('token');
     const userId = store.get('userId');
-    const userName = store.get('userName');
+    const userName = store.get('username');
 
     return { token, userId, userName };
 });
@@ -46,14 +57,14 @@ ipcMain.handle('getCredentials', async () => {
 ipcMain.handle('clearCredentials', async () => {
     store.delete('token');
     store.delete('userId');
-    store.delete('userName');
+    store.delete('username');
 });
 
 ipcMain.handle('logout', async () => {
     console.log("Logout called in main process");
     store.delete('token');
     store.delete('userId');
-    store.delete('userName');
+    store.delete('username');
     return "Logged out";
 });
 

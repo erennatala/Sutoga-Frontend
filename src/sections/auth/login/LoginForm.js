@@ -16,7 +16,7 @@ const { ipcRenderer } = window.electron;
 export default function LoginForm(props) {
   const navigate = useNavigate();
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -25,15 +25,15 @@ export default function LoginForm(props) {
     const handleClick = async () => {
         try {
             const response = await axios.post(`${BASE_URL}auth/login`, {
-                email: username,
+                email: email,
                 password: password,
             });
             const responseBody = response.data; // get response body
-            const { token, userId, userName } = responseBody;
+            const { token, userId, username } = responseBody;
 
             const credentials = {
                 userId,
-                userName,
+                username,
             };
 
             if (token) {
@@ -44,7 +44,7 @@ export default function LoginForm(props) {
 
             dispatch(setAuthenticated(true));
             dispatch(setToken(token));
-            dispatch(setUserName(userName)); // Add this line
+            dispatch(setUserName(username)); // Add this line
             navigate('/home', { replace: true });
         } catch (err) {
             props.onError();
@@ -65,7 +65,7 @@ export default function LoginForm(props) {
     <>
       <Stack spacing={3}>
           {/* eslint-disable-next-line react/jsx-no-bind */}
-        <TextField name="Email" label="Email" onChange={(e) => setUsername(e.target.value)} ref={ref} onKeyUp={handleKeyUp}/>
+        <TextField name="Email" label="Email" onChange={(e) => setEmail(e.target.value)} ref={ref} onKeyUp={handleKeyUp}/>
 
         <TextField
           name="password"
