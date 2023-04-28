@@ -77,7 +77,7 @@ function createWindow() {
             contextIsolation: true,
             //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
             //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
-            preload: path.join(__dirname, '..', 'public', 'preload.js'), // setupluda error verdi. macde dev runda çalıştı
+            preload: path.join(__dirname, 'preload.js')
         },
     });
     win.webContents.openDevTools();
