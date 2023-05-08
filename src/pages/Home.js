@@ -8,14 +8,14 @@ import {
     Stack,
     Button,
     TextField,
-    ClickAwayListener, Collapse, InputAdornment, IconButton
+    ClickAwayListener, Collapse, InputAdornment, IconButton, Box, Card
 } from '@mui/material';
 // components
 import {useSelector} from "react-redux";
 import axios from "axios";
 import Iconify from '../components/iconify';
 import PostCard from "../components/cards/PostCard";
-import FriendRecCard from "../components/cards/FriendRecCard";
+import { LinearProgress } from '@mui/material';
 
 const BASE_URL = process.env.REACT_APP_URL
 
@@ -31,9 +31,12 @@ export default function Home() {
     const [isInputOpen, setIsInputOpen] = useState(false);
     const [canSend, setCanSend] = useState(false);
 
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [mediaPreview, setMediaPreview] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState(0);
+
     const [postLabel, setPostLabel] = useState("What's happening?")
     const [postText, setPostText] = useState("");
-    const friendData = [0,0,0]
 
     const [windowSize, setWindowSize] = useState(getWindowSize());
 
@@ -58,8 +61,67 @@ export default function Home() {
         return {innerWidth, innerHeight};
     }
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file.size <= 15 * 1024 * 1024) { // Limit file size to 15MB
+            setSelectedFile(file);
+        } else {
+            alert("File size must be less than 15MB.");
+        }
+    };
+
+    const openFileDialog = async () => {
+        try {
+            const options = {
+                properties: ['openFile'],
+                filters: [
+                    { name: 'Images', extensions: ['jpg', 'png', 'gif'] },
+                    { name: 'All Files', extensions: ['*'] },
+                ],
+            };
+            const filePaths = await window.electron.ipcRenderer.invoke('open-file-dialog', options);
+            console.log(filePaths);
+            if (filePaths && filePaths[0]) {
+                const fileData = await window.electron.ipcRenderer.invoke('get-file-data', filePaths[0]);
+                const file = new File([new Blob([fileData])], filePaths[0].split('/').pop(), {
+                    type: 'image/jpeg',
+                });
+                setSelectedFile(file);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setMediaPreview(reader.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const uploadFile = async (file) => {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadUrl = `${BASE_URL}/upload`;
+
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (event) => {
+                    const progress = Math.round((event.loaded / event.total) * 100);
+                    setUploadProgress(progress);
+                },
+            };
+
+            const response = await axios.post(uploadUrl, formData, config);
+            console.log(response.data);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     const handleClickCreate = () => {
-        setRow(4)
+        setRow(3)
         setCollapse(false)
         setCollapse(true)
         setOpenCreate(true);
@@ -85,8 +147,24 @@ export default function Home() {
     }
 
     const handlePost = () => {
+        simulateUpload();
+    };
 
-    }
+    const simulateUpload = () => {
+        let progress = 0;
+        setUploadProgress(progress);
+
+        const interval = setInterval(() => {
+            progress += 10;
+            setUploadProgress(progress);
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                setUploadProgress(null);
+            }
+        }, 500);
+    };
+
 
     const getFriendRecs = async () => {
         try {
@@ -117,13 +195,40 @@ export default function Home() {
                         <ClickAwayListener onClickAway={handleClickAway}>
                             <Grid item sx={{pb: 1}}>
                                 <Collapse in={collapse} collapsedSize={100}>
+                                    <Box display="flex" alignItems="center">
                                     <TextField
-                                        InputLabelProps={{shrink: false}}
+                                        InputLabelProps={{
+                                            shrink: false,
+                                            style: {
+                                                fontSize: "1.15rem",
+                                                fontWeight: 500,
+                                                marginLeft: "22px",
+                                                marginTop: "13px"
+                                            },
+                                        }}
+                                        inputProps={{maxLength: 250}}
                                         hiddenLabel={hideLabel}
                                         name="create_field"
                                         label={postLabel}
                                         onClick={handleClickCreate}
-                                        sx={{minWidth: 700}}
+                                        sx={{
+                                            ...{
+                                                borderRadius: "1.5rem",
+                                                backgroundColor: alpha("#e8d5b7", 0.1),
+                                                minWidth: 800
+                                            },
+                                            "& .MuiInputBase-root": {
+                                                borderRadius: "1.5rem",
+                                            },
+                                            "& .MuiInputBase-input": {
+                                                paddingTop: theme.spacing(2),
+                                                paddingBottom: theme.spacing(2),
+                                                paddingLeft: theme.spacing(3),
+                                                paddingRight: theme.spacing(3),
+                                                fontSize: "1.1rem",
+                                                fontWeight: 400,
+                                            },
+                                        }}
                                         multiline focused={false} rows={row} fullWidth
                                         onChange={(e) => {
                                             setPostText(e.target.value)
@@ -133,17 +238,37 @@ export default function Home() {
                                         endAdornment: (
                                             <>
                                                 {isInputOpen ? (
-                                                    <Grid container xs={1} direction={"column"}>
-                                                        <IconButton edge="end" color="black">
-                                                            <Iconify icon={"material-symbols:broken-image-outline"} />
-                                                        </IconButton>
-                                                        <IconButton edge="end" color={canSend ? ("primary") : ("black")} disabled={!canSend} onClick={handlePost}>
-                                                            <Iconify icon={canSend ? ("material-symbols:arrow-circle-right") : ("material-symbols:arrow-circle-right-outline")} />
-                                                        </IconButton>
-                                                    </Grid>
+                                                    <Stack direction="row">
+                                                        <Grid>
+                                                            {mediaPreview && (
+                                                                <Box mr={1}>
+                                                                    <Card>
+                                                                        <img
+                                                                            src={mediaPreview}
+                                                                            alt="Media preview"
+                                                                            style={{ maxWidth: '100px', maxHeight: '100px', pt: 4 }}
+                                                                        />
+                                                                        {uploadProgress > 0 && uploadProgress < 100 && (
+                                                                            <div>
+                                                                                <LinearProgress variant="determinate" value={uploadProgress} />
+                                                                            </div>
+                                                                        )}
+                                                                    </Card>
+                                                                </Box>
+                                                            )}
+                                                        </Grid>
+                                                        <Grid container xs={1} direction={"column"}>
+                                                            <IconButton edge="end" color="black" onClick={openFileDialog}>
+                                                                <Iconify icon={"material-symbols:broken-image-outline"} />
+                                                            </IconButton>
+                                                            <IconButton edge="end" color={canSend ? ("primary") : ("black")} disabled={!canSend} onClick={handlePost}>
+                                                                <Iconify icon={canSend ? ("material-symbols:arrow-circle-right") : ("material-symbols:arrow-circle-right-outline")} />
+                                                            </IconButton>
+                                                        </Grid>
+                                                    </Stack>
                                                 ) : (
                                                     <InputAdornment position={"end"}>
-                                                        <IconButton edge="end" color="black">
+                                                        <IconButton edge="end" color="black" onClick={openFileDialog}>
                                                             <Iconify icon={"material-symbols:broken-image-outline"} />
                                                         </IconButton>
                                                     </InputAdornment>
@@ -151,7 +276,21 @@ export default function Home() {
                                             </>
                                         ),
                                     }}
-                                    />
+                                    >
+                                        {uploadProgress !== null && (
+                                            <LinearProgress
+                                                variant="determinate"
+                                                value={uploadProgress}
+                                                sx={{
+                                                    position: 'absolute',
+                                                    bottom: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                }}
+                                            />
+                                        )}
+                                    </TextField>
+                                    </Box>
                                 </Collapse>
                             </Grid>
                         </ClickAwayListener>

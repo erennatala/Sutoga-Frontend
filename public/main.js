@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, dialog } = require('electron');
 const path = require('path');
 const axios = require('axios');
 //const isDev = require('electron-is-dev');
@@ -6,6 +6,12 @@ const isDev = app.isPackaged ? false : require('electron-is-dev');
 const Store = require('electron-store');
 
 const store = new Store();
+const fs = require('fs');
+
+ipcMain.handle('get-file-data', async (event, filePath) => {
+    const data = fs.readFileSync(filePath);
+    return data;
+});
 
 if (isDev) {
     // eslint-disable-next-line global-require
@@ -13,6 +19,11 @@ if (isDev) {
         watchRenderer: true,
     });
 }
+
+ipcMain.handle('open-file-dialog', async (event, options) => {
+    const result = await dialog.showOpenDialog(options);
+    return result.filePaths;
+});
 
 ipcMain.handle('getStore', () => {
     // Return the Electron store instance to the renderer process
