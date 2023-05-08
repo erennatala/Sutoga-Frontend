@@ -104,8 +104,17 @@ export default function Nav({ openNav, onCloseNav }) {
           <StyledAccount>
             <Avatar src="" alt="photoURL" />
 
-            <Box sx={{ pl: 2 }}>
-              <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
+            <Box sx={{ pl: 1.5 }}>
+              <Typography variant="subtitle2" sx={{
+                color: 'text.primary',
+                fontSize: '1rem', // default font size
+                '@media (min-width: 600px)': {
+                  fontSize: '0.9rem', // font size for screen widths >= 600px
+                },
+                '@media (min-width: 1500px)': {
+                  fontSize: '0.9rem', // font size for screen widths >= 960px
+                }
+              }}>
                 {localUsername}
               </Typography>
             </Box>
