@@ -35,6 +35,15 @@ ipcMain.handle('getUsername', () => {
     return store.get('username');
 });
 
+ipcMain.handle('getId', () => {
+    // Return only the username from the Electron store instance
+    return store.get('userId');
+});
+
+ipcMain.handle('getToken', () => {
+    // Return only the username from the Electron store instance
+    return store.get('token');
+});
 
 ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
     if (token !== null && token !== undefined) {
@@ -99,7 +108,8 @@ function createWindow() {
             contextIsolation: true,
             //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
             //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            webSecurity: false
         },
     });
     win.webContents.openDevTools();

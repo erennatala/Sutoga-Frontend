@@ -1,8 +1,7 @@
 import {Avatar, Box, ButtonBase, Card, Container, Grid, Link, Stack, Typography} from "@mui/material";
 import {styled} from "@mui/material/styles";
 import React from "react";
-
-
+import {useNavigate} from "react-router-dom";
 
 const StyledAccount = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -11,10 +10,15 @@ const StyledAccount = styled('div')(({ theme }) => ({
 }));
 
 export default function PostCardLeft(props) {
+    const navigate = useNavigate();
+
+    const handlePostClick = () => {
+        navigate(`/post/${props.postId}`);
+    };
 
     return(
         <Container sx={{ml: 2}}>
-            <Card>
+            <Card onClick={handlePostClick}>
                 <Grid item container direction={"column"}>
                     <Grid item>
                         <Box>
@@ -26,9 +30,11 @@ export default function PostCardLeft(props) {
                                         <Grid>
                                             <Box sx={{ ml: 2}} onClick={(e) => console.log(e)}>
                                                 <Stack direction={"row"}>
-                                                    <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                                                        keremmican
-                                                    </Typography>
+                                                    <Link underline="none" onClick={(e) => console.log(e)}>
+                                                        <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
+                                                            {props.username}
+                                                        </Typography>
+                                                    </Link>
 
                                                     <Typography>
                                                         &nbsp;
@@ -57,22 +63,31 @@ export default function PostCardLeft(props) {
                     </Grid>
 
                     <Grid item style={{height: '%100'}}>
-                        <Box
-                            component="img"
-                            // sx={{
-                            //     height: 233,
-                            //     width: 350,
-                            //     maxHeight: { xs: 233, md: 167 },
-                            //     maxWidth: { xs: 350, md: 250 },
-                            // }}
-                            sx={{ml: 2,
-                                mb: 2,
-                                borderRadius: 2,
-                                maxHeight: { xs: 233, md: 340 }
-                            }}
-                            alt="x"
-                            src= {props.img}
-                        />
+                        {props.img ? (
+                            <Box
+                                component="img"
+                                sx={{
+                                    ml: 2,
+                                    mb: 2,
+                                    borderRadius: 2,
+                                    width: '96%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                }}
+                                alt="x"
+                                src={props.img}
+                            />) : (
+                            <Typography variant={props.img ? "subtitle2" : "h6"} sx={{ color: 'text.primary', ml: 2, mb:2 }}>
+                                selamun aleyküm gençler
+                            </Typography>
+                        )
+                        }
+                    </Grid>
+
+                    <Grid item>
+                        <Typography sx={{ color: 'text.primary', ml: 2, mb:2, fontSize: 14 }} variant="subtitle1">
+                            20.31.10 17:30
+                        </Typography>
                     </Grid>
                 </Grid>
             </Card>
