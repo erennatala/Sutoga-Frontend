@@ -16,6 +16,7 @@ import axios from "axios";
 import Iconify from '../components/iconify';
 import PostCard from "../components/cards/PostCard";
 import { LinearProgress } from '@mui/material';
+import PostCardLeft from "../components/cards/PostCardLeft";
 
 const BASE_URL = process.env.REACT_APP_URL
 
@@ -34,15 +35,26 @@ export default function Home() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [mediaPreview, setMediaPreview] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [fileType, setFileType] = useState('image/jpeg');
 
     const [postLabel, setPostLabel] = useState("What's happening?")
     const [postText, setPostText] = useState("");
 
     const [windowSize, setWindowSize] = useState(getWindowSize());
 
+    const [userId, setUserId] = useState(null)
+
     useEffect(() => {
-        getFriendRecs()
-    }, [])
+        (async () => {
+            try {
+                const id = await window.electron.ipcRenderer.invoke('getId');
+                setUserId(id);
+                console.log(id)
+            } catch (error) {
+                console.log(error);
+            }
+        })();
+    }, []);
 
     useEffect(() => {
         function handleWindowResize() {
@@ -76,6 +88,7 @@ export default function Home() {
                 properties: ['openFile'],
                 filters: [
                     { name: 'Images', extensions: ['jpg', 'png', 'gif'] },
+                    { name: 'Videos', extensions: ['mp4', 'mov', 'avi'] },
                     { name: 'All Files', extensions: ['*'] },
                 ],
             };
@@ -83,8 +96,18 @@ export default function Home() {
             console.log(filePaths);
             if (filePaths && filePaths[0]) {
                 const fileData = await window.electron.ipcRenderer.invoke('get-file-data', filePaths[0]);
+
+                let fileType = 'image/jpeg';
+                const extension = filePaths[0].split('.').pop().toLowerCase();
+
+                if (extension === 'mp4' || extension === 'mov' || extension === 'avi') {
+                    fileType = 'video/' + extension;
+                }
+
+                setFileType(fileType);
+
                 const file = new File([new Blob([fileData])], filePaths[0].split('/').pop(), {
-                    type: 'image/jpeg',
+                    type: fileType,
                 });
                 setSelectedFile(file);
                 const reader = new FileReader();
@@ -98,27 +121,39 @@ export default function Home() {
         }
     };
 
-    const uploadFile = async (file) => {
+    const createPost = async (postText, userId, media) => {
         try {
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('description', postText);
+            formData.append('userId', userId);
 
-            const uploadUrl = `${BASE_URL}/upload`;
+            if(media) {
+                formData.append('media', media);
+            }
+
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+
+            const postUrl = `${BASE_URL}posts/create`;
 
             const config = {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                onUploadProgress: (event) => {
-                    const progress = Math.round((event.loaded / event.total) * 100);
-                    setUploadProgress(progress);
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `${token}`
                 },
             };
 
-            const response = await axios.post(uploadUrl, formData, config);
+            const response = await axios.post(postUrl, formData, config);
             console.log(response.data);
         } catch (error) {
             console.log(error);
         }
     };
+
+    const removeSelectedFile = () => {
+        setSelectedFile(null);
+        setMediaPreview(null);
+    };
+
 
     const handleClickCreate = () => {
         setRow(3)
@@ -148,6 +183,7 @@ export default function Home() {
 
     const handlePost = () => {
         simulateUpload();
+        createPost(postText, userId, selectedFile);
     };
 
     const simulateUpload = () => {
@@ -164,23 +200,6 @@ export default function Home() {
             }
         }, 500);
     };
-
-
-    const getFriendRecs = async () => {
-        try {
-            const recresponse = axios.get(`${BASE_URL  }users/getFriendRecommendations?userId=${  19}`)
-
-            // eslint-disable-next-line no-unused-vars
-            let data;
-            await recresponse.then((result) => {
-                // eslint-disable-next-line no-return-assign,prefer-destructuring
-                return data = result.data;
-            })
-            setFriendRec(data)
-        } catch (e) {
-            console.log(e)
-        }
-    }
 
     return(
         <>
@@ -234,48 +253,61 @@ export default function Home() {
                                             setPostText(e.target.value)
                                             handleWrite(e.target.value)
                                         }}
+                                        // In TextField's InputProps
                                         InputProps={{
-                                        endAdornment: (
-                                            <>
-                                                {isInputOpen ? (
-                                                    <Stack direction="row">
-                                                        <Grid>
-                                                            {mediaPreview && (
-                                                                <Box mr={1}>
-                                                                    <Card>
-                                                                        <img
-                                                                            src={mediaPreview}
-                                                                            alt="Media preview"
-                                                                            style={{ maxWidth: '100px', maxHeight: '100px', pt: 4 }}
-                                                                        />
+                                            endAdornment: (
+                                                <>
+                                                    {isInputOpen ? (
+                                                        <Stack direction="row">
+                                                            <Grid>
+                                                                {mediaPreview && (
+                                                                    <Box mr={1}>
+                                                                        {fileType.startsWith('image/') ? (
+                                                                            <img
+                                                                                src={mediaPreview}
+                                                                                alt="Media preview"
+                                                                                style={{ maxWidth: '100px', maxHeight: '100px', pt: 4 }}
+                                                                            />
+                                                                        ) : (
+                                                                            <video
+                                                                                src={mediaPreview}
+                                                                                alt="Media preview"
+                                                                                style={{ maxWidth: '100px', maxHeight: '100px', pt: 4 }}
+                                                                                controls
+                                                                            />
+                                                                        )}
                                                                         {uploadProgress > 0 && uploadProgress < 100 && (
                                                                             <div>
                                                                                 <LinearProgress variant="determinate" value={uploadProgress} />
                                                                             </div>
                                                                         )}
-                                                                    </Card>
-                                                                </Box>
-                                                            )}
-                                                        </Grid>
-                                                        <Grid container xs={1} direction={"column"}>
+                                                                    </Box>
+                                                                )}
+                                                            </Grid>
+                                                            <Grid container xs={1} direction={"column"}>
+                                                                <IconButton edge="end" color="black" onClick={openFileDialog}>
+                                                                    <Iconify icon={"material-symbols:broken-image-outline"} />
+                                                                </IconButton>
+                                                                {selectedFile && (
+                                                                    <IconButton edge="end" color="black" onClick={removeSelectedFile}>
+                                                                        <Iconify icon={"material-symbols:close"} />
+                                                                    </IconButton>
+                                                                )}
+                                                                <IconButton edge="end" color={canSend ? ("primary") : ("black")} disabled={!canSend} onClick={handlePost}>
+                                                                    <Iconify icon={canSend ? ("material-symbols:arrow-circle-right") : ("material-symbols:arrow-circle-right-outline")} />
+                                                                </IconButton>
+                                                            </Grid>
+                                                        </Stack>
+                                                    ) : (
+                                                        <InputAdornment position={"end"}>
                                                             <IconButton edge="end" color="black" onClick={openFileDialog}>
                                                                 <Iconify icon={"material-symbols:broken-image-outline"} />
                                                             </IconButton>
-                                                            <IconButton edge="end" color={canSend ? ("primary") : ("black")} disabled={!canSend} onClick={handlePost}>
-                                                                <Iconify icon={canSend ? ("material-symbols:arrow-circle-right") : ("material-symbols:arrow-circle-right-outline")} />
-                                                            </IconButton>
-                                                        </Grid>
-                                                    </Stack>
-                                                ) : (
-                                                    <InputAdornment position={"end"}>
-                                                        <IconButton edge="end" color="black" onClick={openFileDialog}>
-                                                            <Iconify icon={"material-symbols:broken-image-outline"} />
-                                                        </IconButton>
-                                                    </InputAdornment>
+                                                        </InputAdornment>
                                                     )}
-                                            </>
-                                        ),
-                                    }}
+                                                </>
+                                            ),
+                                        }}
                                     >
                                         {uploadProgress !== null && (
                                             <LinearProgress
@@ -296,9 +328,10 @@ export default function Home() {
                         </ClickAwayListener>
 
                         <Grid item spacing={2}>
-                            <PostCard img="https://i.ytimg.com/vi/WSwUSIfgA4M/maxresdefault.jpg"/>
+                            <PostCard username={"keremmican"} />
                             <PostCard img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
                             <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
+                            <PostCardLeft img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" postId={3} />
                         </Grid>
                     </Grid>
                 </Stack>

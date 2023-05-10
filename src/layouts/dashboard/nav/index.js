@@ -16,7 +16,7 @@ import FriendRecCard from "../../../components/cards/FriendRecCard";
 
 // ----------------------------------------------------------------------
 
-const NAV_WIDTH = 220;
+const NAV_WIDTH = 270;
 const BASE_URL = process.env.REACT_APP_URL
 const { electron } = window;
 
@@ -44,6 +44,7 @@ export default function Nav({ openNav, onCloseNav }) {
   const [friendRec, setFriendRec] = useState([])
 
   const [localUsername, setLocalUsername] = useState('');
+  const [userId, setUserId] = useState(null)
 
   useEffect(() => {
     (async () => {
@@ -57,28 +58,40 @@ export default function Nav({ openNav, onCloseNav }) {
   }, []);
 
   useEffect(() => {
+    if(userId) getFriendRecs() // This will run only if userId is truthy
+  }, [userId])
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const id = await window.electron.ipcRenderer.invoke('getId');
+        setUserId(id);
+        console.log(id)
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     if (openNav) {
       onCloseNav();
     }
   }, [pathname]);
 
-  useEffect(() => {
-    getFriendRecs()
-  }, [])
-
   const getFriendRecs = async () => {
     try {
-      //const recresponse = axios.get(`${BASE_URL  }users/getFriendRecommendations?userId=${  19}`)
-      const recresponse = axios.get(`/users/getFriendRecommendations?userId=${19}`);
-      // eslint-disable-next-line no-unused-vars
-      let data;
-      await recresponse.then((result) => {
-        // eslint-disable-next-line no-return-assign,prefer-destructuring
-        return data = result.data;
-      })
-      setFriendRec(data)
+      const token = await window.electron.ipcRenderer.invoke('getToken');
+      console.log(token)
+      const recresponse = await axios.get(`${BASE_URL}users/getFriendRecommendations?userId=${userId}`, {
+        headers: {
+          'Authorization': `${token}`
+        }
+      });
+
+      setFriendRec(recresponse.data);
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
   }
 
@@ -128,13 +141,13 @@ export default function Nav({ openNav, onCloseNav }) {
       <Box sx={{ flexGrow: 0.1 }} />
 
       <Box>
-        <Grid xs={4} sx={{mr: 3}}>
-          <Container columns={4} sx={{position: "fixed", height: "400px"}}>
-            <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
+        <Grid xs={12}>
+          <Container columns={12} sx={{height: "400px"}}>
+            <Grid xs={12} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
 
-              {friendRec.map((user, index) => <React.Fragment key={index}>
+              {friendRec.map((user, index) => <div key={index}>
                 <FriendRecCard nickname={user} />
-              </React.Fragment>)}
+              </div>)}
             </Grid>
             <Button variant="text">See more like this</Button>
           </Container>

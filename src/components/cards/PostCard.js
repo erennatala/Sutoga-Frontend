@@ -24,7 +24,7 @@ export default function PostCard(props) {
             <Stack direction={"row"}>
                 <Grid container columns={16}>
                     <Grid item xs={10}>
-                        <PostCardLeft img="https://i.ytimg.com/vi/WSwUSIfgA4M/maxresdefault.jpg"/>
+                        <PostCardLeft username={props.username} img={props.img}/>
                     </Grid>
 
                     <Grid item xs={6}>
