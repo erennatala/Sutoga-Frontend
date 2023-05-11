@@ -103,6 +103,7 @@
     "date-fns": "^2.29.3",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
+    "electron-main-fetch": "^1.0.0",
     "electron-store": "^8.1.0",
     "eslint": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",

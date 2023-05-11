@@ -4,11 +4,65 @@ const axios = require('axios');
 //const isDev = require('electron-is-dev');
 const isDev = app.isPackaged ? false : require('electron-is-dev');
 const Store = require('electron-store');
+const express = require('express');
+const passport = require('passport');
+const SteamStrategy = require('passport-steam').Strategy;
+const session = require('express-session');
+const { URL } = require('url');
 
 const store = new Store();
 const fs = require('fs');
 
 let win;
+
+const BASE_URL = process.env.REACT_APP_URL
+
+const steamAuthApp = express();
+steamAuthApp.use(session({
+    secret: '4D3BE17D82F44DE7727A8287A7F0F869',  // Replace 'your_secret_key' with your actual secret key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }  // Set this to true if you're using HTTPS
+}));
+steamAuthApp.use(passport.initialize());
+steamAuthApp.use(passport.session());
+
+passport.use(new SteamStrategy({
+            returnURL: 'http://localhost:3001/auth/steam/return',
+            realm: 'http://localhost:3001/',
+            apiKey: '4D3BE17D82F44DE7727A8287A7F0F869'
+        },
+        (identifier, profile, done) => {
+            profile.identifier = identifier;
+            return done(null, profile);
+        })
+);
+
+steamAuthApp.get('/auth/steam', passport.authenticate('steam'));
+
+steamAuthApp.get('/auth/steam/return',
+    passport.authenticate('steam', { failureRedirect: '/login' }),
+    (req, res) => {
+        const { _json: { steamid } } = req.user;
+        // res.redirect(`http://localhost:3001/?steamid=${steamid}`);
+        res.redirect(`http://localhost:3000/register?steamid=${steamid}`);
+    });
+
+steamAuthApp.listen(3001);
+
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+    done(null, user);
+});
+
+
+ipcMain.handle('getSteamId', () => {
+    // Return the steamId from the Electron store instance
+    return store.get('steamid');
+});
 
 ipcMain.handle('get-file-data', async (event, filePath) => {
     const data = fs.readFileSync(filePath);
@@ -114,10 +168,23 @@ function createWindow() {
             //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
             //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
             preload: path.join(__dirname, 'preload.js'),
-            webSecurity: false
+            webSecurity: false,
+            nodeIntegrationInWorker: true
         },
     });
-    win.webContents.openDevTools();
+
+    win.webContents.on('will-navigate', (event, url) => {
+        const urlObj = new URL(url);
+        const steamid = urlObj.searchParams.get('steamid');
+        if (steamid) {
+            // Save steamid in the Electron store
+            store.set('steamid', steamid);
+            // Prevent the actual navigation
+            event.preventDefault();
+            // Load the app page without the query parameter
+            win.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
+        }
+    });
 
     const url = isDev
         ? 'http://localhost:3000'
@@ -127,7 +194,14 @@ function createWindow() {
         win.webContents.send('window-resize', win.getSize());
     });
 
-    win.loadURL(url);
+    if (!win.isDestroyed()) {
+        win.loadURL(url);
+    }
+
+    win.webContents.on('did-finish-load', () => {
+        win.webContents.openDevTools();
+    });
+
 }
 
 app.whenReady().then(createWindow);

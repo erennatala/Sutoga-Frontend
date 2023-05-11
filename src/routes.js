@@ -54,6 +54,13 @@ export default function Router({ isLoading, isAuthenticated }) {
     {
       path: 'register',
       element: <RegisterPage />,
+      children: [
+        {
+          element: isAuthenticated && (
+              <Navigate to="/home" />
+          ),
+          index: true,
+    },],
     },
     {
       element: <SimpleLayout />,
