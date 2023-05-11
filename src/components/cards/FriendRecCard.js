@@ -1,7 +1,11 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { Grid, Box, Avatar, IconButton, Link, ButtonBase } from '@mui/material';
 import { styled } from "@mui/material/styles";
 import AddIcon from '@mui/icons-material/Add';
+import DoneIcon from '@mui/icons-material/Done';
+import axios from "axios";
+
+const BASE_URL = process.env.REACT_APP_URL
 
 export default function FriendRecCard({ nickname }) {
     const StyledAccount = styled('div')(({ theme }) => ({
@@ -11,8 +15,28 @@ export default function FriendRecCard({ nickname }) {
         width: '100%',
     }));
 
-    const handleAdd = () => {
-        // Handle the Add action here
+    const [isSent, setIsSent] = useState(false);
+
+    const handleAdd = async () => {
+        try {
+            const id = await window.electron.ipcRenderer.invoke('getId');
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+
+            const formData = new FormData();
+            formData.append('senderId', id);
+            formData.append('receiverUsername', nickname);
+
+            //const response = await axios.post( `${BASE_URL}users/sendFriendRequest?senderId=${id}&receiverUsername=${nickname}`
+            const response = await axios.post( `${BASE_URL}users/sendFriendRequest`, formData, {
+                headers: {
+                    'Authorization': `${token}`
+                }
+            });
+
+            setIsSent(response)
+        } catch (err) {
+
+        }
     }
 
     return (
@@ -34,9 +58,13 @@ export default function FriendRecCard({ nickname }) {
                 </Grid>
                 <Grid item xs={3}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <IconButton size="small" onClick={handleAdd}>
+                        {!isSent ? (<IconButton size="small" onClick={handleAdd}>
                             <AddIcon />
-                        </IconButton>
+                        </IconButton>) : (
+                            <IconButton size="small">
+                                <DoneIcon />
+                            </IconButton>
+                        )}
                     </Box>
                 </Grid>
             </Grid>

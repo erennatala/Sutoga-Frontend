@@ -8,6 +8,8 @@ const Store = require('electron-store');
 const store = new Store();
 const fs = require('fs');
 
+let win;
+
 ipcMain.handle('get-file-data', async (event, filePath) => {
     const data = fs.readFileSync(filePath);
     return data;
@@ -88,6 +90,9 @@ ipcMain.handle('logout', async () => {
     return "Logged out";
 });
 
+ipcMain.handle('get-window-size', (event) => {
+    return win.getSize();
+});
 
 
 function createWindow() {
@@ -98,7 +103,7 @@ function createWindow() {
     const windowHeight = Math.round(screenHeight * 0.8); // Set height to 80% of the screen height
 
 
-    const win = new BrowserWindow({
+    win = new BrowserWindow({
         width: windowWidth,
         height: windowHeight, // Adjust height as needed
         minWidth: 1300, // Set minimum width (optional)
@@ -117,6 +122,10 @@ function createWindow() {
     const url = isDev
         ? 'http://localhost:3000'
         : `file://${path.join(__dirname, '../build/index.html')}`;
+
+    win.on('resize', () => {
+        win.webContents.send('window-resize', win.getSize());
+    });
 
     win.loadURL(url);
 }

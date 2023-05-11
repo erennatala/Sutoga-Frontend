@@ -1,4 +1,4 @@
-import {Avatar, Box, ButtonBase, Card, Container, Grid, Link, Stack, Typography} from "@mui/material";
+import {Avatar, Box, ButtonBase, Card, Container, Divider, Grid, Link, Stack, Typography} from "@mui/material";
 import {styled} from "@mui/material/styles";
 import React from "react";
 import {useNavigate} from "react-router-dom";
@@ -17,7 +17,7 @@ export default function PostCardLeft(props) {
     };
 
     return(
-        <Container sx={{ml: 2}}>
+        <Container sx={{ml: 2, pt:1, pb: 2}} spacing={2}>
             <Card onClick={handlePostClick}>
                 <Grid item container direction={"column"}>
                     <Grid item>
@@ -91,6 +91,8 @@ export default function PostCardLeft(props) {
                     </Grid>
                 </Grid>
             </Card>
+
+            <Divider sx={{pt: 3}}/>
         </Container>
     )
 }

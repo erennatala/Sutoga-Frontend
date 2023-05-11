@@ -14,13 +14,16 @@ import {
     Snackbar,
     Stack,
     Button,
-    Tabs, Tab
+    Tabs, Tab, DialogTitle, Dialog, DialogActions, DialogContent
 } from '@mui/material';
 // components
 import {useDispatch, useSelector} from "react-redux";
 import PostCard from "../components/cards/PostCard";
 import {TabPanelProps} from "@mui/lab";
 import GameCard from "../components/cards/GameCard";
+import PostCardLeft from "../components/cards/PostCardLeft";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import ProfileCardSm from "../components/cards/ProfileCardSm";
 
 
 function TabPanel(props: TabPanelProps) {
@@ -56,6 +59,42 @@ export default function Profile() {
     const [tab, setTab] = useState(0);
     const dispatch = useDispatch();
     const [username, setUsername] = useState('');
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const [windowSize, setWindowSize] = useState([0, 0]);
+
+    const avatarSize = windowSize[0] < 1600 ? 200 : 250;
+    const usernameFontSize = isSmallScreen ? '0.9rem' : '1.5rem';
+    const [openEditProfile, setOpenEditProfile] = useState(false);
+    const [openAccountSettings, setOpenAccountSettings] = useState(false);
+
+    const nicknames = ["ahmet", "mehmet", "kerem", "eren", "emru"];
+
+    const handleAccountSettingsOpen = () => {
+        setOpenAccountSettings(true);
+    };
+
+    const handleAccountSettingsClose = () => {
+        setOpenAccountSettings(false);
+    };
+
+    const handleEditProfileOpen = () => {
+        setOpenEditProfile(true);
+    };
+
+    const handleEditProfileClose = () => {
+        setOpenEditProfile(false);
+    };
+
+    useEffect(() => {
+        const resizeListener = (event, size) => setWindowSize(size);
+
+        window.electron.ipcRenderer.on('window-resize', resizeListener);
+
+        return () => {
+            window.electron.ipcRenderer.removeListener('window-resize', resizeListener);
+        };
+    }, []);
+
 
     useEffect(() => {
         (async () => {
@@ -68,7 +107,12 @@ export default function Profile() {
         })();
     }, []);
 
-
+    useEffect(() => {
+        (async () => {
+            const size = await window.electron.ipcRenderer.invoke('get-window-size');
+            setWindowSize(size);
+        })();
+    }, []);
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTab(newValue);
@@ -89,23 +133,45 @@ export default function Profile() {
                 <title> {username} </title>
             </Helmet>
 
+            <Dialog open={openEditProfile} onClose={handleEditProfileClose}>
+                <DialogTitle>Edit Profile</DialogTitle>
+                <DialogContent>
+                    {/* Your form fields for editing the profile go here */}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleEditProfileClose}>Cancel</Button>
+                    <Button>Save Changes</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={openAccountSettings} onClose={handleAccountSettingsClose}>
+                <DialogTitle>Account Settings</DialogTitle>
+                <DialogContent>
+                    {/* Your form fields for account settings go here */}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleAccountSettingsClose}>Cancel</Button>
+                    <Button>Save Changes</Button>
+                </DialogActions>
+            </Dialog>
+
             <Snackbar open={toastOpen} autoHideDuration={3000} onClose={handleClose}>
                 <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
                     This is a success message!
                 </Alert>
             </Snackbar>
 
-                <Grid container columns={16}>
+                <Grid container columns={16} sx={{px: 7}}>
                     <Grid xs={16}>
                         <Card sx={{height: "300px"}}>
                             <CardContent>
                                 <Stack direction="row" spacing={8}>
                                     <Grid>
-                                        <Avatar src="" alt="photoURL" sx={{ minWidth: 250, minHeight: 250 }}/>
+                                        <Avatar src="" alt="photoURL" sx={{ minWidth: avatarSize, minHeight: avatarSize }}/>
                                     </Grid>
 
                                     <Grid direction="column" sx={{paddingY: 6}} xs={6}>
-                                        <Typography variant="h3" sx={{fontWeight: "bold"}} gutterBottom>
+                                        <Typography variant="h3" sx={{fontWeight: "bold", fontSize: usernameFontSize}} gutterBottom>
                                             {username}
                                         </Typography>
 
@@ -171,13 +237,14 @@ export default function Profile() {
                                     </Grid>
 
                                     <Grid item xs={3} alignItems="center" justifyContent="center" sx={{py: 6}}>
-                                        <Button variant="contained" color="primary" sx={{height: 50, mb: 2, mt: 2}}>
+                                        <Button variant="contained" color="primary" sx={{height: 50, mb: 2, mt: 2}}
+                                                onClick={handleEditProfileOpen}>
                                             Edit profile
                                         </Button>
 
                                         <Box sx={{ flexGrow: 1 }} />
 
-                                        <Button variant="contained" color="primary" sx={{height: 50}}>
+                                        <Button variant="contained" color="primary" onClick={handleAccountSettingsOpen} sx={{height: 50}}>
                                             Account settings
                                         </Button>
                                     </Grid>
@@ -188,7 +255,7 @@ export default function Profile() {
 
                 </Grid>
 
-                <Grid container columns={16}>
+                <Grid container columns={16} sx={{px: 7}}>
                     <Grid xs={16}>
                         <Card sx={{mt: 1}}>
                             <Box sx={{ width: '100%' }}>
@@ -199,15 +266,16 @@ export default function Profile() {
                                         <Tab label="Games" {...a11yProps(1)} />
                                         <Box sx={{ flexGrow: 0.1 }} />
                                         <Tab label="Likes" {...a11yProps(2)} />
+                                        <Box sx={{ flexGrow: 0.1 }} />
+                                        <Tab label="Friends" {...a11yProps(3)} />
                                     </Tabs>
                                 </Box>
                                 <TabPanel value={tab} index={0}>
-                                    <Grid container columns={16}>
-                                        <Grid spacing={2} xs={16}>
-
-                                            <PostCard img="https://i.ytimg.com/vi/WSwUSIfgA4M/maxresdefault.jpg"/>
-                                            <PostCard img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
-                                            <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
+                                    <Grid container columns={16} justifyContent="center">
+                                        <Grid item xs={16} md={13}>
+                                            <PostCardLeft img="https://i.ytimg.com/vi/WSwUSIfgA4M/maxresdefault.jpg"/>
+                                            <PostCardLeft img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
+                                            <PostCardLeft img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
                                         </Grid>
                                     </Grid>
                                 </TabPanel>
@@ -229,10 +297,19 @@ export default function Profile() {
                                     </Grid>
                                 </TabPanel>
                                 <TabPanel value={tab-2} index={2}>
-                                    <Grid container columns={16}>
-                                        <Grid spacing={2} xs={16}>
-                                            <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
+                                    <Grid container columns={16} justifyContent="center">
+                                        <Grid item xs={16} md={13}>
+                                            <PostCardLeft img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
                                         </Grid>
+                                    </Grid>
+                                </TabPanel>
+                                <TabPanel value={tab-3} index={3}>
+                                    <Grid container spacing={2}>
+                                        {nicknames.map((nickname) => (
+                                            <Grid key={nickname} item xs={12} sm={6}>
+                                                <ProfileCardSm nickname={nickname}/>
+                                            </Grid>
+                                        ))}
                                     </Grid>
                                 </TabPanel>
                             </Box>

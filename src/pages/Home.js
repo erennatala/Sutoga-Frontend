@@ -4,9 +4,7 @@ import React, {useState, useEffect} from "react";
 import {alpha, useTheme} from '@mui/material/styles';
 import {
     Grid,
-    Container,
     Stack,
-    Button,
     TextField,
     ClickAwayListener, Collapse, InputAdornment, IconButton, Box, Card
 } from '@mui/material';
@@ -328,9 +326,9 @@ export default function Home() {
                         </ClickAwayListener>
 
                         <Grid item spacing={2}>
-                            <PostCard username={"keremmican"} />
-                            <PostCard img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
-                            <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
+                            <PostCardLeft username={"keremmican"} postId={3}/>
+                            <PostCardLeft img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" postId={3}/>
+                            <PostCardLeft img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" postId={3}/>
                             <PostCardLeft img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" postId={3} />
                         </Grid>
                     </Grid>

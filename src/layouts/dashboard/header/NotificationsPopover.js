@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { set, sub } from 'date-fns';
 import { noCase } from 'change-case';
 import { faker } from '@faker-js/faker';
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 // @mui
 import {
   Box,
@@ -25,8 +25,10 @@ import { fToNow } from '../../../utils/formatTime';
 // components
 import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
+import axios from "axios";
 
 // ----------------------------------------------------------------------
+const BASE_URL = process.env.REACT_APP_URL
 
 const NOTIFICATIONS = [
   {
@@ -78,6 +80,7 @@ const NOTIFICATIONS = [
 
 export default function NotificationsPopover() {
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const [friendRequests, setFriendRequests] = useState([]);
 
   const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
 
@@ -99,6 +102,23 @@ export default function NotificationsPopover() {
       }))
     );
   };
+
+  useEffect(() => {
+    getFriendReqs()
+  }, []);
+
+  const getFriendReqs = async () => {
+    const id = await window.electron.ipcRenderer.invoke('getId');
+    const token = await window.electron.ipcRenderer.invoke('getToken');
+
+    const response = await axios.get( `${BASE_URL}users/getFriendRequests/${id}`, {
+      headers: {
+        'Authorization': `${token}`
+      }
+    });
+
+    setFriendRequests(response.data)
+  }
 
   return (
     <>
