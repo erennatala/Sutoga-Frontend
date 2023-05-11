@@ -15,7 +15,6 @@ const { ipcRenderer } = window.electron;
 
 export default function LoginForm(props) {
   const navigate = useNavigate();
-    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -42,9 +41,6 @@ export default function LoginForm(props) {
 
             await ipcRenderer.invoke('setCredentials', credentials);
 
-            dispatch(setAuthenticated(true));
-            dispatch(setToken(token));
-            dispatch(setUserName(username)); // Add this line
             navigate('/home', { replace: true });
         } catch (err) {
             props.onError();

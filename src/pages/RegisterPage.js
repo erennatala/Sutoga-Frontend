@@ -2,6 +2,8 @@ import { Helmet } from 'react-helmet-async';
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 import { styled } from '@mui/material/styles';
+import { useDispatch } from 'react-redux';
+import { setToken, setAuthenticated, setUserName } from '../actions/authActions';
 import * as React from 'react';
 import {
     Container,
@@ -18,6 +20,7 @@ import {useEffect, useRef, useState} from "react";
 import {Alert, LoadingButton} from "@mui/lab";
 import axios from "axios";
 import Iconify from "../components/iconify";
+import LoadingScreen from "./LoadingScreen";
 
 const StyledRoot = styled('div')(({ theme }) => ({
     [theme.breakpoints.up('md')]: {
@@ -52,6 +55,48 @@ export default function RegisterPage() {
     const [phoneNumber, setPhoneNumber] = useState(0);
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+
+    const [loading, setLoading] = useState(true);
+    const [userData, setUserData] = useState(null);
+
+    const { ipcRenderer } = window.electron;
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const steamIdFromUrl = urlParams.get('steamid');
+        if (steamIdFromUrl) {
+            setSteamId(steamIdFromUrl);
+            axios.post(`${BASE_URL}auth/steamLogin/${steamIdFromUrl}`)
+                .then(async response => {
+                    if(response.data) {
+                        const credentials = {
+                            userId: response.data.userId,
+                            username: response.data.username,
+                        };
+
+                        if (response.data.token) {
+                            credentials.token = response.data.token;
+                        }
+
+                        try {
+                            await ipcRenderer.invoke('setCredentials', credentials);
+
+                            navigate('/home', { replace: true });
+                        } catch (error) {
+                            console.error('Error storing credentials:', error);
+                        }
+                    } else {
+                        setLoading(false);
+                    }
+                })
+                .catch(() => {
+                    setLoading(false);
+                })
+        } else {
+            setLoading(false);
+        }
+    }, [dispatch]);
 
     const [feedbackList, setFeedbackList] = useState({
         firstName: [firstName, false, "", 2],
@@ -99,7 +144,6 @@ export default function RegisterPage() {
         if (steamIdFromUrl) {
             setSteamId(steamIdFromUrl);
         }
-        console.log(steamIdFromUrl)
     }, []);
 
     const handleClick = async (e) => {
@@ -156,6 +200,10 @@ export default function RegisterPage() {
         if (event.keyCode === 13) {
             handleClick();
         }
+    }
+
+    if (loading) {
+        return <LoadingScreen />;
     }
 
     return(

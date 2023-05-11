@@ -56,15 +56,20 @@ export default function LoginPage() {
   const [open, setOpen] = useState(false);
 
 
+  const handleSteamClick = () => {
+    window.location.href = "http://localhost:3001/auth/steam";
+  }
+
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const steamIdFromUrl = urlParams.get('steamid');
-    if (steamIdFromUrl) {
-      setSteamId(steamIdFromUrl);
+    const getSteamId = async () => {
+      const steamIdFromStore = await window.electron.ipcRenderer.invoke('getSteamId');
+      if (steamIdFromStore) {
+        setSteamId(steamIdFromStore);
+      }
     }
+    getSteamId();
   }, []);
 
-  // functions
 
   const handleError = () => {
     console.log("as")
@@ -78,10 +83,6 @@ export default function LoginPage() {
 
     setOpen(false);
   };
-
-  const handleSteamClick = () => {
-    window.location.href = "http://localhost:3001/auth/steam";
-  }
 
   return (
     <>

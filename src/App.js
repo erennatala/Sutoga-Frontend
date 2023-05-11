@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, useEffect } from 'react';
 import {Provider, useDispatch} from "react-redux";
 import ThemeProvider from "./theme";
