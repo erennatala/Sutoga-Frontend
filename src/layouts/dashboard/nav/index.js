@@ -16,7 +16,7 @@ import FriendRecCard from "../../../components/cards/FriendRecCard";
 
 // ----------------------------------------------------------------------
 
-const NAV_WIDTH = 270;
+const NAV_WIDTH = 255;
 const BASE_URL = process.env.REACT_APP_URL
 const { electron } = window;
 
@@ -66,7 +66,6 @@ export default function Nav({ openNav, onCloseNav }) {
       try {
         const id = await window.electron.ipcRenderer.invoke('getId');
         setUserId(id);
-        console.log(id)
       } catch (error) {
         console.log(error);
       }
@@ -82,7 +81,7 @@ export default function Nav({ openNav, onCloseNav }) {
   const getFriendRecs = async () => {
     try {
       const token = await window.electron.ipcRenderer.invoke('getToken');
-      console.log(token)
+
       const recresponse = await axios.get(`${BASE_URL}users/getFriendRecommendations?userId=${userId}`, {
         headers: {
           'Authorization': `${token}`
@@ -101,59 +100,54 @@ export default function Nav({ openNav, onCloseNav }) {
   }
 
   const renderContent = (
-    <Scrollbar
-      sx={{
-        height: 1,
-        '& .simplebar-content': { height: 1, display: 'flex', flexDirection: 'column' },
-      }}
-    >
-      <Box sx={{ px: 2.5, py: 3, display: 'inline-flex', maxWidth: "80%", ml: 3 }}>
-        <img src="/assets/images/brand/main-logo.png" alt="sidebar-logo"/>
+      <Box sx={{overflow: "hidden"}}>
+        <Box sx={{ px: 2.5, py: 3, display: 'inline-flex', maxWidth: "80%", ml: 3 }}>
+          <img src="/assets/images/brand/main-logo.png" alt="sidebar-logo"/>
+        </Box>
+
+        <Box sx={{ mb: 5, mx: 1 }}>
+          <ButtonBase onClick={routeChange}>
+            <Link underline="none">
+              <StyledAccount>
+                <Avatar src="" alt="photoURL" />
+
+                <Box sx={{ pl: 1.5 }}>
+                  <Typography variant="subtitle2" sx={{
+                    color: 'text.primary',
+                    fontSize: '1rem', // default font size
+                    '@media (min-width: 600px)': {
+                      fontSize: '0.9rem', // font size for screen widths >= 600px
+                    },
+                    '@media (min-width: 1500px)': {
+                      fontSize: '0.9rem', // font size for screen widths >= 960px
+                    }
+                  }}>
+                    {localUsername}
+                  </Typography>
+                </Box>
+              </StyledAccount>
+            </Link>
+          </ButtonBase>
+        </Box>
+
+        <NavSection data={navConfig} />
+
+        <Box sx={{ flexGrow: 0.1 }} />
+
+        <Box>
+          <Grid xs={12}>
+            <Container columns={12} sx={{height: "400px"}}>
+              <Grid xs={12} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
+
+                {friendRec.map((user, index) => <div key={index}>
+                  <FriendRecCard nickname={user} />
+                </div>)}
+              </Grid>
+              <Button variant="text">See more like this</Button>
+            </Container>
+          </Grid>
+        </Box>
       </Box>
-
-      <Box sx={{ mb: 5, mx: 1 }}>
-        <ButtonBase onClick={routeChange}>
-        <Link underline="none">
-          <StyledAccount>
-            <Avatar src="" alt="photoURL" />
-
-            <Box sx={{ pl: 1.5 }}>
-              <Typography variant="subtitle2" sx={{
-                color: 'text.primary',
-                fontSize: '1rem', // default font size
-                '@media (min-width: 600px)': {
-                  fontSize: '0.9rem', // font size for screen widths >= 600px
-                },
-                '@media (min-width: 1500px)': {
-                  fontSize: '0.9rem', // font size for screen widths >= 960px
-                }
-              }}>
-                {localUsername}
-              </Typography>
-            </Box>
-          </StyledAccount>
-        </Link>
-        </ButtonBase>
-      </Box>
-
-      <NavSection data={navConfig} />
-
-      <Box sx={{ flexGrow: 0.1 }} />
-
-      <Box>
-        <Grid xs={12}>
-          <Container columns={12} sx={{height: "400px"}}>
-            <Grid xs={12} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
-
-              {friendRec.map((user, index) => <div key={index}>
-                <FriendRecCard nickname={user} />
-              </div>)}
-            </Grid>
-            <Button variant="text">See more like this</Button>
-          </Container>
-        </Grid>
-      </Box>
-    </Scrollbar>
   );
 
   return (

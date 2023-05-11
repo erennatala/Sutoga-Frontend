@@ -30,20 +30,23 @@ export default function CommentCard(props) {
                 <Link underline="none">
                     <StyledAccount>
                         <ButtonBase>
-                            <Avatar src="" alt="photoURL" />
-                            <Stack direction="column" sx={{ pl: 1, width: '100%' }}>
-                                <Typography display={"inline"} variant="subtitle2" sx={{ color: 'text.primary' }}>
+                            <Stack direction="row" sx={{ pl: 1, width: '100%', alignItems: 'flex-start' }}>
+                                <Avatar src="" alt="photoURL" />
+
+                                <Typography display={"inline"} variant="subtitle2" sx={{ color: 'text.primary', mt:1, ml: 1.5 }}>
                                     {props.nickname}
                                 </Typography>
-                                {expanded ? (
-                                    <Typography display={"inline"} variant="subtitle2" sx={{ color: 'text.primary' }}>
-                                        <Box fontWeight={"lighter"} display={"inline"}>&nbsp;•&nbsp;{props.comment}</Box>
-                                    </Typography>
-                                ) : (
-                                    <CommentText display={"inline"} variant="subtitle2" sx={{ color: 'text.primary' }}>
-                                        <Box fontWeight={"lighter"} display={"inline"}>&nbsp;•&nbsp;{truncatedText}</Box>
-                                    </CommentText>
-                                )}
+                                <Stack direction="column" sx={{ width: '100%', textAlign: 'left', pt:1 }}>
+                                    {expanded ? (
+                                        <Typography display={"inline"} variant="subtitle2" sx={{ color: 'text.primary' }}>
+                                            <Box fontWeight={"lighter"} display={"inline"}>&nbsp;•&nbsp;{props.comment}</Box>
+                                        </Typography>
+                                    ) : (
+                                        <CommentText display={"inline"} variant="subtitle2" sx={{ color: 'text.primary' }}>
+                                            <Box fontWeight={"lighter"} display={"inline"}>&nbsp;•&nbsp;{truncatedText}</Box>
+                                        </CommentText>
+                                    )}
+                                </Stack>
                                 {props.comment.length > textLimit && (
                                     <Button onClick={handleClick} size="small">
                                         {expanded ? 'See less' : 'See more'}
