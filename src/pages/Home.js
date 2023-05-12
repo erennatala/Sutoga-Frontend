@@ -8,6 +8,8 @@ import {
     TextField,
     ClickAwayListener, Collapse, InputAdornment, IconButton, Box, Card
 } from '@mui/material';
+import InfiniteScroll from 'react-infinite-scroll-component'
+import LoadingRow from '../components/loading/LoadingRow'
 // components
 import {useSelector} from "react-redux";
 import axios from "axios";
@@ -21,7 +23,7 @@ const BASE_URL = process.env.REACT_APP_URL
 export default function Home() {
     const theme = useTheme();
     const userName = useSelector((state)=> state.auth.userName);
-    const [friendRec, setFriendRec] = useState([])
+    const [friendRec, setFriendRec] = useState([{id: 1}])
 
     const [openCreate, setOpenCreate] = useState(false);
     const [collapse, setCollapse] = useState(false);
@@ -41,6 +43,52 @@ export default function Home() {
     const [windowSize, setWindowSize] = useState(getWindowSize());
 
     const [userId, setUserId] = useState(null)
+
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(1);
+    const [posts, setPosts] = useState([]);
+
+    useEffect(() => {
+        loadMorePosts();
+    }, []);
+
+    const loadMorePosts = async () => {
+        if (loading) return; // prevent multiple requests
+
+        setLoading(true);
+
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+
+            const response = await axios.get(`${BASE_URL}getHomePosts`, {
+                params: {
+                    userId: userId,
+                    pageNumber: page,
+                    pageSize: 10
+                },
+                headers: { 'Authorization': `${token}` },
+            });
+
+
+            setPosts(prevPosts => [...prevPosts, ...response.data.posts]);
+            setPage(prevPage => prevPage + 1);
+
+            if (response.data && response.data.posts) {
+                setPosts(prevPosts => [...prevPosts, ...response.data.posts]);
+                setPage(prevPage => prevPage + 1);
+                setHasMore(response.data.posts.length > 0);
+            } else {
+                setHasMore(false);
+            }
+
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     useEffect(() => {
         (async () => {
@@ -326,15 +374,31 @@ export default function Home() {
                         </ClickAwayListener>
 
                         <Grid item spacing={2}>
-                            <PostCardLeft username={"keremmican"} postId={3}/>
-                            <PostCardLeft img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" postId={3}/>
-                            <PostCardLeft img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" postId={3}/>
-                            <PostCardLeft img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" postId={3} />
+                            <InfiniteScroll
+                                dataLength={posts.length}
+                                next={loadMorePosts}
+                                hasMore={hasMore}
+                                loader={<LoadingRow />}
+                                endMessage={
+                                    <p style={{ textAlign: 'center' }}>
+                                        <b>Yay! You have seen it all</b>
+                                    </p>
+                                }
+                            >
+                                {posts.length > 0 ? (
+                                    posts.map((post, index) => (
+                                        <PostCardLeft key={index} postId={post.id} />
+                                    ))
+                                ) : (
+                                    <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                        Looks like there are no posts yet. Stay tuned!
+                                    </p>
+                                )}
+                            </InfiniteScroll>
                         </Grid>
                     </Grid>
                 </Stack>
             </Grid>
-
         </>
     );
 }
