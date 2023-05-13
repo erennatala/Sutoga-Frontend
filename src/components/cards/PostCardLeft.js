@@ -13,7 +13,7 @@ export default function PostCardLeft(props) {
     const navigate = useNavigate();
 
     const handlePostClick = () => {
-        navigate(`/post/${props.postId}`);
+        navigate(`/post/${props.post.id}`);
     };
 
     return(
@@ -32,7 +32,7 @@ export default function PostCardLeft(props) {
                                                 <Stack direction={"row"}>
                                                     <Link underline="none" onClick={(e) => console.log(e)}>
                                                         <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                                                            {props.username}
+                                                            {props.post.username}
                                                         </Typography>
                                                     </Link>
 
@@ -47,12 +47,6 @@ export default function PostCardLeft(props) {
                                                     <Typography>
                                                         &nbsp;
                                                     </Typography>
-
-                                                    <Grid sx={{mt:0.5}}>
-                                                        <Typography variant="subtitle3" sx={{ color: 'text.primary' }}>
-                                                            friend
-                                                        </Typography>
-                                                    </Grid>
                                                 </Stack>
                                             </Box>
                                         </Grid>
@@ -63,22 +57,32 @@ export default function PostCardLeft(props) {
                     </Grid>
 
                     <Grid item style={{height: '%100'}}>
-                        {props.img ? (
-                            <Box
-                                component="img"
-                                sx={{
-                                    ml: 2,
-                                    mb: 2,
-                                    borderRadius: 2,
-                                    width: '96%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                }}
-                                alt="x"
-                                src={props.img}
-                            />) : (
+                        {props.post.mediaUrl ? (
+                            <Box>
+                                <Box sx={{ ml: 3, mb: 2 }}>
+                                    <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
+                                        {props.post.description}
+                                    </Typography>
+                                </Box>
+                                <Box>
+                                    <Box
+                                        component="img"
+                                        sx={{
+                                            ml: 2,
+                                            mb: 2,
+                                            borderRadius: 2,
+                                            width: '96%',
+                                            height: 'auto',
+                                            objectFit: 'cover',
+                                            maxWidth: "400px",
+                                        }}
+                                        alt="x"
+                                        src={props.post.mediaUrl}
+                                    />
+                                </Box>
+                            </Box>) : (
                             <Typography variant={props.img ? "subtitle2" : "h6"} sx={{ color: 'text.primary', ml: 2, mb:2 }}>
-                                selamun aleyküm gençler
+                                {props.post.description}
                             </Typography>
                         )
                         }
@@ -86,7 +90,7 @@ export default function PostCardLeft(props) {
 
                     <Grid item>
                         <Typography sx={{ color: 'text.primary', ml: 2, mb:2, fontSize: 14 }} variant="subtitle1">
-                            20.31.10 17:30
+                            {props.post.postDate}
                         </Typography>
                     </Grid>
                 </Grid>

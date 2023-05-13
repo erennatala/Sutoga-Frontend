@@ -24,6 +24,9 @@ import GameCard from "../components/cards/GameCard";
 import PostCardLeft from "../components/cards/PostCardLeft";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import ProfileCardSm from "../components/cards/ProfileCardSm";
+import axios from "axios";
+import LoadingRow from "../components/loading/LoadingRow";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 
 function TabPanel(props: TabPanelProps) {
@@ -53,6 +56,8 @@ function a11yProps(index: number) {
     };
 }
 
+const BASE_URL = process.env.REACT_APP_URL
+
 export default function Profile() {
     const theme = useTheme();
     const [toastOpen, setToastOpen] = useState(false);
@@ -67,7 +72,51 @@ export default function Profile() {
     const [openEditProfile, setOpenEditProfile] = useState(false);
     const [openAccountSettings, setOpenAccountSettings] = useState(false);
 
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(0);
+    const [posts, setPosts] = useState([]);
+
     const nicknames = ["ahmet", "mehmet", "kerem", "eren", "emru"];
+
+    useEffect(() => {
+        loadMorePosts();
+    }, []);
+
+    const loadMorePosts = async () => {
+        if (loading) return;
+
+        setLoading(true);
+
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}posts/getUserPosts`, {
+                params: {
+                    userId: userId,
+                    pageNumber: page,
+                    pageSize: 10
+                },
+                headers: { 'Authorization': `${token}` },
+            });
+
+            if (response.data && Array.isArray(response.data.content)) {
+                setPosts(prevPosts => [...prevPosts, ...response.data.content]);
+                setPage(prevPage => prevPage + 1);
+                setHasMore(response.data.content.length > 0);
+            } else {
+                setHasMore(false);
+            }
+
+            console.log(response.data.content)
+
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAccountSettingsOpen = () => {
         setOpenAccountSettings(true);
@@ -273,9 +322,27 @@ export default function Profile() {
                                 <TabPanel value={tab} index={0}>
                                     <Grid container columns={16} justifyContent="center">
                                         <Grid item xs={16} md={13}>
-                                            <PostCardLeft img="https://i.ytimg.com/vi/WSwUSIfgA4M/maxresdefault.jpg"/>
-                                            <PostCardLeft img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
-                                            <PostCardLeft img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
+                                            <InfiniteScroll
+                                                dataLength={posts.length}
+                                                next={loadMorePosts}
+                                                hasMore={hasMore}
+                                                loader={<LoadingRow />}
+                                                endMessage={
+                                                    <p style={{ textAlign: 'center' }}>
+                                                        <b>Yay! You have seen it all</b>
+                                                    </p>
+                                                }
+                                            >
+                                                {posts.length > 0 ? (
+                                                    posts.map((post, index) => (
+                                                        <PostCardLeft key={index} post={post}/>
+                                                    ))
+                                                ) : (
+                                                    <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                                        Looks like there are no posts yet. Stay tuned!
+                                                    </p>
+                                                )}
+                                            </InfiniteScroll>
                                         </Grid>
                                     </Grid>
                                 </TabPanel>
