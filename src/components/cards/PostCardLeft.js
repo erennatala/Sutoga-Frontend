@@ -56,7 +56,7 @@ export default function PostCardLeft(props) {
                         </Box>
                     </Grid>
 
-                    <Grid item style={{height: '%100'}}>
+                    <Grid item style={{ height: '100%' }}>
                         {props.post.mediaUrl ? (
                             <Box>
                                 <Box sx={{ ml: 3, mb: 2 }}>
@@ -65,28 +65,45 @@ export default function PostCardLeft(props) {
                                     </Typography>
                                 </Box>
                                 <Box>
-                                    <Box
-                                        component="img"
-                                        sx={{
-                                            ml: 2,
-                                            mb: 2,
-                                            borderRadius: 2,
-                                            width: '96%',
-                                            height: 'auto',
-                                            objectFit: 'cover',
-                                            maxWidth: "400px",
-                                        }}
-                                        alt="x"
-                                        src={props.post.mediaUrl}
-                                    />
+                                    {props.post.mediaUrl.endsWith('.mp4') ||
+                                    props.post.mediaUrl.endsWith('.mov') ||
+                                    props.post.mediaUrl.endsWith('.avi') ? (
+                                        <video
+                                            style={{
+                                                marginLeft: '2px',
+                                                marginBottom: '2px',
+                                                borderRadius: '2px',
+                                                width: '100%',
+                                                height: 'auto',
+                                                objectFit: 'cover',
+                                            }}
+                                            controls
+                                        >
+                                            <source src={props.post.mediaUrl} type="video/mp4" />
+                                        </video>
+                                    ) : (
+                                        <img
+                                            src={props.post.mediaUrl}
+                                            style={{
+                                                marginLeft: '2px',
+                                                marginBottom: '2px',
+                                                borderRadius: '2px',
+                                                width: '96%',
+                                                height: 'auto',
+                                                objectFit: 'cover',
+                                            }}
+                                            alt="x"
+                                        />
+                                    )}
                                 </Box>
-                            </Box>) : (
-                            <Typography variant={props.img ? "subtitle2" : "h6"} sx={{ color: 'text.primary', ml: 2, mb:2 }}>
+                            </Box>
+                        ) : (
+                            <Typography variant={props.img ? "subtitle2" : "h6"} sx={{ color: 'text.primary', ml: 2, mb: 2 }}>
                                 {props.post.description}
                             </Typography>
-                        )
-                        }
+                        )}
                     </Grid>
+
 
                     <Grid item>
                         <Typography sx={{ color: 'text.primary', ml: 2, mb:2, fontSize: 14 }} variant="subtitle1">

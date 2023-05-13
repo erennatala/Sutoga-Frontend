@@ -130,13 +130,12 @@ export default function Home() {
             const options = {
                 properties: ['openFile'],
                 filters: [
-                    { name: 'Images', extensions: ['jpg', 'png', 'gif'] },
-                    { name: 'Videos', extensions: ['mp4', 'mov', 'avi'] },
+                    { name: 'Media Files', extensions: ['jpg', 'png', 'gif', 'mp4', 'mov', 'avi'] },
                     { name: 'All Files', extensions: ['*'] },
                 ],
             };
             const filePaths = await window.electron.ipcRenderer.invoke('open-file-dialog', options);
-            console.log(filePaths);
+
             if (filePaths && filePaths[0]) {
                 const fileData = await window.electron.ipcRenderer.invoke('get-file-data', filePaths[0]);
 
@@ -152,6 +151,7 @@ export default function Home() {
                 const file = new File([new Blob([fileData])], filePaths[0].split('/').pop(), {
                     type: fileType,
                 });
+                setFileType(fileType);
                 setSelectedFile(file);
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -385,7 +385,7 @@ export default function Home() {
                         >
                             {posts.length > 0 ? (
                                 posts.map((post, index) => (
-                                    <PostCardLeft key={index} post={post}/>
+                                    <PostCardLeft key={index} post={post} fileType={fileType}/>
                                 ))
                             ) : (
                                 <p style={{ textAlign: 'center', marginTop: '1rem' }}>
