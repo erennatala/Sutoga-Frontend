@@ -46,7 +46,7 @@ export default function Home() {
 
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [posts, setPosts] = useState([]);
 
     useEffect(() => {
@@ -54,14 +54,15 @@ export default function Home() {
     }, []);
 
     const loadMorePosts = async () => {
-        if (loading) return; // prevent multiple requests
+        if (loading) return;
 
         setLoading(true);
 
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
 
-            const response = await axios.get(`${BASE_URL}getHomePosts`, {
+            const response = await axios.get(`${BASE_URL}posts/getHomePosts`, {
                 params: {
                     userId: userId,
                     pageNumber: page,
@@ -70,17 +71,15 @@ export default function Home() {
                 headers: { 'Authorization': `${token}` },
             });
 
-
-            setPosts(prevPosts => [...prevPosts, ...response.data.posts]);
-            setPage(prevPage => prevPage + 1);
-
-            if (response.data && response.data.posts) {
-                setPosts(prevPosts => [...prevPosts, ...response.data.posts]);
+            if (response.data && Array.isArray(response.data.content)) {
+                setPosts(prevPosts => [...prevPosts, ...response.data.content]);
                 setPage(prevPage => prevPage + 1);
-                setHasMore(response.data.posts.length > 0);
+                setHasMore(response.data.content.length > 0);
             } else {
                 setHasMore(false);
             }
+
+            console.log(response.data.content)
 
         } catch (error) {
             console.error(error);
@@ -89,13 +88,11 @@ export default function Home() {
         }
     };
 
-
     useEffect(() => {
         (async () => {
             try {
                 const id = await window.electron.ipcRenderer.invoke('getId');
                 setUserId(id);
-                console.log(id)
             } catch (error) {
                 console.log(error);
             }
@@ -189,7 +186,8 @@ export default function Home() {
             };
 
             const response = await axios.post(postUrl, formData, config);
-            console.log(response.data);
+
+            setPosts(prevPosts => [response.data, ...prevPosts]);
         } catch (error) {
             console.log(error);
         }
@@ -254,7 +252,7 @@ export default function Home() {
             </Helmet>
 
             <Grid container columns={16} direction="column">
-                <Stack direction="row">
+                <Stack direction="column">
                     <Grid container xs={12} alignItems="center"
                           justifyContent="center">
                         <ClickAwayListener onClickAway={handleClickAway}>
@@ -372,30 +370,29 @@ export default function Home() {
                                 </Collapse>
                             </Grid>
                         </ClickAwayListener>
-
-                        <Grid item spacing={2}>
-                            <InfiniteScroll
-                                dataLength={posts.length}
-                                next={loadMorePosts}
-                                hasMore={hasMore}
-                                loader={<LoadingRow />}
-                                endMessage={
-                                    <p style={{ textAlign: 'center' }}>
-                                        <b>Yay! You have seen it all</b>
-                                    </p>
-                                }
-                            >
-                                {posts.length > 0 ? (
-                                    posts.map((post, index) => (
-                                        <PostCardLeft key={index} postId={post.id} />
-                                    ))
-                                ) : (
-                                    <p style={{ textAlign: 'center', marginTop: '1rem' }}>
-                                        Looks like there are no posts yet. Stay tuned!
-                                    </p>
-                                )}
-                            </InfiniteScroll>
-                        </Grid>
+                    </Grid>
+                    <Grid item spacing={2}>
+                        <InfiniteScroll
+                            dataLength={posts.length}
+                            next={loadMorePosts}
+                            hasMore={hasMore}
+                            loader={<LoadingRow />}
+                            endMessage={
+                                <p style={{ textAlign: 'center' }}>
+                                    <b>Yay! You have seen it all</b>
+                                </p>
+                            }
+                        >
+                            {posts.length > 0 ? (
+                                posts.map((post, index) => (
+                                    <PostCardLeft key={index} post={post}/>
+                                ))
+                            ) : (
+                                <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                    Looks like there are no posts yet. Stay tuned!
+                                </p>
+                            )}
+                        </InfiniteScroll>
                     </Grid>
                 </Stack>
             </Grid>
