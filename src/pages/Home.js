@@ -78,9 +78,6 @@ export default function Home() {
             } else {
                 setHasMore(false);
             }
-
-            console.log(response.data.content)
-
         } catch (error) {
             console.error(error);
         } finally {
@@ -252,7 +249,7 @@ export default function Home() {
             </Helmet>
 
             <Grid container columns={16} direction="column">
-                <Stack direction="column">
+                <Stack direction="column" justifyContent={"center"}>
                     <Grid container xs={12} alignItems="center"
                           justifyContent="center">
                         <ClickAwayListener onClickAway={handleClickAway}>
@@ -371,7 +368,8 @@ export default function Home() {
                             </Grid>
                         </ClickAwayListener>
                     </Grid>
-                    <Grid item spacing={2}>
+
+                    <Grid item spacing={2} sx={{px: 15}}>
                         <InfiniteScroll
                             dataLength={posts.length}
                             next={loadMorePosts}

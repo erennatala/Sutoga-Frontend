@@ -14,11 +14,9 @@ import {
     Snackbar,
     Stack,
     Button,
-    Tabs, Tab, DialogTitle, Dialog, DialogActions, DialogContent
+    Tabs, Tab, DialogTitle, Dialog, DialogActions, DialogContent, TextField
 } from '@mui/material';
 // components
-import {useDispatch, useSelector} from "react-redux";
-import PostCard from "../components/cards/PostCard";
 import {TabPanelProps} from "@mui/lab";
 import GameCard from "../components/cards/GameCard";
 import PostCardLeft from "../components/cards/PostCardLeft";
@@ -27,6 +25,8 @@ import ProfileCardSm from "../components/cards/ProfileCardSm";
 import axios from "axios";
 import LoadingRow from "../components/loading/LoadingRow";
 import InfiniteScroll from "react-infinite-scroll-component";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 
 function TabPanel(props: TabPanelProps) {
@@ -62,7 +62,6 @@ export default function Profile() {
     const theme = useTheme();
     const [toastOpen, setToastOpen] = useState(false);
     const [tab, setTab] = useState(0);
-    const dispatch = useDispatch();
     const [username, setUsername] = useState('');
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const [windowSize, setWindowSize] = useState([0, 0]);
@@ -72,10 +71,13 @@ export default function Profile() {
     const [openEditProfile, setOpenEditProfile] = useState(false);
     const [openAccountSettings, setOpenAccountSettings] = useState(false);
 
-    const [loading, setLoading] = useState(false);
+    const [loadingPosts, setLoadingPosts] = useState(false);
+    const [loadingUser, setLoadingUser] = useState(true);
     const [hasMore, setHasMore] = useState(true);
     const [page, setPage] = useState(0);
     const [posts, setPosts] = useState([]);
+
+    const [user, setUser] = useState(null);
 
     const nicknames = ["ahmet", "mehmet", "kerem", "eren", "emru"];
 
@@ -83,10 +85,137 @@ export default function Profile() {
         loadMorePosts();
     }, []);
 
-    const loadMorePosts = async () => {
-        if (loading) return;
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const token = await window.electron.ipcRenderer.invoke("getToken");
+                const userId = await window.electron.ipcRenderer.invoke("getId");
 
-        setLoading(true);
+                const response = await axios.get(`${BASE_URL}users/${userId}`, {
+                    headers: { 'Authorization': `${token}` },
+                });
+
+                const userData = response.data;
+                setUser(userData);
+            } catch (error) {
+                console.log("Error fetching user data:", error);
+            } finally {
+                setLoadingUser(false);
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    const [editIsEmailEditable, setEditIsEmailEditable] = useState(true);
+    const [editIsUsernameEditable, setEditIsUsernameEditable] = useState(true);
+
+    const [editProfilePicturePreview, setEditProfilePicturePreview] = useState(null);
+
+    const handleProfilePictureChange = (event) => {
+        setEditProfilePicture(event.target.files[0]);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setEditProfilePicturePreview(reader.result);
+        }
+        reader.readAsDataURL(event.target.files[0]);
+    };
+
+    const toggleEmailEditable = () => setEditIsEmailEditable(!editIsEmailEditable);
+    const toggleUsernameEditable = () => setEditIsUsernameEditable(!editIsUsernameEditable);
+
+
+    const [editEmail, setEditEmail] = useState("");
+    const [editUsername, setEditUsername] = useState("");
+    const [editDescription, setEditDescription] = useState("");
+    const [editProfilePicture, setEditProfilePicture] = useState(null);
+    const [editFirstName, setEditFirstName] = useState('');
+    const [editLastName, setEditLastName] = useState('');
+    const [editPhoneNumber, setEditPhoneNumber] = useState('');
+    const [editBirthDate, setEditBirthDate] = useState('');
+
+    const handleEmailChange = (event) => setEditEmail(event.target.value);
+    const handleUsernameChange = (event) => setEditUsername(event.target.value);
+    const handleDescriptionChange = (event) => setEditDescription(event.target.value);
+
+    const [feedbackList, setFeedbackList] = useState({
+        firstName: [editFirstName, false, "", 2],
+        lastName: [editLastName, false, "", 2],
+        email: [editEmail, false, "", 10],
+        username: [editUsername, false, "", 3, 15],
+        birthDate: [editBirthDate, false, "", 2],
+        phoneNumber: [editPhoneNumber, false, "", 2]
+    })
+
+    useEffect(() => {
+        if (user) {
+            setEditEmail(user.email);
+            setEditUsername(user.userName);
+            setEditDescription(user.profileDescription);
+            setEditProfilePicture(user.profilePhotoUrl);
+            setEditFirstName(user.firstName);
+            setEditLastName(user.lastName);
+            setEditBirthDate(user.birthDate);
+            setEditPhoneNumber(user.phoneNumber);
+
+            const tempFeedbackList = {
+                firstName: [user.firstName, false, "", 2],
+                lastName: [user.lastName, false, "", 2],
+                email: [user.email, false, "", 10],
+                username: [user.userName, false, "", 3, 15],
+                birthDate: [user.birthDate, false, "", 2],
+                phoneNumber: [user.phoneNumber, false, "", 2]
+            };
+            setFeedbackList(tempFeedbackList);
+        }
+    }, [user]);
+
+
+    useEffect(() => {
+        if (user) {
+            setEditEmail(user.email);
+            setEditUsername(user.userName);
+            setEditDescription(user.profileDescription);
+            setEditProfilePicture(user.profilePhotoUrl);
+            setEditFirstName(user.firstName);
+            setEditLastName(user.lastName);
+            setEditBirthDate(user.birthDate);
+            setEditPhoneNumber(user.phoneNumber);
+        }
+    }, [user]);
+
+    const handleSaveChanges = async () => {
+        const formData = new FormData();
+        formData.append('email', editEmail);
+        formData.append('username', editUsername);
+        formData.append('description', editDescription);
+        formData.append('firstName', editFirstName);
+        formData.append('lastName', editLastName);
+        formData.append('phoneNumber', editPhoneNumber);
+        formData.append('birthDate', editBirthDate);
+        if (editProfilePicture) {
+            formData.append('media', editProfilePicture);
+        }
+
+        try {
+            const response = await axios.put(`${BASE_URL}users/${user.id}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            if (response.status === 200) {
+                alert('Profile updated successfully!');
+            } else {
+                alert('Error updating profile');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+        }
+    };
+
+    const loadMorePosts = async () => {
+        if (loadingPosts) return;
+
+        setLoadingPosts(true);
 
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
@@ -108,13 +237,10 @@ export default function Profile() {
             } else {
                 setHasMore(false);
             }
-
-            console.log(response.data.content)
-
         } catch (error) {
             console.error(error);
         } finally {
-            setLoading(false);
+            setLoadingPosts(false);
         }
     };
 
@@ -176,6 +302,40 @@ export default function Profile() {
         setToastOpen(false);
     };
 
+    function validation(e) {
+        let tempFeedbackList = {
+            // Other fields...
+            phoneNumber: [phoneNumber, false, "Enter a phone number", 2],
+            // Other fields...
+        };
+        setFeedbackList(tempFeedbackList);
+
+        let count = 0;
+
+        for (let key in tempFeedbackList) {
+            if (
+                tempFeedbackList[key][0] === "" &&
+                e === "submit" ||
+                (tempFeedbackList[key][0].length < tempFeedbackList[key][3] &&
+                    e === "dynamic" &&
+                    tempFeedbackList[key][0].length > 0)
+            ) {
+                tempFeedbackList[key][1] = true;
+                setFeedbackList(tempFeedbackList);
+                count++;
+            } else if (key !== "emailInput") {
+                tempFeedbackList[key][1] = false;
+            }
+        }
+
+        return count === 0;
+    }
+
+
+    if (loadingUser) {
+        return(<LoadingRow />)
+    }
+
     return(
         <>
             <Helmet>
@@ -185,11 +345,82 @@ export default function Profile() {
             <Dialog open={openEditProfile} onClose={handleEditProfileClose}>
                 <DialogTitle>Edit Profile</DialogTitle>
                 <DialogContent>
-                    {/* Your form fields for editing the profile go here */}
+                    <Stack spacing={2} sx={{mt: 3}}>
+                        {/* Eposta değiştirme */}
+                        {editIsEmailEditable && (
+                            <TextField
+                                label="Email"
+                                defaultValue={editEmail}
+                                fullWidth
+                                onChange={event => setEditEmail(event.target.value)}
+                            />
+                        )}
+
+                        {/* Kullanıcı adı değiştirme */}
+                        {editIsUsernameEditable && (
+                            <TextField
+                                label="Username"
+                                defaultValue={editUsername}
+                                fullWidth
+                                onChange={event => setEditUsername(event.target.value)}
+                            />
+                        )}
+
+                        {/* İsim değiştirme */}
+                        <TextField
+                            label="First Name"
+                            defaultValue={editFirstName}
+                            fullWidth
+                            onChange={event => setEditFirstName(event.target.value)}
+                        />
+
+                        {/* Soyisim değiştirme */}
+                        <TextField
+                            label="Last Name"
+                            defaultValue={editLastName}
+                            fullWidth
+                            onChange={event => setEditLastName(event.target.value)}
+                        />
+
+                        <PhoneInput
+                            country="tr"
+                            inputStyle={{ borderRadius: '13px', height: '200%', width: '100%' }}
+                            value={editPhoneNumber}
+                            onChange={(value) => setEditPhoneNumber(value)}
+                        />
+
+                        <TextField
+                            label="Birth Date"
+                            value={editBirthDate}
+                            fullWidth
+                            type="date"
+                            InputLabelProps={{ shrink: true }}
+                            onChange={event => setEditBirthDate(event.target.value)}
+                        />
+
+                        {/* Resim değiştirme */}
+                        <Box display="flex" alignItems="center">
+                            <Avatar src={user.avatar} alt="Profile Picture" sx={{ width: 80, height: 80, mr: 2 }} />
+                            <Box>
+                                <input type="file" accept="image/*" onChange={handleProfilePictureChange} />
+                                {editProfilePicturePreview && (
+                                    <img src={editProfilePicturePreview} alt="Profile Picture Preview" style={{ width: 80, height: 80, objectFit: 'cover' }} />
+                                )}
+                            </Box>
+                        </Box>
+
+                        {/* Açıklama değiştirme */}
+                        <TextField
+                            label="Description"
+                            defaultValue={editDescription}
+                            fullWidth
+                            onChange={event => setEditDescription(event.target.value)}
+                        />
+                    </Stack>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleEditProfileClose}>Cancel</Button>
-                    <Button>Save Changes</Button>
+                    <Button onClick={handleSaveChanges}>Save Changes</Button>
                 </DialogActions>
             </Dialog>
 
