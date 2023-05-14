@@ -34,7 +34,6 @@ export default function PostCardLeft(props) {
     const [reportOpen, setReportOpen] = useState(false);
     const [reportOption, setReportOption] = useState('');
     const [reportText, setReportText] = useState('');
-    const [canSend, setCanSend] = useState(false);
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [commentText, setCommentText] = useState('');
@@ -120,10 +119,6 @@ export default function PostCardLeft(props) {
 
     const handleCloseShareModal = () => {
         setIsShareModalOpen(false);
-    };
-
-    const handlePostClick = () => {
-        navigate(`/post/${props.post.id}`);
     };
 
     const handleUserProfileClick = () => {
@@ -299,9 +294,9 @@ export default function PostCardLeft(props) {
                 <MenuItem onClick={handleReportOpen}>Report</MenuItem>
             </Menu>
 
-        <Container sx={{ ml: 2, pt: 1, pb: 2 }} spacing={2}>
+        <Container sx={{ px: 9, pt: 1, pb: 2}} spacing={2}>
             <Card>
-                <Grid item container direction="column" onClick={handlePostClick}>
+                <Grid item container direction="column">
                     <Stack direction="row" justifyContent="space-between" onClick={(e) => e.stopPropagation()}>
                     <Box>
                         <ButtonBase onClick={handleUserProfileClick}>
@@ -330,7 +325,7 @@ export default function PostCardLeft(props) {
                                 <IconButton onClick={handleLike}>
                                     <Iconify icon={liked ? ("flat-color-icons:like") : ("icon-park-outline:like")} />
                                 </IconButton>
-                                <Typography variant="subtitle2" sx={{ color: 'text.secondary', mr: 1, mt: 1 }} onClick={handleOpenLikedModal}>
+                                <Typography variant="subtitle2" sx={{ color: 'text.secondary', mr: 1, mt: 1, cursor: 'pointer' }} onClick={handleOpenLikedModal}>
                                     {props.post.likeCount}
                                 </Typography>
                                 <IconButton onClick={handleOpenCommentModal}>
