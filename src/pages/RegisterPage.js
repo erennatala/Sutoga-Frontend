@@ -65,6 +65,7 @@ export default function RegisterPage() {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const steamIdFromUrl = urlParams.get('steamid');
+        console.log(steamIdFromUrl)
         if (steamIdFromUrl) {
             setSteamId(steamIdFromUrl);
             axios.post(`${BASE_URL}auth/steamLogin/${steamIdFromUrl}`)
@@ -82,7 +83,7 @@ export default function RegisterPage() {
                         try {
                             await ipcRenderer.invoke('setCredentials', credentials);
 
-                            navigate('/home', { replace: true });
+                            await navigate('/home', { replace: true });
                         } catch (error) {
                             console.error('Error storing credentials:', error);
                         }

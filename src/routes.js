@@ -26,7 +26,7 @@ export default function Router({ isLoading, isAuthenticated }) {
   const routes = useRoutes([
     {
       path: '/',
-      element: <DashboardLayout/>,
+      element: isAuthenticated ? <DashboardLayout/> : <Navigate to="/login" />,
       children: [
         {
           element: isAuthenticated ? (
@@ -49,18 +49,11 @@ export default function Router({ isLoading, isAuthenticated }) {
     },
     {
       path: 'login',
-      element: <LoginPage />,
+      element: isAuthenticated ? <Navigate to="/home" /> : <LoginPage />,
     },
     {
       path: 'register',
-      element: <RegisterPage />,
-      children: [
-        {
-          element: isAuthenticated && (
-              <Navigate to="/home" />
-          ),
-          index: true,
-    },],
+      element: isAuthenticated ? <Navigate to="/home" /> : <RegisterPage />,
     },
     {
       element: <SimpleLayout />,
