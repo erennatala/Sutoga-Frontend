@@ -5,6 +5,8 @@ const SteamStrategy = require('passport-steam').Strategy;
 const axios = require('axios');
 const cors = require('cors');
 const dotenv = require('dotenv');
+var path = require('path');
+
 
 dotenv.config();
 const app = express();
@@ -60,6 +62,9 @@ app.get('/auth/steam/return',
     });
 
 // ...
+
+app.use('/video',express.static(path.join(__dirname, './', 'video-ui')))
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

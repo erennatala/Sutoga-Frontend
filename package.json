@@ -6,7 +6,7 @@
   "private": false,
   "main": "public/main.js",
   "scripts": {
-    "start": "DISABLE_ESLINT_PLUGIN=true node scripts/start.js",
+    "start": "node scripts/start.js",
     "start:dev": "DISABLE_ESLINT_PLUGIN=true env-cmd -f .env.development node scripts/start.js",
     "start:prod": "DISABLE_ESLINT_PLUGIN=true env-cmd -f .env.production node scripts/start.js",
     "build": "DISABLE_ESLINT_PLUGIN=true node scripts/build.js",
@@ -19,7 +19,7 @@
     "electron:serve": "concurrently -k \"cross-env BROWSER=none yarn start\" \"yarn electron:start\"",
     "electron:build": "NODE_ENV=electron yarn build && electron-builder -c.extraMetadata.main=build/main.js",
     "electron:start": "wait-on tcp:3000 && electron .",
-    "electron-dev": "concurrently \"BROWSER=none npm run start\" \"wait-on http://localhost:3000 && electron .\""
+    "electron-dev": "concurrently \"npm run start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "build": {
     "productName": "Sutoga",
@@ -157,7 +157,10 @@
     "webpack": "^5.64.4",
     "webpack-dev-server": "^4.6.0",
     "webpack-manifest-plugin": "^4.0.2",
-    "workbox-webpack-plugin": "^6.4.1"
+    "workbox-webpack-plugin": "^6.4.1",
+    "cryptr": "^6.2.0",
+    "uuid": "^9.0.0",
+    "socket.io-client": "^4.5.3"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3",

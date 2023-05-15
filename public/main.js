@@ -97,6 +97,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: true,
+            enableRemoteModule: true, // Remote modülünü etkinleştirir
             //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
             //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
             preload: path.join(__dirname, 'preload.js')
@@ -112,6 +113,11 @@ function createWindow() {
 }
 
 app.whenReady().then(createWindow);
+
+ipcMain.on('open-url', (event, url) => {
+    let win = new BrowserWindow({ width: 1300, height: 800 })
+    win.loadURL(url)
+})
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
