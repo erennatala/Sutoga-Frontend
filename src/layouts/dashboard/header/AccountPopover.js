@@ -6,23 +6,13 @@ import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton, Popover } from '@mui/material';
 import {logout} from "../../../actions/authActions";
 // mocks_
-import account from '../../../_mock/account';
 import { setAuthenticated } from '../../../actions/authActions';
+import axios from "axios";
 const { ipcRenderer } = window.electron;
 
 // ----------------------------------------------------------------------
 
 const MENU_OPTIONS = [
-  {
-    label: 'Home',
-    icon: 'eva:home-fill',
-    path: '/home'
-  },
-  {
-    label: 'Profile',
-    icon: 'eva:person-fill',
-    path: '/profile'
-  },
   {
     label: 'Settings',
     icon: 'eva:settings-2-fill',
@@ -30,13 +20,19 @@ const MENU_OPTIONS = [
   },
 ];
 
-// ----------------------------------------------------------------------
+const BASE_URL = process.env.REACT_APP_URL
 
 export default function AccountPopover({ setIsAuthenticated }) {
   const [open, setOpen] = useState(null);
   const dispatch = useDispatch();
   const username = useSelector((state) => state.auth.userName);
   const navigate = useNavigate()
+
+  const [photoUrl, setPhotoUrl] = useState('');
+
+  useEffect(() => {
+    getUserIdProfilePhoto();
+  }, [])
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -55,6 +51,22 @@ export default function AccountPopover({ setIsAuthenticated }) {
     }
   };
 
+  const getUserIdProfilePhoto = async () => {
+    const token = await window.electron.ipcRenderer.invoke("getToken");
+    const userId = await window.electron.ipcRenderer.invoke("getId");
+    try {
+      const response = await axios.get(`${BASE_URL}users/getProfilePhoto/${userId}`, {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      setPhotoUrl(response.data)
+    } catch (error) {
+      // Handle error
+      console.error('Error retrieving profile photo URL:', error);
+      return null;
+    }
+  };
 
   return (
     <>
@@ -75,7 +87,7 @@ export default function AccountPopover({ setIsAuthenticated }) {
           }),
         }}
       >
-        <Avatar src={account.photoURL} alt="photoURL" />
+        <Avatar src={photoUrl} alt="photoURL" />
       </IconButton>
 
       <Popover
@@ -99,9 +111,6 @@ export default function AccountPopover({ setIsAuthenticated }) {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {username}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
             {username}
           </Typography>
         </Box>
