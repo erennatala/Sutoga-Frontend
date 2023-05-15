@@ -9,12 +9,13 @@ import { Provider} from "react-redux";
 import {Alert} from "@mui/lab";
 import store from "../store"
 import { useDispatch } from 'react-redux';
-
+import { setAuthenticated, setToken, setUserName } from '../actions/authActions';
 
 // components
 import Iconify from '../components/iconify';
 // sections
 import { LoginForm } from '../sections/auth/login';
+import LoadingScreen from "./LoadingScreen";
 
 // ----------------------------------------------------------------------
 
@@ -55,16 +56,44 @@ export default function LoginPage() {
   const [steamId, setSteamId] = useState(null);
   const [open, setOpen] = useState(false);
 
+  const [loading, setLoading] = useState(true);
 
   const handleSteamClick = () => {
     window.location.href = "http://localhost:3001/auth/steam";
   }
 
   useEffect(() => {
+    dispatch(setAuthenticated(false));
+
+    const checkIfLoggedIn = async () => {
+      const token = await window.electron.ipcRenderer.invoke('getToken');
+
+      if (token) {
+        dispatch(setAuthenticated(true));
+        navigate('/home', { replace: true })
+        setLoading(false);
+      }
+      else {
+        setLoading(false);
+      }
+    };
+
+    checkIfLoggedIn();
+  }, []);
+
+  useEffect(() => {
+    // Set isAuthenticated to false when the LoginPage is loaded
+    dispatch(setAuthenticated(false));
+
     const getSteamId = async () => {
       const steamIdFromStore = await window.electron.ipcRenderer.invoke('getSteamId');
       if (steamIdFromStore) {
+        dispatch(setAuthenticated(true));
         setSteamId(steamIdFromStore);
+        navigate('/home', { replace: true })
+        setLoading(false);
+      } else {
+        setLoading(false);
       }
     }
     getSteamId();
@@ -83,6 +112,10 @@ export default function LoginPage() {
 
     setOpen(false);
   };
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <>

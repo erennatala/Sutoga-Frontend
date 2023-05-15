@@ -400,7 +400,7 @@ export default function Profile() {
 
                         {/* Resim değiştirme */}
                         <Box display="flex" alignItems="center">
-                            <Avatar src={user.avatar} alt="Profile Picture" sx={{ width: 80, height: 80, mr: 2 }} />
+                            <Avatar src={user && user.avatar} alt="Profile Picture" sx={{ width: 80, height: 80, mr: 2 }} />
                             <Box>
                                 <input type="file" accept="image/*" onChange={handleProfilePictureChange} />
                                 {editProfilePicturePreview && (

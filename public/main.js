@@ -40,13 +40,16 @@ passport.use(new SteamStrategy({
 
 steamAuthApp.get('/auth/steam', passport.authenticate('steam'));
 
-steamAuthApp.get('/auth/steam/return',
-    passport.authenticate('steam', { failureRedirect: '/login' }),
+
+steamAuthApp.get(
+    '/auth/steam/return',
+    passport.authenticate('steam', { failureRedirect: 'http://localhost:3000/login' }),
     (req, res) => {
         const { _json: { steamid } } = req.user;
-        // res.redirect(`http://localhost:3001/?steamid=${steamid}`);
+        console.log('Authentication successful');
         res.redirect(`http://localhost:3000/register?steamid=${steamid}`);
-    });
+    }
+);
 
 steamAuthApp.listen(3001);
 
@@ -141,6 +144,7 @@ ipcMain.handle('logout', async () => {
     store.delete('token');
     store.delete('userId');
     store.delete('username');
+    store.delete('steamid');
     return "Logged out";
 });
 
@@ -184,6 +188,10 @@ function createWindow() {
             // Load the app page without the query parameter
             win.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
         }
+    });
+
+    win.webContents.on('did-finish-load', () => {
+        win.webContents.send('baseURL', BASE_URL);
     });
 
     const url = isDev
