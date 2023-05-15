@@ -160,7 +160,10 @@
     "workbox-webpack-plugin": "^6.4.1",
     "cryptr": "^6.2.0",
     "uuid": "^9.0.0",
-    "socket.io-client": "^4.5.3"
+    "socket.io-client": "^4.5.3",
+    "socket.io": "^4.5.3",
+    "mongoose": "^6.8.1",
+    "body-parser": "^1.20.2"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3",

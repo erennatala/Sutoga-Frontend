@@ -1,21 +1,34 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-import Cryptr from "cryptr";
+const Cryptr=  require('cryptr');
+const cors = require('cors');
 const cryptr = new Cryptr("myTotallySecretKey");
-import { db, Message } from "./mongo-connection.js";
+const { db, Message } = require("./mongo-connection.js");
+const bodyParser = require('body-parser');
 
 const app = express();
+
+// CORS middleware kullanımı
+app.use(cors());
+
+app.use(bodyParser.json());
 
 // HTTP server oluşturulması
 const server = http.createServer(app);
 
-// Socket.IO ile serverı başlatma
-const io = socketIo(server);
+// Socket.IO ile serverı başlatma ve CORS seçeneklerini belirtme
+const io = socketIo(server, {
+    cors: {
+        origin: "*", // Client uygulamanızın URL'ini buraya yazın
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
 
 app.post("/mediasoup/getMessages", (req, res) => {
     var messages;
-    console.log("dsfsdfdsf");
+    console.log(req.body);
     console.log(req.body.sender);
     console.log(req.body.receiver);
     Message.find(

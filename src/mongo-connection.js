@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose= require('mongoose');
 
 mongoose
   .connect("mongodb://localhost:27017")
@@ -10,6 +10,7 @@ const db = mongoose.connection;
 //Message schema ---   ADD SEND TIME LATER
 const Message = db.model("Message", {
   sender: String,
+   receiver: String,
   roomId: String,
   message: String,
   date: String,
@@ -21,4 +22,4 @@ const Conservation = db.model("Conservation", {
     secondUser: String
 });
 
-export { db, Message };
+module.exports = { db, Message };
