@@ -302,6 +302,10 @@ export default function Profile() {
         setToastOpen(false);
     };
 
+    const handlePostDelete = (postId) => {
+        setPosts(posts.filter((post) => post.id !== postId));
+    };
+
     function validation(e) {
         let tempFeedbackList = {
             // Other fields...
@@ -566,7 +570,7 @@ export default function Profile() {
                                             >
                                                 {posts.length > 0 ? (
                                                     posts.map((post, index) => (
-                                                        <PostCardLeft key={index} post={post}/>
+                                                        <PostCardLeft key={index} post={post} onDelete={handlePostDelete} />
                                                     ))
                                                 ) : (
                                                     <p style={{ textAlign: 'center', marginTop: '1rem' }}>
