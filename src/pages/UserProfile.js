@@ -73,12 +73,76 @@ export default function UserProfile() {
     const [posts, setPosts] = useState([]);
 
     const [user, setUser] = useState(null);
+    const [isFriend, setIsFriend] = useState(false);
+    const [isSender, setIsSender] = useState(false);
+    const [friendRequestId, setFriendRequestId] = useState(false);
+    const [checkingFriendship, setCheckingFriendship] = useState(true);
 
     const nicknames = ["ahmet", "mehmet", "kerem", "eren", "emru"];
 
     useEffect(() => {
         loadMorePosts();
     }, []);
+
+    useEffect(() => {
+        const checkFriendshipStatus = async () => {
+            try {
+                const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
+                const token = await window.electron.ipcRenderer.invoke('getToken');
+                const response = await axios.get(`${BASE_URL}users/areFriends`, {
+                    params: {
+                        userId1: loggedInUserId,
+                        userId2: user.id,
+                    },
+                    headers: {
+                        Authorization: token,
+                    },
+                });
+
+                const areFriends = response.data;
+                setIsFriend(areFriends);
+
+                if (!areFriends) {
+                    checkFriendRequest(loggedInUserId, user.id);
+                }
+            } catch (error) {
+                console.error('Error checking friendship status:', error);
+            } finally {
+                setCheckingFriendship(false);
+            }
+        };
+
+        checkFriendshipStatus();
+    }, [user]);
+
+    const checkFriendRequest = async (userId, accountId) => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.post(
+                `${BASE_URL}users/checkFriendRequest?userId=${userId}&accountId=${accountId}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `${token}`
+                    }
+                }
+            );
+
+            if (response.data) {
+                const { requestId, senderId, receiverId } = response.data;
+                setFriendRequestId(requestId);
+
+                if (loggedInUserId === senderId) {
+                    setIsSender(true);
+                }
+            }
+        } catch (error) {
+            console.error('Error checking friend request:', error);
+        }
+    };
+
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -99,6 +163,70 @@ export default function UserProfile() {
 
         fetchUser();
     }, []);
+
+    const handleAddFriend = async () => {
+        try {
+            const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
+            const token = await window.electron.ipcRenderer.invoke("getToken");
+            const response = await axios.post(`${BASE_URL}users/sendFriendRequest`, {
+                senderId: loggedInUserId,
+                receiverUsername: user.username,
+            }, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            if (response.data) {
+                setIsFriend(true);
+                setIsSender(true);
+            } else {
+                console.error('Failed to send friend request.');
+            }
+        } catch (error) {
+            console.error('Error sending friend request:', error);
+        }
+    };
+
+    const handleAcceptRequest = async () => {
+        try {
+            const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
+            const token = await window.electron.ipcRenderer.invoke("getToken");
+            const response = await axios.post(`${BASE_URL}users/acceptFriendRequest/${friendRequestId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            if (response.status === 200) {
+                setIsFriend(true);
+            } else {
+                console.error('Failed to accept friend request.');
+            }
+        } catch (error) {
+            console.error('Error accepting friend request:', error);
+        }
+    };
+
+    const handleDeclineRequest = async () => {
+        try {
+            const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
+            const token = await window.electron.ipcRenderer.invoke("getToken");
+            const response = await axios.post(`${BASE_URL}users/declineFriendRequest/${friendRequestId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            if (response.status === 200) {
+                setIsFriend(false);
+            } else {
+                console.error('Failed to decline friend request.');
+            }
+        } catch (error) {
+            console.error('Error declining friend request:', error);
+        }
+    };
 
     const loadMorePosts = async () => {
         if (loadingPosts) return;
@@ -161,7 +289,7 @@ export default function UserProfile() {
         setToastOpen(false);
     };
 
-    if (loadingUser) {
+    if (loadingUser || checkingFriendship) {
         return(<LoadingRow />)
     }
 
@@ -250,6 +378,52 @@ export default function UserProfile() {
                                             </Typography>
                                         </Stack>
                                     </Grid>
+                                </Grid>
+
+                                <Grid item xs={3} alignItems="center" justifyContent="center" sx={{py: 6}}>
+                                    {!isFriend ? (
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={handleAddFriend}
+                                            sx={{ height: 50 }}
+                                        >
+                                            + Add
+                                        </Button>
+                                    ) : (
+                                        <>
+                                            {isSender ? (
+                                                <Button
+                                                    variant="contained"
+                                                    color="success"
+                                                    disabled
+                                                    sx={{ height: 50 }}
+                                                >
+                                                    Sent!
+                                                </Button>
+                                            ) : (
+                                                <>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="success"
+                                                        onClick={handleAcceptRequest}
+                                                        sx={{ height: 50 }}
+                                                    >
+                                                        Accept
+                                                    </Button>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="error"
+                                                        onClick={handleDeclineRequest}
+                                                        sx={{ height: 50, marginLeft: 2 }}
+                                                    >
+                                                        Decline
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+
                                 </Grid>
                             </Stack>
                         </CardContent>
