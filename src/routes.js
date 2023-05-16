@@ -17,6 +17,7 @@ import Messages from "./pages/Messages";
 import ProtectedRoute from './pages/ProtectedRoute';
 import LoadingScreen from "./pages/LoadingScreen";
 import PostPage from "./pages/PostDetailCard"
+import UserProfile from './pages/UserProfile';
 // ----------------------------------------------------------------------
 
 export default function Router({ isLoading, isAuthenticated }) {
@@ -44,7 +45,9 @@ export default function Router({ isLoading, isAuthenticated }) {
         { path: 'profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
         { path: 'games', element: <ProtectedRoute><Games /></ProtectedRoute> },
         { path: 'messages', element: <ProtectedRoute><Messages /></ProtectedRoute> },
-        { path: 'post/:postId', element: <ProtectedRoute><PostPage /></ProtectedRoute> }
+        { path: 'post/:postId', element: <ProtectedRoute><PostPage /></ProtectedRoute> },
+        { path: 'profile/:username', element: <ProtectedRoute><UserProfile /></ProtectedRoute>,
+        },
       ],
     },
     {

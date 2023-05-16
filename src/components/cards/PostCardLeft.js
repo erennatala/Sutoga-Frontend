@@ -123,7 +123,6 @@ export default function PostCardLeft(props) {
 
     const handleUserProfileClick = () => {
         navigate(`/userprofile/${props.post.userId}`);
-        // Replace '/userprofile' with the actual route for user profile
     };
 
     const handleMenuOpen = (event) => {
@@ -132,6 +131,18 @@ export default function PostCardLeft(props) {
 
     const handleMenuClose = () => {
         setAnchorEl(null);
+    };
+
+    const handleRemovePost = async () => {
+        const token = await window.electron.ipcRenderer.invoke('getToken');
+
+        await axios.delete(`${BASE_URL}posts/${props.post.id}`, {
+            headers: {
+                Authorization: token
+            }
+        });
+        handleMenuClose();
+        props.onDelete(props.post.id);
     };
 
     const handleReportOpen = () => {
@@ -291,6 +302,9 @@ export default function PostCardLeft(props) {
                     horizontal: 'right',
                 }}
             >
+                {props.post.usersPost && (
+                    <MenuItem onClick={handleRemovePost}>Remove</MenuItem>
+                )}
                 <MenuItem onClick={handleReportOpen}>Report</MenuItem>
             </Menu>
 

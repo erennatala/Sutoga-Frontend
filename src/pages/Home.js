@@ -222,6 +222,10 @@ export default function Home() {
         }
     }
 
+    const handlePostDelete = (postId) => {
+        setPosts(posts.filter((post) => post.id !== postId));
+    };
+
     const handlePost = () => {
         simulateUpload();
         createPost(postText, userId, selectedFile);
@@ -383,7 +387,7 @@ export default function Home() {
                         >
                             {posts.length > 0 ? (
                                 posts.map((post, index) => (
-                                    <PostCardLeft key={index} post={post} fileType={fileType}/>
+                                    <PostCardLeft key={index} post={post} fileType={fileType} onDelete={handlePostDelete} />
                                 ))
                             ) : (
                                 <p style={{ textAlign: 'center', marginTop: '1rem' }}>
