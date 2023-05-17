@@ -4,7 +4,7 @@ const socketIo = require('socket.io');
 const Cryptr=  require('cryptr');
 const cors = require('cors');
 const cryptr = new Cryptr("myTotallySecretKey");
-const { db, Message } = require("./mongo-connection.js");
+const { db, Message, Conservation } = require("./mongo-connection.js");
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -47,6 +47,58 @@ app.post("/mediasoup/getMessages", (req, res) => {
     );
 });
 
+app.post("/conservation", async (req, res) => {
+    const { firstUser, secondUser } = req.body;
+    const newConservation = new Conservation({
+        firstUser,
+        secondUser,
+        lastUpdateDate: new Date().toISOString(),
+    });
+
+    try {
+        const savedConservation = await newConservation.save();
+        res.status(201).json(savedConservation);
+    } catch (error) {
+        res.status(500).json({ error: error.toString() });
+    }
+});
+
+// Conservation güncelleme endpoint'i
+app.put("/conservation", async (req, res) => {
+    const { firstUser, secondUser } = req.body;
+    try {
+        const updatedConservation = await Conservation.findOneAndUpdate(
+            { firstUser, secondUser },
+            { lastUpdateDate: new Date().toISOString() },
+            { new: true }
+        );
+
+        if (updatedConservation) {
+            res.json(updatedConservation);
+        } else {
+            res.status(404).json({ error: "Conservation not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.toString() });
+    }
+});
+
+app.get("/conservation/:username", async (req, res) => {
+    const { username } = req.params;
+    try {
+        const conservations = await Conservation.find({
+            firstUser : username
+        }).sort({ lastUpdateDate: -1 }); // en yenisi en üstte olacak şekilde sıralama
+
+        if (conservations) {
+            res.json(conservations);
+        } else {
+            res.status(404).json({ error: "No conservations found" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.toString() });
+    }
+});
 
 
 // Client tarafından bağlantı yapıldığında çalışacak event

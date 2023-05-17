@@ -128,9 +128,9 @@ export default function Nav({ openNav, onCloseNav }) {
       <Box sx={{ flexGrow: 0.1 }} />
 
       <Box>
-        <Grid xs={4} sx={{mr: 3}}>
+        <Grid item xs={4} sx={{mr: 3}}>
           <Container columns={4} sx={{position: "fixed", height: "400px"}}>
-            <Grid xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
+            <Grid item xs={4} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
 
               {friendRec.map((user, index) => <React.Fragment key={index}>
                 <FriendRecCard nickname={user} />
