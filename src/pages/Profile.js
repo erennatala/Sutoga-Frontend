@@ -1,11 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import React, {useState, useEffect} from "react";
 // @mui
-import {alpha, useTheme} from '@mui/material/styles';
+import {useTheme} from '@mui/material/styles';
 import {Alert} from "@mui/lab";
 import {
     Grid,
-    Container,
     Typography,
     Card,
     Box,
@@ -14,7 +13,7 @@ import {
     Snackbar,
     Stack,
     Button,
-    Tabs, Tab, DialogTitle, Dialog, DialogActions, DialogContent, TextField
+    Tabs, Tab, DialogTitle, Dialog, DialogActions, DialogContent, TextField, FormControlLabel, Switch, FormGroup
 } from '@mui/material';
 // components
 import {TabPanelProps} from "@mui/lab";
@@ -79,6 +78,13 @@ export default function Profile() {
 
     const [user, setUser] = useState(null);
 
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isPrivateAccount, setIsPrivateAccount] = useState(false);
+
+    const [update, setUpdate] = useState(false)
+
     const nicknames = ["ahmet", "mehmet", "kerem", "eren", "emru"];
 
     useEffect(() => {
@@ -105,7 +111,7 @@ export default function Profile() {
         };
 
         fetchUser();
-    }, []);
+    }, [update]);
 
     const [editIsEmailEditable, setEditIsEmailEditable] = useState(true);
     const [editIsUsernameEditable, setEditIsUsernameEditable] = useState(true);
@@ -113,13 +119,9 @@ export default function Profile() {
     const [editProfilePicturePreview, setEditProfilePicturePreview] = useState(null);
 
     const handleProfilePictureChange = (event) => {
-        setEditProfilePicture(event.target.files[0]);
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setEditProfilePicturePreview(reader.result);
-        }
-        reader.readAsDataURL(event.target.files[0]);
+        const file = event.target.files[0];
+        setEditProfilePicture(file);
+        setEditProfilePicturePreview(URL.createObjectURL(file));
     };
 
     const toggleEmailEditable = () => setEditIsEmailEditable(!editIsEmailEditable);
@@ -182,6 +184,7 @@ export default function Profile() {
             setEditLastName(user.lastName);
             setEditBirthDate(user.birthDate);
             setEditPhoneNumber(user.phoneNumber);
+            setEditProfilePicturePreview(user.profilePhotoUrl)
         }
     }, [user]);
 
@@ -198,18 +201,49 @@ export default function Profile() {
             formData.append('media', editProfilePicture);
         }
 
+        const token = await window.electron.ipcRenderer.invoke('getToken');
+        const userId = await window.electron.ipcRenderer.invoke('getId');
+
         try {
-            const response = await axios.put(`${BASE_URL}users/${user.id}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+            const response = await axios.put(`${BASE_URL}users/${userId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': token,
+                },
             });
             if (response.status === 200) {
                 alert('Profile updated successfully!');
+                setUpdate(true)
+                handleEditProfileClose()
             } else {
                 alert('Error updating profile');
             }
         } catch (error) {
             console.error('Error updating profile:', error);
         }
+    };
+
+    const handleCurrentPasswordChange = (e) => {
+        setCurrentPassword(e.target.value);
+    };
+
+    const handleNewPasswordChange = (e) => {
+        setNewPassword(e.target.value);
+    };
+
+    const handleConfirmPasswordChange = (e) => {
+        setConfirmPassword(e.target.value);
+    };
+
+    const handlePrivacyToggle = () => {
+        setIsPrivateAccount((prevValue) => !prevValue);
+    };
+
+    const handleAccountClose = () => {
+        setOpenAccountSettings(false);
+    };
+
+    const handleAccountSave = () => {
     };
 
     const loadMorePosts = async () => {
@@ -350,7 +384,6 @@ export default function Profile() {
                 <DialogTitle>Edit Profile</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2} sx={{mt: 3}}>
-                        {/* Eposta değiştirme */}
                         {editIsEmailEditable && (
                             <TextField
                                 label="Email"
@@ -360,7 +393,6 @@ export default function Profile() {
                             />
                         )}
 
-                        {/* Kullanıcı adı değiştirme */}
                         {editIsUsernameEditable && (
                             <TextField
                                 label="Username"
@@ -370,7 +402,6 @@ export default function Profile() {
                             />
                         )}
 
-                        {/* İsim değiştirme */}
                         <TextField
                             label="First Name"
                             defaultValue={editFirstName}
@@ -378,7 +409,6 @@ export default function Profile() {
                             onChange={event => setEditFirstName(event.target.value)}
                         />
 
-                        {/* Soyisim değiştirme */}
                         <TextField
                             label="Last Name"
                             defaultValue={editLastName}
@@ -388,7 +418,7 @@ export default function Profile() {
 
                         <PhoneInput
                             country="tr"
-                            inputStyle={{ borderRadius: '13px', height: '200%', width: '100%' }}
+                            inputStyle={{ borderRadius: '13px', height: '50px', width: '100%' }}
                             value={editPhoneNumber}
                             onChange={(value) => setEditPhoneNumber(value)}
                         />
@@ -402,18 +432,13 @@ export default function Profile() {
                             onChange={event => setEditBirthDate(event.target.value)}
                         />
 
-                        {/* Resim değiştirme */}
                         <Box display="flex" alignItems="center">
-                            <Avatar src={user && user.avatar} alt="Profile Picture" sx={{ width: 80, height: 80, mr: 2 }} />
+                            <Avatar src={editProfilePicturePreview} alt="Profile Picture" sx={{ width: 80, height: 80, mr: 2 }} />
                             <Box>
                                 <input type="file" accept="image/*" onChange={handleProfilePictureChange} />
-                                {editProfilePicturePreview && (
-                                    <img src={editProfilePicturePreview} alt="Profile Picture Preview" style={{ width: 80, height: 80, objectFit: 'cover' }} />
-                                )}
                             </Box>
                         </Box>
 
-                        {/* Açıklama değiştirme */}
                         <TextField
                             label="Description"
                             defaultValue={editDescription}
@@ -428,14 +453,47 @@ export default function Profile() {
                 </DialogActions>
             </Dialog>
 
-            <Dialog open={openAccountSettings} onClose={handleAccountSettingsClose}>
+            <Dialog open={openAccountSettings} onClose={handleAccountClose}>
                 <DialogTitle>Account Settings</DialogTitle>
                 <DialogContent>
-                    {/* Your form fields for account settings go here */}
+                    <TextField
+                        type="password"
+                        label="Current Password"
+                        value={currentPassword}
+                        onChange={handleCurrentPasswordChange}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <TextField
+                        type="password"
+                        label="New Password"
+                        value={newPassword}
+                        onChange={handleNewPasswordChange}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <TextField
+                        type="password"
+                        label="Confirm Password"
+                        value={confirmPassword}
+                        onChange={handleConfirmPasswordChange}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <FormGroup>
+                        <FormControlLabel
+                            control={
+                                <Switch checked={isPrivateAccount} onChange={handlePrivacyToggle} color="primary" />
+                            }
+                            label="Private Account"
+                        />
+                    </FormGroup>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleAccountSettingsClose}>Cancel</Button>
-                    <Button>Save Changes</Button>
+                    <Button onClick={handleAccountClose}>Cancel</Button>
+                    <Button onClick={handleAccountSave} color="primary">
+                        Save Changes
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -447,11 +505,11 @@ export default function Profile() {
 
                 <Grid container columns={16} sx={{px: 7}}>
                     <Grid xs={16}>
-                        <Card sx={{height: "300px"}}>
+                        <Card sx={{height: "250px"}}>
                             <CardContent>
                                 <Stack direction="row" spacing={8}>
                                     <Grid>
-                                        <Avatar src="" alt="photoURL" sx={{ minWidth: avatarSize, minHeight: avatarSize }}/>
+                                        <Avatar src={user.profilePhotoUrl} alt="photoURL" sx={{ minWidth: avatarSize, minHeight: avatarSize }}/>
                                     </Grid>
 
                                     <Grid direction="column" sx={{paddingY: 6}} xs={6}>
@@ -460,7 +518,7 @@ export default function Profile() {
                                         </Typography>
 
                                         <Typography flexWrap variant="h7" gutterBottom>
-                                            CS oynamayanlar eklemesin xxxxxxagkjadkşgjaşkdgajagjdakgjkal
+                                            {user.profileDescription}
                                         </Typography>
                                     </Grid>
 
