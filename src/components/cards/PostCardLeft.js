@@ -7,12 +7,12 @@ import {
     Container, Dialog, DialogActions, DialogContent, DialogTitle,
     Divider, FormControl, FormControlLabel,
     Grid, IconButton,
-    Link, List, Menu, MenuItem, Radio, RadioGroup,
+    Link, Menu, MenuItem, Radio, RadioGroup,
     Stack, TextField,
     Typography
 } from "@mui/material";
 import {styled} from "@mui/material/styles";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Iconify from "../iconify";
 import { format } from 'date-fns';
@@ -43,7 +43,11 @@ export default function PostCardLeft(props) {
         { nickname: "SamJones", comment: "Amazing work!" },
     ]);
     const [liked, setLiked] = useState(props.post.likedByUser);
+    const [likeCount, setLikeCount] = useState(props.post.likeCount)
+    const [commentCount, setCommentCount] = useState(props.post.commentCount)
+
     const [isLikedModalOpen, setIsLikedModalOpen] = useState(false);
+    const [isRemoveDialogOpen, setRemoveDialogOpen] = useState(false);
 
     const formattedDate = format(new Date(props.post.postDate), 'dd MMMM yyyy HH:mm');
 
@@ -53,6 +57,20 @@ export default function PostCardLeft(props) {
 
     const handleCloseLikedModal = () => {
         setIsLikedModalOpen(false);
+    };
+
+    const handleRemovePost = () => {
+        handleMenuClose();
+        setRemoveDialogOpen(true);
+    };
+
+    const handleRemoveConfirm = () => {
+        handleRemovePostConfirmed()
+        setRemoveDialogOpen(false);
+    };
+
+    const handleRemoveCancel = () => {
+        setRemoveDialogOpen(false);
     };
 
     const handleLike = async () => {
@@ -66,7 +84,8 @@ export default function PostCardLeft(props) {
                 });
 
                 setLiked(false);
-                props.post.likeCount -= 1;
+                props.handleLike(props.post.id, likeCount - 1);
+                setLikeCount(likeCount-1)
             } catch (err) {
 
             }
@@ -84,7 +103,8 @@ export default function PostCardLeft(props) {
                 });
 
                 setLiked(true);
-                props.post.likeCount += 1;
+                props.handleLike(props.post.id, likeCount + 1);
+                setLikeCount(likeCount+1)
             } catch (err) {
 
             }
@@ -121,8 +141,13 @@ export default function PostCardLeft(props) {
         setIsShareModalOpen(false);
     };
 
-    const handleUserProfileClick = () => {
-        navigate(`/userprofile/${props.post.userId}`);
+    const handleUserProfileClick = async () => {
+        const username = await window.electron.ipcRenderer.invoke('getUsername');
+        if (props.post.username === username) {
+            navigate(`/profile`);
+        } else {
+            navigate(`/profile/${props.post.username}`);
+        }
     };
 
     const handleMenuOpen = (event) => {
@@ -133,7 +158,7 @@ export default function PostCardLeft(props) {
         setAnchorEl(null);
     };
 
-    const handleRemovePost = async () => {
+    const handleRemovePostConfirmed = async () => {
         const token = await window.electron.ipcRenderer.invoke('getToken');
 
         await axios.delete(`${BASE_URL}posts/${props.post.id}`, {
@@ -302,11 +327,23 @@ export default function PostCardLeft(props) {
                     horizontal: 'right',
                 }}
             >
-                {props.post.usersPost && (
+                {props.post.usersPost ? (
                     <MenuItem onClick={handleRemovePost}>Remove</MenuItem>
-                )}
-                <MenuItem onClick={handleReportOpen}>Report</MenuItem>
+                ) : (<MenuItem onClick={handleReportOpen}>Report</MenuItem>)
+                }
+
             </Menu>
+
+            <Dialog open={isRemoveDialogOpen} onClose={handleRemoveCancel}>
+                <DialogTitle>Are you sure?</DialogTitle>
+                <DialogContent>
+                    <p>Do you want to remove this post?</p>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleRemoveCancel} color="primary">Cancel</Button>
+                    <Button onClick={handleRemoveConfirm} color="primary">Remove</Button>
+                </DialogActions>
+            </Dialog>
 
         <Container sx={{ px: 9, pt: 1, pb: 2}} spacing={2}>
             <Card>
@@ -340,13 +377,13 @@ export default function PostCardLeft(props) {
                                     <Iconify icon={liked ? ("flat-color-icons:like") : ("icon-park-outline:like")} />
                                 </IconButton>
                                 <Typography variant="subtitle2" sx={{ color: 'text.secondary', mr: 1, mt: 1, cursor: 'pointer' }} onClick={handleOpenLikedModal}>
-                                    {props.post.likeCount}
+                                    {likeCount}
                                 </Typography>
                                 <IconButton onClick={handleOpenCommentModal}>
                                     <Iconify icon={"majesticons:comment-line"} />
                                 </IconButton>
                                 <Typography variant="subtitle2" sx={{ color: 'text.secondary', mr: 1, mt: 1 }}>
-                                    {props.post.commentCount}
+                                    {commentCount}
                                 </Typography>
                                 <IconButton onClick={handleShare}>
                                     <Iconify icon="material-symbols:ios-share" />
@@ -369,38 +406,41 @@ export default function PostCardLeft(props) {
                                         {props.post.description}
                                     </Typography>
                                 </Box>
-                                <Box>
-                                    {props.post.mediaUrl.endsWith('.mp4') ||
-                                    props.post.mediaUrl.endsWith('.mov') ||
-                                    props.post.mediaUrl.endsWith('.avi') ? (
-                                        <video
-                                            style={{
-                                                marginLeft: '2px',
-                                                marginBottom: '2px',
-                                                borderRadius: '2px',
-                                                width: '100%',
-                                                height: 'auto',
-                                                objectFit: 'cover',
-                                            }}
-                                            controls
-                                        >
-                                            <source src={props.post.mediaUrl} type="video/mp4" />
-                                        </video>
-                                    ) : (
-                                        <img
-                                            src={props.post.mediaUrl}
-                                            style={{
-                                                marginLeft: '2px',
-                                                marginBottom: '2px',
-                                                borderRadius: '2px',
-                                                width: '96%',
-                                                height: 'auto',
-                                                objectFit: 'cover',
-                                            }}
-                                            alt="x"
-                                        />
-                                    )}
-                                </Box>
+
+                                <Grid container justifyContent="center" alignItems="center" style={{ height: '100%' }}>
+                                    <Box>
+                                        {props.post.mediaUrl.endsWith('.mp4') ||
+                                        props.post.mediaUrl.endsWith('.mov') ||
+                                        props.post.mediaUrl.endsWith('.avi') ? (
+                                            <video
+                                                style={{
+                                                    marginLeft: '2px',
+                                                    marginBottom: '2px',
+                                                    borderRadius: '2px',
+                                                    width: '100%',
+                                                    height: 'auto',
+                                                    objectFit: 'cover',
+                                                }}
+                                                controls
+                                            >
+                                                <source src={props.post.mediaUrl} type="video/mp4" />
+                                            </video>
+                                        ) : (
+                                            <img
+                                                src={props.post.mediaUrl}
+                                                style={{
+                                                    marginLeft: '2px',
+                                                    marginBottom: '2px',
+                                                    borderRadius: '2px',
+                                                    width: '96%',
+                                                    height: 'auto',
+                                                    objectFit: 'cover',
+                                                }}
+                                                alt="x"
+                                            />
+                                        )}
+                                    </Box>
+                                </Grid>
                             </Box>
                         ) : (
                             <Typography variant={props.img ? 'subtitle2' : 'h6'} sx={{ color: 'text.primary', ml: 2, mb: 2 }}>

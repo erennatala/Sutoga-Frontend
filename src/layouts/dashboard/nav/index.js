@@ -105,8 +105,8 @@ export default function Nav({ openNav, onCloseNav }) {
           <img src="/assets/images/brand/main-logo.png" alt="sidebar-logo"/>
         </Box>
 
-        <Box sx={{ mb: 5, mx: 1 }}>
-          <ButtonBase onClick={routeChange}>
+        <Box sx={{ mb: 5, mx: 1}}>
+          <ButtonBase onClick={routeChange} sx={{width: "100%"}}>
             <Link underline="none">
               <StyledAccount>
                 <Avatar src="" alt="photoURL" />

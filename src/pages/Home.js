@@ -184,6 +184,16 @@ export default function Home() {
 
             const response = await axios.post(postUrl, formData, config);
 
+            setSelectedFile('');
+            setMediaPreview('');
+            setPostText('');
+            setPostLabel("What's happening?");
+            setCanSend(false);
+            setRow(1)
+            setCollapse(true)
+            setCollapse(false);
+            setOpenCreate(false);
+            setIsInputOpen(false);
             setPosts(prevPosts => [response.data, ...prevPosts]);
         } catch (error) {
             console.log(error);
@@ -223,12 +233,16 @@ export default function Home() {
     }
 
     const handlePostDelete = (postId) => {
-        setPosts(posts.filter((post) => post.id !== postId));
+        setPosts((prevPosts) => prevPosts.filter(post => post.id !== postId));
     };
 
     const handlePost = () => {
         simulateUpload();
         createPost(postText, userId, selectedFile);
+    };
+
+    const handleLike = (postId, newValue) => {
+        setPosts(prevPosts => prevPosts.map(post => post.id === postId ? { ...post, likeCount: newValue } : post));
     };
 
     const simulateUpload = () => {
@@ -293,10 +307,11 @@ export default function Home() {
                                                 fontWeight: 400,
                                             },
                                         }}
+                                        value={postText}
                                         multiline focused={false} rows={row} fullWidth
                                         onChange={(e) => {
-                                            setPostText(e.target.value)
                                             handleWrite(e.target.value)
+                                            setPostText(e.target.value)
                                         }}
                                         // In TextField's InputProps
                                         InputProps={{
@@ -387,9 +402,19 @@ export default function Home() {
                         >
                             {posts.length > 0 ? (
                                 posts.map((post, index) => (
-                                    <PostCardLeft key={index} post={post} fileType={fileType} onDelete={handlePostDelete} />
+                                    <PostCardLeft
+                                        key={post.id}
+                                        post={post}
+                                        fileType={fileType}
+                                        onDelete={handlePostDelete}
+                                        isLiked={post.likedByUser}
+                                        commentCount={post.commentCount}
+                                        likeCount={post.likeCount}
+                                        handleLike={handleLike}
+                                    />
                                 ))
-                            ) : (
+
+                                ) : (
                                 <p style={{ textAlign: 'center', marginTop: '1rem' }}>
                                     Looks like there are no posts yet. Stay tuned!
                                 </p>
