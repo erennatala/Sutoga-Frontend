@@ -505,7 +505,7 @@ export default function Profile() {
 
                 <Grid container columns={16} sx={{px: 7}}>
                     <Grid xs={16}>
-                        <Card sx={{height: "250px"}}>
+                        <Card sx={{height: "280px"}}>
                             <CardContent>
                                 <Stack direction="row" spacing={8}>
                                     <Grid>

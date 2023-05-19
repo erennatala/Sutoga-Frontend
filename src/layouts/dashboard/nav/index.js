@@ -8,7 +8,6 @@ import {Box, Link, Button, Drawer, Typography, Avatar, Stack, Grid, Container, B
 import axios from "axios";
 import useResponsive from '../../../hooks/useResponsive';
 // components
-import Scrollbar from '../../../components/scrollbar';
 import NavSection from '../../../components/nav-section';
 //
 import navConfig from './config';
@@ -43,6 +42,7 @@ export default function Nav({ openNav, onCloseNav }) {
 
   const [friendRec, setFriendRec] = useState([])
 
+  const [photoUrl, setPhotoUrl] = useState("")
   const [localUsername, setLocalUsername] = useState('');
   const [userId, setUserId] = useState(null)
 
@@ -58,7 +58,10 @@ export default function Nav({ openNav, onCloseNav }) {
   }, []);
 
   useEffect(() => {
-    if(userId) getFriendRecs() // This will run only if userId is truthy
+    if(userId) {
+      getFriendRecs()
+      getProfilePhoto()
+    }
   }, [userId])
 
   useEffect(() => {
@@ -78,6 +81,54 @@ export default function Nav({ openNav, onCloseNav }) {
     }
   }, [pathname]);
 
+  const handleRefresh = () => {
+    getFriendRecs();
+  };
+
+  const handleAddFriend = async (nickname, index) => {
+    try {
+      const token = await window.electron.ipcRenderer.invoke('getToken');
+      const userId = await window.electron.ipcRenderer.invoke('getId');
+
+      const formData = new FormData();
+      formData.append('senderId', userId);
+      formData.append('receiverUsername', nickname);
+
+      const response = await axios.post(`${BASE_URL}users/sendFriendRequest`, formData, {
+        headers: {
+          'Authorization': token
+        }
+      });
+
+      const nextRecommendation = await getFriendRecommendation(userId);
+
+      setFriendRec((prevFriendRec) => {
+        const updatedFriendRec = [...prevFriendRec];
+        updatedFriendRec.splice(index, 1);
+        updatedFriendRec.push(nextRecommendation);
+        return updatedFriendRec;
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getFriendRecommendation = async (userId) => {
+    try {
+      const token = await window.electron.ipcRenderer.invoke('getToken');
+
+      const response = await axios.get(`${BASE_URL}users/getFriendRecommendation?userId=${userId}`, {
+        headers: {
+          'Authorization': token
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const getFriendRecs = async () => {
     try {
       const token = await window.electron.ipcRenderer.invoke('getToken');
@@ -91,6 +142,23 @@ export default function Nav({ openNav, onCloseNav }) {
       setFriendRec(recresponse.data);
     } catch (e) {
       console.log(e);
+    }
+  }
+
+  const getProfilePhoto = async () => {
+    try {
+      const token = await window.electron.ipcRenderer.invoke('getToken');
+      const username = await window.electron.ipcRenderer.invoke('getUsername');
+
+      const photoresponse = await axios.get(`${BASE_URL}users/profilePhoto?username=${username}`, {
+        headers: {
+          'Authorization': `${token}`
+        }
+      });
+
+      setPhotoUrl(photoresponse.data);
+    } catch (e) {
+      console.log(e)
     }
   }
 
@@ -109,7 +177,7 @@ export default function Nav({ openNav, onCloseNav }) {
           <ButtonBase onClick={routeChange} sx={{width: "100%"}}>
             <Link underline="none">
               <StyledAccount>
-                <Avatar src="" alt="photoURL" />
+                <Avatar src={photoUrl} alt="photoURL" />
 
                 <Box sx={{ pl: 1.5 }}>
                   <Typography variant="subtitle2" sx={{
@@ -136,14 +204,15 @@ export default function Nav({ openNav, onCloseNav }) {
 
         <Box>
           <Grid xs={12}>
-            <Container columns={12} sx={{height: "400px"}}>
-              <Grid xs={12} sx={{backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius)}}>
-
-                {friendRec.map((user, index) => <div key={index}>
-                  <FriendRecCard nickname={user} />
-                </div>)}
+            <Container columns={12} sx={{ height: "400px" }}>
+              <Grid xs={12} sx={{ backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius) }}>
+                {friendRec.map((user, index) => (
+                    <div key={index}>
+                      <FriendRecCard nickname={user.username} sent={false} photo={user.profilePhotoUrl} onAddFriend={(e, k) => handleAddFriend(e, k)} />
+                    </div>
+                ))}
               </Grid>
-              <Button variant="text">See more like this</Button>
+              <Button variant="text" onClick={handleRefresh}>Refresh</Button>
             </Container>
           </Grid>
         </Box>

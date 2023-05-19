@@ -7,7 +7,7 @@ import axios from "axios";
 
 const BASE_URL = process.env.REACT_APP_URL
 
-export default function FriendRecCard({ nickname }) {
+export default function FriendRecCard({ nickname, photo, onAddFriend, sent }) {
     const StyledAccount = styled('div')(({ theme }) => ({
         display: 'flex',
         alignItems: 'center',
@@ -15,35 +15,21 @@ export default function FriendRecCard({ nickname }) {
         width: '100%',
     }));
 
-    const [isSent, setIsSent] = useState(false);
+    const [isSent, setIsSent] = useState(sent);
 
     const handleAdd = async () => {
         try {
-            const id = await window.electron.ipcRenderer.invoke('getId');
-            const token = await window.electron.ipcRenderer.invoke('getToken');
-
-            const formData = new FormData();
-            formData.append('senderId', id);
-            formData.append('receiverUsername', nickname);
-
-            //const response = await axios.post( `${BASE_URL}users/sendFriendRequest?senderId=${id}&receiverUsername=${nickname}`
-            const response = await axios.post( `${BASE_URL}users/sendFriendRequest`, formData, {
-                headers: {
-                    'Authorization': `${token}`
-                }
-            });
-
-            setIsSent(response)
-        } catch (err) {
-
+            await onAddFriend(nickname);
+        } catch (error) {
+            console.log(error);
         }
-    }
+    };
 
     return (
         <StyledAccount>
             <Grid container spacing={2}>
                 <Grid item xs={3}>
-                    <Avatar src="" alt="photoURL" sx={{ width: 40, height: 40 }} />
+                    <Avatar src={photo} alt="photoURL" sx={{ width: 40, height: 40 }} />
                 </Grid>
                 <Grid item xs={6}>
                     <Box sx={{ overflow: 'hidden' }}>

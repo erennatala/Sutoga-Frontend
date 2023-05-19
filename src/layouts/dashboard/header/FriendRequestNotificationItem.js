@@ -1,9 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Avatar, ListItemAvatar, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { Avatar, ListItemAvatar, ListItemButton, ListItemText, Typography, IconButton } from '@mui/material';
+import { CheckCircleOutlineOutlined, HighlightOffOutlined } from '@mui/icons-material';
 
 function FriendRequestNotificationItem({ friendRequest }) {
     const { sender, receiver } = friendRequest;
+
+    const handleAccept = () => {
+        // Accept logic here
+    };
+
+    const handleDecline = () => {
+        // Decline logic here
+    };
 
     return (
         <ListItemButton sx={{ py: 1.5, px: 2.5, mt: '1px' }}>
@@ -12,16 +21,20 @@ function FriendRequestNotificationItem({ friendRequest }) {
             </ListItemAvatar>
             <ListItemText
                 primary={
-                    <Typography variant="subtitle2">
-                        {sender.username} sent you a friend request
-                    </Typography>
-                }
-                secondary={
-                    <Typography variant="caption" sx={{ mt: 0.5, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
-                        {sender.firstName} {sender.lastName}
+                    <Typography variant="subtitle1">
+                        <Typography component="span" variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                            {sender.username}
+                        </Typography>{' '}
+                        sent you a friend request
                     </Typography>
                 }
             />
+            <IconButton onClick={handleAccept}>
+                <CheckCircleOutlineOutlined />
+            </IconButton>
+            <IconButton onClick={handleDecline}>
+                <HighlightOffOutlined />
+            </IconButton>
         </ListItemButton>
     );
 }
