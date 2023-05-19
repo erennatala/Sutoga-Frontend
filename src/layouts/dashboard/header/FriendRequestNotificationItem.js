@@ -2,16 +2,29 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Avatar, ListItemAvatar, ListItemButton, ListItemText, Typography, IconButton } from '@mui/material';
 import { CheckCircleOutlineOutlined, HighlightOffOutlined } from '@mui/icons-material';
+import axios from 'axios';
 
-function FriendRequestNotificationItem({ friendRequest }) {
-    const { sender, receiver } = friendRequest;
+const BASE_URL = process.env.REACT_APP_URL
 
-    const handleAccept = () => {
-        // Accept logic here
+function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
+    const { sender, receiver, id } = friendRequest;
+
+    const handleAccept = async () => {
+        try {
+            await axios.post(`${BASE_URL}users/acceptFriendRequest/${id}`);
+            onSuccess(id);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
-    const handleDecline = () => {
-        // Decline logic here
+    const handleDecline = async () => {
+        try {
+            await axios.post(`${BASE_URL}users/declineFriendRequest/${id}`);
+            onSuccess(id);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     return (
@@ -41,6 +54,7 @@ function FriendRequestNotificationItem({ friendRequest }) {
 
 FriendRequestNotificationItem.propTypes = {
     friendRequest: PropTypes.shape({
+        id: PropTypes.number.isRequired,
         sender: PropTypes.shape({
             username: PropTypes.string.isRequired,
             firstName: PropTypes.string.isRequired,
@@ -54,6 +68,7 @@ FriendRequestNotificationItem.propTypes = {
             profilePhotoUrl: PropTypes.string,
         }),
     }),
+    onSuccess: PropTypes.func.isRequired,
 };
 
 export default FriendRequestNotificationItem;

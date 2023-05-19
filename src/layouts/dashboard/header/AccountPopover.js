@@ -67,7 +67,6 @@ export default function AccountPopover({ setIsAuthenticated }) {
       });
       setPhotoUrl(response.data)
     } catch (error) {
-      // Handle error
       console.error('Error retrieving profile photo URL:', error);
       return null;
     }

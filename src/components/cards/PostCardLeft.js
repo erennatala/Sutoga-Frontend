@@ -202,7 +202,7 @@ export default function PostCardLeft(props) {
             <Dialog open={isCommentModalOpen} onClose={handleCloseCommentModal} maxWidth="md" fullWidth>
                 <DialogContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Avatar src="" alt="photoURL" />
+                        <Avatar src={props.post.photoUrl} alt="photoURL" />
                         <Typography variant="subtitle2" sx={{ ml: 2, color: 'text.primary' }}>
                             {props.post.username}
                         </Typography>
@@ -353,7 +353,7 @@ export default function PostCardLeft(props) {
                         <ButtonBase onClick={handleUserProfileClick}>
                             <Link underline="none">
                                 <StyledAccount>
-                                    <Avatar src="" alt="photoURL" />
+                                    <Avatar src={props.post.photoUrl} alt="photoURL" />
                                     <Grid>
                                         <Box sx={{ ml: 2 }}>
                                             <Stack direction="row">
