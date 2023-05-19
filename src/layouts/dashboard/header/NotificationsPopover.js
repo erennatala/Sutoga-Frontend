@@ -69,7 +69,7 @@ export default function NotificationsPopover() {
 
       setIsLoading(true);
 
-      const friendRequestsResponse = await axios.get(`${BASE_URL}unconfirmed?userId=${userId}`, {
+      const friendRequestsResponse = await axios.get(`${BASE_URL}users/unconfirmed?userId=${id}`, {
         headers: {
           Authorization: `${token}`,
         },
@@ -77,7 +77,7 @@ export default function NotificationsPopover() {
 
       setFriendRequests(friendRequestsResponse.data);
 
-      const notificationsResponse = await axios.get(`${BASE_URL}users/getLikeNotifations`, {
+      const notificationsResponse = await axios.get(`${BASE_URL}users/getLikeNotifications`, {
         headers: {
           Authorization: token,
         },

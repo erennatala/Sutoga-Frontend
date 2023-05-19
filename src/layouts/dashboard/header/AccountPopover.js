@@ -25,10 +25,15 @@ const BASE_URL = process.env.REACT_APP_URL
 export default function AccountPopover({ setIsAuthenticated }) {
   const [open, setOpen] = useState(null);
   const dispatch = useDispatch();
-  const username = useSelector((state) => state.auth.userName);
+  const [username, setUsername] = useState("")
   const navigate = useNavigate()
 
   const [photoUrl, setPhotoUrl] = useState('');
+
+  useEffect(async () => {
+    const userName = await window.electron.ipcRenderer.invoke('getUsername');
+    setUsername(userName)
+  }, [])
 
   useEffect(() => {
     getUserIdProfilePhoto();
