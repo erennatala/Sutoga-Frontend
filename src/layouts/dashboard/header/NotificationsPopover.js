@@ -45,6 +45,12 @@ export default function NotificationsPopover() {
     fetchData();
   }, []);
 
+  const handleRequestSuccess = (notificationId) => {
+    setFriendRequests((prevFriendRequests) =>
+        prevFriendRequests.filter((request) => request.id !== notificationId)
+    );
+  };
+
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
   };
@@ -137,7 +143,7 @@ export default function NotificationsPopover() {
             <List disablePadding subheader={<ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>New</ListSubheader>}>
               {/* Render friend request notifications */}
               {friendRequests.map((friendRequest) => (
-                  <FriendRequestNotificationItem key={friendRequest.id} friendRequest={friendRequest} />
+                  <FriendRequestNotificationItem key={friendRequest.id} friendRequest={friendRequest} onSuccess={() => handleRequestSuccess(friendRequest.id)} />
               ))}
             </List>
 

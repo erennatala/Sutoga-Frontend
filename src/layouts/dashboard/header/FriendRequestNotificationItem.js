@@ -11,8 +11,14 @@ function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
 
     const handleAccept = async () => {
         try {
-            await axios.post(`${BASE_URL}users/acceptFriendRequest/${id}`);
-            onSuccess(id);
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+
+            await axios.post(`${BASE_URL}users/acceptFriendRequest/${id}`,{},  {
+                headers: {
+                    Authorization: `${token}`,
+                },
+            });
+            onSuccess();
         } catch (error) {
             console.log(error);
         }
@@ -20,8 +26,14 @@ function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
 
     const handleDecline = async () => {
         try {
-            await axios.post(`${BASE_URL}users/declineFriendRequest/${id}`);
-            onSuccess(id);
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+
+            await axios.post(`${BASE_URL}users/declineFriendRequest/${id}`,{}, {
+                headers: {
+                    Authorization: `${token}`,
+                },
+            });
+            onSuccess();
         } catch (error) {
             console.log(error);
         }

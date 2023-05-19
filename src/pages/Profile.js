@@ -79,6 +79,20 @@ export default function Profile() {
     const [page, setPage] = useState(0);
     const [posts, setPosts] = useState([]);
 
+    const [friendPage, setFriendPage] = useState(0)
+    const [loadingFriend, setLoadingFriend] = useState(false)
+    const [hasMoreFriends, setHasMoreFriends] = useState(true);
+
+    const [games, setGames] = useState([])
+    const [gamePage, setGamePage] = useState(0)
+    const [loadingGame, setLoadingGame] = useState(false)
+    const [hasMoreGames, setHasMoreGames] = useState(true);
+
+    const [likes, setLikes] = useState([])
+    const [likePage, setLikePage] = useState(0)
+    const [loadingLike, setLoadingLike] = useState(false)
+    const [hasMoreLikes, setHasMoreLikes] = useState(true);
+
     const [user, setUser] = useState(null);
 
     const [currentPassword, setCurrentPassword] = useState('');
@@ -88,11 +102,38 @@ export default function Profile() {
 
     const [update, setUpdate] = useState(false)
 
-    const nicknames = ["ahmet", "mehmet", "kerem", "eren", "emru"];
+    const [friends, setFriends] = useState([])
 
     useEffect(() => {
-        loadMorePosts();
-    }, []);
+        switch (tab) {
+            case 0:
+                if (posts.length === 0) {
+                    setHasMore(true);
+                    setPage(0);
+                    loadMorePosts();
+                }
+                break;
+            case 2:
+                if (games.length === 0) {
+                    setGamePage(0);
+                    loadMoreGames();
+                }
+                break;
+            case 4:
+                if (likes.length === 0) {
+                    setLikePage(0);
+                    loadMoreLikes();
+                }
+                break;
+            case 6:
+                if (friends.length === 0) {
+                    setHasMoreFriends(true);
+                    setFriendPage(0);
+                    getFriends();
+                }
+                break;
+        }
+    }, [tab]);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -115,6 +156,48 @@ export default function Profile() {
 
         fetchUser();
     }, [update]);
+
+    useEffect(() => {
+        if (friends.length && friends.length % 10 !== 0) {
+            setHasMoreFriends(false);
+        }
+    }, [friends]);
+
+    const getFriends = async () => {
+        if (loadingFriend) return;
+
+        setLoadingFriend(true);
+
+        const token = await window.electron.ipcRenderer.invoke('getToken');
+        const userId = await window.electron.ipcRenderer.invoke('getId');
+
+        try {
+            const response = await axios.get(`${BASE_URL}users/getFriendsByUserId`, {
+                params: { userId: userId, page: friendPage, size: 10 },
+                headers: { 'Authorization': `${token}` },
+            });
+
+            const newFriends = response.data;
+            setFriends(prevFriends => [...prevFriends, ...newFriends]);
+            setFriendPage(prevPage => prevPage + 1);
+
+            if (newFriends.length === 0) {
+                setHasMoreFriends(false);
+            }
+        } catch (error) {
+            console.log("Error fetching friends data:", error);
+        } finally {
+            setLoadingFriend(false);
+        }
+    }
+
+    const loadMoreGames = async () => {
+
+    }
+
+    const loadMoreLikes = async () => {
+
+    }
 
     const [editIsEmailEditable, setEditIsEmailEditable] = useState(true);
     const [editIsUsernameEditable, setEditIsUsernameEditable] = useState(true);
@@ -326,10 +409,11 @@ export default function Profile() {
         })();
     }, []);
 
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setTab(newValue);
+    const handleTabChange = (event, newValue) => {
+        if (tab !== newValue) {
+            setTab(newValue);
+        }
     };
-    // functions
 
     const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
@@ -505,8 +589,8 @@ export default function Profile() {
                     This is a success message!
                 </Alert>
             </Snackbar>
-            <Box style={{ backgroundImage: `url(${bgImage})`, backgroundSize: "", backgroundPosition: 'center' }}>
-                <Grid container columns={16} sx={{px: 7}}>
+
+            <Grid container columns={16} sx={{px: 7, pt: 2}}>
                     <Grid xs={16}>
                         <Card sx={{height: cardHeight}}>
                             <CardContent>
@@ -662,24 +746,43 @@ export default function Profile() {
                                 <TabPanel value={tab-2} index={2}>
                                     <Grid container columns={16} justifyContent="center">
                                         <Grid item xs={16} md={13}>
-                                            <PostCardLeft img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
+                                            {posts.length > 0 ? (
+                                                posts.map((post, index) => (
+                                                    <PostCardLeft key={index} post={post} onDelete={handlePostDelete} />
+                                                ))
+                                            ) : (
+                                                <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                                    Looks like there are no posts yet. Stay tuned!
+                                                </p>
+                                            )}
                                         </Grid>
                                     </Grid>
                                 </TabPanel>
                                 <TabPanel value={tab-3} index={3}>
-                                    <Grid container spacing={2}>
-                                        {nicknames.map((nickname) => (
-                                            <Grid key={nickname} item xs={12} sm={6}>
-                                                <ProfileCardSm nickname={nickname}/>
+                                        <InfiniteScroll
+                                            dataLength={friends.length}
+                                            next={getFriends}
+                                            hasMore={hasMoreFriends}
+                                            loader={<h4><LoadingRow /></h4>}
+                                            endMessage={
+                                                <p style={{ textAlign: 'center' }}>
+                                                    <b>Yay! Small circle ;)</b>
+                                                </p>
+                                            }
+                                        >
+                                            <Grid container spacing={2}>
+                                            {friends.map((friend) => (
+                                                <Grid key={friend.id} item xs={12} sm={6}>
+                                                    <ProfileCardSm username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
+                                                </Grid>
+                                            ))}
                                             </Grid>
-                                        ))}
-                                    </Grid>
+                                        </InfiniteScroll>
                                 </TabPanel>
                             </Box>
                         </Card>
                     </Grid>
                 </Grid>
-            </Box>
         </>
     );
 }
