@@ -78,11 +78,52 @@ export default function UserProfile() {
     const [friendRequestId, setFriendRequestId] = useState(false);
     const [checkingFriendship, setCheckingFriendship] = useState(true);
 
-    const nicknames = ["ahmet", "mehmet", "kerem", "eren", "emru"];
+    const [friendPage, setFriendPage] = useState(0)
+    const [loadingFriend, setLoadingFriend] = useState(false)
+    const [hasMoreFriends, setHasMoreFriends] = useState(true);
+
+    const [games, setGames] = useState([])
+    const [gamePage, setGamePage] = useState(0)
+    const [loadingGame, setLoadingGame] = useState(false)
+    const [hasMoreGames, setHasMoreGames] = useState(true);
+
+    const [likes, setLikes] = useState([])
+    const [likePage, setLikePage] = useState(0)
+    const [loadingLike, setLoadingLike] = useState(false)
+    const [hasMoreLikes, setHasMoreLikes] = useState(true);
+
+    const [friends, setFriends] = useState([])
 
     useEffect(() => {
-        loadMorePosts();
-    }, []);
+        switch (tab) {
+            case 0:
+                if (posts.length === 0) {
+                    setHasMore(true);
+                    setPage(0);
+                    loadMorePosts();
+                }
+                break;
+            case 2:
+                if (games.length === 0) {
+                    setGamePage(0);
+                    loadMoreGames();
+                }
+                break;
+            case 4:
+                if (likes.length === 0) {
+                    setLikePage(0);
+                    loadMoreLikes();
+                }
+                break;
+            case 6:
+                if (friends.length === 0) {
+                    setHasMoreFriends(true);
+                    setFriendPage(0);
+                    getFriends();
+                }
+                break;
+        }
+    }, [tab]);
 
     useEffect(() => {
         const checkFriendshipStatus = async () => {
@@ -115,6 +156,14 @@ export default function UserProfile() {
         checkFriendshipStatus();
     }, [user]);
 
+    const loadMoreGames = async () => {
+
+    }
+
+    const loadMoreLikes = async () => {
+
+    }
+
     const checkFriendRequest = async (userId, accountId) => {
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
@@ -143,6 +192,11 @@ export default function UserProfile() {
         }
     };
 
+    useEffect(() => {
+        if (friends.length && friends.length % 10 !== 0) {
+            setHasMoreFriends(false);
+        }
+    }, [friends]);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -163,6 +217,34 @@ export default function UserProfile() {
 
         fetchUser();
     }, []);
+
+    const getFriends = async () => {
+        if (loadingFriend) return;
+
+        setLoadingFriend(true);
+
+        const token = await window.electron.ipcRenderer.invoke('getToken');
+        const userId = await window.electron.ipcRenderer.invoke('getId');
+
+        try {
+            const response = await axios.get(`${BASE_URL}users/getFriendsByUsername`, {
+                params: { username: user.userName, userId: userId, page: friendPage, size: 10 },
+                headers: { 'Authorization': `${token}` },
+            });
+
+            const newFriends = response.data;
+            setFriends(prevFriends => [...prevFriends, ...newFriends]);
+            setFriendPage(prevPage => prevPage + 1);
+
+            if (newFriends.length === 0) {
+                setHasMoreFriends(false);
+            }
+        } catch (error) {
+            console.log("Error fetching friends data:", error);
+        } finally {
+            setLoadingFriend(false);
+        }
+    }
 
     const handleAddFriend = async () => {
         try {
@@ -277,8 +359,10 @@ export default function UserProfile() {
         })();
     }, []);
 
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setTab(newValue);
+    const handleTabChange = (event, newValue) => {
+        if (tab !== newValue) {
+            setTab(newValue);
+        }
     };
 
     const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -499,13 +583,25 @@ export default function UserProfile() {
                                 </Grid>
                             </TabPanel>
                             <TabPanel value={tab-3} index={3}>
-                                <Grid container spacing={2}>
-                                    {nicknames.map((nickname) => (
-                                        <Grid key={nickname} item xs={12} sm={6}>
-                                            <ProfileCardSm nickname={nickname}/>
-                                        </Grid>
-                                    ))}
-                                </Grid>
+                                <InfiniteScroll
+                                    dataLength={friends.length}
+                                    next={getFriends}
+                                    hasMore={hasMoreFriends}
+                                    loader={<h4><LoadingRow /></h4>}
+                                    endMessage={
+                                        <p style={{ textAlign: 'center' }}>
+                                            <b>Yay! Small circle ;)</b>
+                                        </p>
+                                    }
+                                >
+                                    <Grid container spacing={2}>
+                                        {friends.map((friend) => (
+                                            <Grid key={friend.id} item xs={12} sm={6}>
+                                                <ProfileCardSm username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                </InfiniteScroll>
                             </TabPanel>
                         </Box>
                     </Card>

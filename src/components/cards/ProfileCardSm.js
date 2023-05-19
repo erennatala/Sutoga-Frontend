@@ -12,7 +12,7 @@ const StyledAccount = styled('div')(({ theme }) => ({
 
 const BASE_URL = process.env.REACT_APP_URL
 
-export default function ProfileCardSm({ nickname }) {
+export default function ProfileCardSm({ username, profilePhotoUrl, isFriend }) {
 
     const handleAdd = () => {
         // Handle the Add action here
@@ -22,26 +22,26 @@ export default function ProfileCardSm({ nickname }) {
         <StyledAccount>
             <Grid container spacing={2}>
                 <Grid item xs={3}>
-                    <Avatar src="" alt="photoURL" sx={{ width: 50, height: 50 }} /> {/* Adjust Avatar size here */}
+                    <Avatar src={profilePhotoUrl} alt="photoURL" sx={{ width: 50, height: 50 }} /> {/* Adjust Avatar size here */}
                 </Grid>
                 <Grid item xs={6}>
                     <Box sx={{ overflow: 'hidden' }}>
                         <ButtonBase>
                             <Link underline="none" sx={{color: "black"}}>
-                                <Typography variant="h6" component="div" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 100, mt: 1 }}> {/* Adjust nickname font size here */}
-                                    {nickname}
+                                <Typography variant="h6" component="div" sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 200, mt: 1 }}> {/* Adjust nickname font size here */}
+                                    {username}
                                 </Typography>
                             </Link>
                         </ButtonBase>
                     </Box>
                 </Grid>
-                <Grid item xs={3}>
+                {!isFriend && <Grid item xs={3}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <IconButton size="small" onClick={handleAdd}>
                             <AddIcon />
                         </IconButton>
                     </Box>
-                </Grid>
+                </Grid>}
             </Grid>
         </StyledAccount>
     )
