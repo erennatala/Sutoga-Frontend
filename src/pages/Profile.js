@@ -27,6 +27,8 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
+const bgImage = `${process.env.PUBLIC_URL}/assets/images/bg.jpg`;
+
 
 function TabPanel(props: TabPanelProps) {
     const { children, value, index, ...other } = props;
@@ -503,7 +505,7 @@ export default function Profile() {
                     This is a success message!
                 </Alert>
             </Snackbar>
-
+            <Box style={{ backgroundImage: `url(${bgImage})`, backgroundSize: "", backgroundPosition: 'center' }}>
                 <Grid container columns={16} sx={{px: 7}}>
                     <Grid xs={16}>
                         <Card sx={{height: cardHeight}}>
@@ -677,6 +679,7 @@ export default function Profile() {
                         </Card>
                     </Grid>
                 </Grid>
+            </Box>
         </>
     );
 }
