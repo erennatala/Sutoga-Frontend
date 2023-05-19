@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 // @mui
 import { styled } from '@mui/material/styles';
-import {Link, Container, Typography, Divider, Stack, Button, Snackbar} from '@mui/material';
+import {Link, Container, Typography, Divider, Stack, Button, Snackbar, Card} from '@mui/material';
 // hooks
 import {useNavigate} from "react-router-dom";
 import React, {useEffect, useState} from "react";
@@ -19,10 +19,21 @@ import LoadingScreen from "./LoadingScreen";
 
 // ----------------------------------------------------------------------
 
+const bgImage = `${process.env.PUBLIC_URL}/assets/images/bg.jpg`;
+
+const FormCard = styled(Card)({
+  padding: '16px',
+  borderRadius: '8px',
+  backgroundColor: '#fff',
+});
+
 const StyledRoot = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
     display: 'flex',
   },
+  backgroundImage: `url(${bgImage})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
 }));
 
 const StyledSection = styled('div')(({ theme }) => ({
@@ -43,9 +54,8 @@ const StyledContent = styled('div')(({ theme }) => ({
   justifyContent: 'center',
   flexDirection: 'column',
   padding: theme.spacing(12, 0),
+  backgroundColor: 'transparent',
 }));
-
-// ----------------------------------------------------------------------
 
 const BASE_URL = process.env.REACT_APP_URL
 
@@ -82,7 +92,6 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    // Set isAuthenticated to false when the LoginPage is loaded
     dispatch(setAuthenticated(false));
 
     const getSteamId = async () => {
@@ -123,9 +132,10 @@ export default function LoginPage() {
         <title> Login | Sutoga </title>
       </Helmet>
 
-      <StyledRoot sx={{mt: -7}}>
+      <StyledRoot>
         <Container maxWidth="sm">
           <StyledContent>
+            <FormCard>
             <Typography variant="h4" gutterBottom>
               Sign in to Sutoga
             </Typography>
@@ -156,7 +166,8 @@ export default function LoginPage() {
               </Alert>
             </Snackbar>
 
-            <LoginForm onError={handleError}/>
+              <LoginForm onError={handleError}/>
+            </FormCard>
           </StyledContent>
         </Container>
       </StyledRoot>

@@ -69,6 +69,7 @@ export default function Profile() {
     const usernameFontSize = isSmallScreen ? '0.9rem' : '1.5rem';
     const [openEditProfile, setOpenEditProfile] = useState(false);
     const [openAccountSettings, setOpenAccountSettings] = useState(false);
+    const cardHeight = windowSize[0] < 1600 ? 250 : 280
 
     const [loadingPosts, setLoadingPosts] = useState(false);
     const [loadingUser, setLoadingUser] = useState(true);
@@ -505,7 +506,7 @@ export default function Profile() {
 
                 <Grid container columns={16} sx={{px: 7}}>
                     <Grid xs={16}>
-                        <Card sx={{height: "280px"}}>
+                        <Card sx={{height: cardHeight}}>
                             <CardContent>
                                 <Stack direction="row" spacing={8}>
                                     <Grid>
