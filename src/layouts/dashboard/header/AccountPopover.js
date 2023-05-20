@@ -30,14 +30,14 @@ export default function AccountPopover({ setIsAuthenticated }) {
 
   const [photoUrl, setPhotoUrl] = useState('');
 
-  useEffect(async () => {
-    const userName = await window.electron.ipcRenderer.invoke('getUsername');
-    setUsername(userName)
-  }, [])
-
   useEffect(() => {
-    getUserIdProfilePhoto();
-  }, [])
+    const fetchUsername = async () => {
+      const userName = await window.electron.ipcRenderer.invoke('getUsername');
+      setUsername(userName);
+    };
+
+    fetchUsername();
+  }, []);
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -56,21 +56,29 @@ export default function AccountPopover({ setIsAuthenticated }) {
     }
   };
 
-  const getUserIdProfilePhoto = async () => {
-    const token = await window.electron.ipcRenderer.invoke("getToken");
-    const userId = await window.electron.ipcRenderer.invoke("getId");
-    try {
-      const response = await axios.get(`${BASE_URL}users/getProfilePhoto/${userId}`, {
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
-      setPhotoUrl(response.data)
-    } catch (error) {
-      console.error('Error retrieving profile photo URL:', error);
-      return null;
-    }
-  };
+  useEffect(() => {
+    const getUserIdProfilePhoto = async () => {
+      const token = await window.electron.ipcRenderer.invoke('getToken');
+      const userId = await window.electron.ipcRenderer.invoke('getId');
+      try {
+        const response = await axios.get(`${BASE_URL}users/getProfilePhoto/${userId}`, {
+          headers: {
+            Authorization: `${token}`,
+          },
+        });
+        setPhotoUrl(response.data);
+      } catch (error) {
+        console.error('Error retrieving profile photo URL:', error);
+        return null;
+      }
+    };
+
+    getUserIdProfilePhoto();
+
+    return () => {
+      setPhotoUrl('');
+    };
+  }, []);
 
   return (
     <>

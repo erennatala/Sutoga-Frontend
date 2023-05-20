@@ -19,7 +19,7 @@ import LoadingScreen from "./LoadingScreen";
 
 // ----------------------------------------------------------------------
 
-const bgImage = `${process.env.PUBLIC_URL}/assets/images/bg.jpg`;
+const bgImage = window.location.href + "assets/images/bg.jpg";
 
 const FormCard = styled(Card)({
   padding: '16px',

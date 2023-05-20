@@ -50,7 +50,8 @@ export default function Searchbar() {
   const navigate = useNavigate();
 
   const handleProfileClick = (username) => {
-    navigate(`/profile/${username}`);
+    navigate(`/profile/${username}`, { replace: true });
+    setResults([])
   };
 
   const handleOpen = () => {
