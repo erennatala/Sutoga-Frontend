@@ -77,6 +77,7 @@ export default function UserProfile() {
     const [isSender, setIsSender] = useState(false);
     const [friendRequestId, setFriendRequestId] = useState(false);
     const [checkingFriendship, setCheckingFriendship] = useState(true);
+    const [isSent, setIsSent] = useState(false);
 
     const [friendPage, setFriendPage] = useState(0)
     const [loadingFriend, setLoadingFriend] = useState(false)
@@ -127,6 +128,11 @@ export default function UserProfile() {
 
     useEffect(() => {
         const checkFriendshipStatus = async () => {
+            if (!user) {
+                setCheckingFriendship(false);
+                return;
+            }
+
             try {
                 const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
                 const token = await window.electron.ipcRenderer.invoke('getToken');
@@ -184,6 +190,7 @@ export default function UserProfile() {
                 setFriendRequestId(requestId);
 
                 if (loggedInUserId === senderId) {
+                    setIsSent(true)
                     setIsSender(true);
                 }
             }
@@ -210,6 +217,7 @@ export default function UserProfile() {
                 setUser(userData);
             } catch (error) {
                 console.log("Error fetching user data:", error);
+                setUser(null);
             } finally {
                 setLoadingUser(false);
             }
@@ -248,27 +256,28 @@ export default function UserProfile() {
 
     const handleAddFriend = async () => {
         try {
-            const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
-            const token = await window.electron.ipcRenderer.invoke("getToken");
-            const response = await axios.post(`${BASE_URL}users/sendFriendRequest`, {
-                senderId: loggedInUserId,
-                receiverUsername: user.username,
-            }, {
-                headers: {
-                    Authorization: token,
-                },
-            });
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
 
-            if (response.data) {
-                setIsFriend(true);
-                setIsSender(true);
-            } else {
-                console.error('Failed to send friend request.');
-            }
+            const formData = new FormData();
+            formData.append('senderId', userId);
+            formData.append('receiverUsername', user.userName);
+
+            const response = await axios.post(`${BASE_URL}users/sendFriendRequest`, formData, {
+                headers: {
+                    'Authorization': token
+                }
+            });
+            setIsSent(true);
+            setIsSender(true);
         } catch (error) {
-            console.error('Error sending friend request:', error);
+            console.log(error);
         }
     };
+
+    const handleRemoveSentRequest = async () => {
+
+    }
 
     const handleAcceptRequest = async () => {
         try {
@@ -310,7 +319,18 @@ export default function UserProfile() {
         }
     };
 
+    useEffect(() => {
+        if (user) {
+            loadMorePosts();
+        }
+    }, [user]);
+
     const loadMorePosts = async () => {
+        if (!user) {
+            console.error('User object is null');
+            return;
+        }
+
         if (loadingPosts) return;
 
         setLoadingPosts(true);
@@ -336,7 +356,7 @@ export default function UserProfile() {
                 setHasMore(false);
             }
         } catch (error) {
-            console.error(error);
+            console.log(error);
         } finally {
             setLoadingPosts(false);
         }
@@ -466,45 +486,54 @@ export default function UserProfile() {
 
                                 <Grid item xs={3} alignItems="center" justifyContent="center" sx={{py: 6}}>
                                     {!isFriend ? (
-                                        <Button
+                                        !isSent ? (<Button
                                             variant="contained"
                                             color="primary"
                                             onClick={handleAddFriend}
                                             sx={{ height: 50 }}
                                         >
                                             + Add
-                                        </Button>
-                                    ) : (
-                                        <>
-                                            {isSender ? (
-                                                <Button
-                                                    variant="contained"
-                                                    color="success"
-                                                    disabled
-                                                    sx={{ height: 50 }}
-                                                >
-                                                    Sent!
-                                                </Button>
-                                            ) : (
-                                                <>
+                                        </Button>) : (
+                                            isSender ? (
                                                     <Button
                                                         variant="contained"
                                                         color="success"
-                                                        onClick={handleAcceptRequest}
                                                         sx={{ height: 50 }}
+                                                        onClick={handleRemoveSentRequest}
                                                     >
-                                                        Accept
+                                                        Sent!
                                                     </Button>
-                                                    <Button
-                                                        variant="contained"
-                                                        color="error"
-                                                        onClick={handleDeclineRequest}
-                                                        sx={{ height: 50, marginLeft: 2 }}
-                                                    >
-                                                        Decline
-                                                    </Button>
-                                                </>
-                                            )}
+                                                ) : (
+                                                    <>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="success"
+                                                            onClick={handleAcceptRequest}
+                                                            sx={{ height: 50 }}
+                                                        >
+                                                            Accept
+                                                        </Button>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="error"
+                                                            onClick={handleDeclineRequest}
+                                                            sx={{ height: 50, marginLeft: 2 }}
+                                                        >
+                                                            Decline
+                                                        </Button>
+                                                    </>
+                                                )
+                                        )
+                                    ) : (
+                                        <>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                disabled
+                                                sx={{ height: 50 }}
+                                            >
+                                                Friend
+                                            </Button>
                                         </>
                                     )}
 

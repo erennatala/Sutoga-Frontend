@@ -26,6 +26,7 @@ import LoadingRow from "../components/loading/LoadingRow";
 import InfiniteScroll from "react-infinite-scroll-component";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import {useNavigate} from "react-router-dom";
 
 const bgImage = `${process.env.PUBLIC_URL}/assets/images/bg.jpg`;
 
@@ -61,6 +62,7 @@ const BASE_URL = process.env.REACT_APP_URL
 
 export default function Profile() {
     const theme = useTheme();
+    const navigate = useNavigate();
     const [toastOpen, setToastOpen] = useState(false);
     const [tab, setTab] = useState(0);
     const [username, setUsername] = useState('');
@@ -456,6 +458,9 @@ export default function Profile() {
         return count === 0;
     }
 
+    const handleProfileClick = (username) => {
+        navigate(`/profile/${username}`, { replace: true });
+    };
 
     if (loadingUser) {
         return(<LoadingRow />)
@@ -772,7 +777,7 @@ export default function Profile() {
                                         >
                                             <Grid container spacing={2}>
                                             {friends.map((friend) => (
-                                                <Grid key={friend.id} item xs={12} sm={6}>
+                                                <Grid key={friend.id} item xs={12} sm={6} onClick={() => handleProfileClick(friend.username)}>
                                                     <ProfileCardSm username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
                                                 </Grid>
                                             ))}
