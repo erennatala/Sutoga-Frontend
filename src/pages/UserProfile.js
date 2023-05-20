@@ -66,6 +66,7 @@ export default function UserProfile() {
     const avatarSize = windowSize[0] < 1600 ? 200 : 250;
     const usernameFontSize = isSmallScreen ? '0.9rem' : '1.5rem';
 
+    const [isLoading, setIsLoading] = useState(true);
     const [loadingPosts, setLoadingPosts] = useState(false);
     const [loadingUser, setLoadingUser] = useState(true);
     const [hasMore, setHasMore] = useState(true);
@@ -215,16 +216,59 @@ export default function UserProfile() {
                 });
                 const userData = response.data;
                 setUser(userData);
+                getPostCount(userData.id)
+                getFriendCount(userData.id)
+                setLoadingUser(false);
             } catch (error) {
                 console.log("Error fetching user data:", error);
                 setUser(null);
             } finally {
-                setLoadingUser(false);
+                setIsLoading(false);
             }
         };
 
         fetchUser();
     }, []);
+
+    const getFriendCount = async (id) => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = id;
+
+            const response = await axios.get(`${BASE_URL}users/getFriendCount/${userId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            setUser((prevUser) => ({
+                ...prevUser,
+                friendCount: response.data,
+            }));
+        } catch (error) {
+            console.error('Error fetching friend count:', error);
+        }
+    };
+
+    const getPostCount = async (id) => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = id;
+
+            const response = await axios.get(`${BASE_URL}users/getPostCount/${userId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            setUser((prevUser) => ({
+                ...prevUser,
+                postCount: response.data,
+            }));
+        } catch (error) {
+            console.error('Error fetching post count:', error);
+        }
+    };
 
     const getFriends = async () => {
         if (loadingFriend) return;
@@ -393,7 +437,7 @@ export default function UserProfile() {
         setToastOpen(false);
     };
 
-    if (loadingUser || checkingFriendship) {
+    if (loadingUser || checkingFriendship || isLoading) {
         return(<LoadingRow />)
     }
 
@@ -429,12 +473,10 @@ export default function UserProfile() {
                                 </Grid>
 
                                 <Grid container direction="column" sx={{pl: 7, py: 6}}>
-
-
                                     <Grid item sx={{mt: 1}}>
                                         <Stack direction={"row"}>
                                             <Typography fontWeight={"bold"} fontSize={22}>
-                                                78
+                                                {user.friendCount}
                                             </Typography>
 
                                             <Typography>
@@ -452,7 +494,7 @@ export default function UserProfile() {
                                     <Grid item sx={{mt: 1}}>
                                         <Stack direction={"row"}>
                                             <Typography fontWeight={"bold"} fontSize={22}>
-                                                11
+                                                {user.postCount}
                                             </Typography>
 
                                             <Typography>

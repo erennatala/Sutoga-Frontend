@@ -149,6 +149,8 @@ export default function Profile() {
 
                 const userData = response.data;
                 setUser(userData);
+                getPostCount()
+                getFriendCount()
             } catch (error) {
                 console.log("Error fetching user data:", error);
             } finally {
@@ -164,6 +166,46 @@ export default function Profile() {
             setHasMoreFriends(false);
         }
     }, [friends]);
+
+    const getFriendCount = async () => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}users/getFriendCount/${userId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            setUser((prevUser) => ({
+                ...prevUser,
+                friendCount: response.data,
+            }));
+        } catch (error) {
+            console.error('Error fetching friend count:', error);
+        }
+    };
+
+    const getPostCount = async () => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}users/getPostCount/${userId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            setUser((prevUser) => ({
+                ...prevUser,
+                postCount: response.data,
+            }));
+        } catch (error) {
+            console.error('Error fetching post count:', error);
+        }
+    };
 
     const getFriends = async () => {
         if (loadingFriend) return;
@@ -615,12 +657,10 @@ export default function Profile() {
                                     </Grid>
 
                                     <Grid container direction="column" sx={{pl: 7, py: 6}}>
-
-
                                         <Grid item sx={{mt: 1}}>
                                             <Stack direction={"row"}>
                                                 <Typography fontWeight={"bold"} fontSize={22}>
-                                                    78
+                                                    {user.friendCount}
                                                 </Typography>
 
                                                 <Typography>
@@ -638,7 +678,7 @@ export default function Profile() {
                                         <Grid item sx={{mt: 1}}>
                                             <Stack direction={"row"}>
                                                 <Typography fontWeight={"bold"} fontSize={22}>
-                                                    11
+                                                    {user.postCount}
                                                 </Typography>
 
                                                 <Typography>
