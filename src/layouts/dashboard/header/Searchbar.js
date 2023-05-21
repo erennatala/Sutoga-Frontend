@@ -49,8 +49,13 @@ export default function Searchbar() {
   const [results, setResults] = useState([]);
   const navigate = useNavigate();
 
-  const handleProfileClick = (username) => {
-    navigate(`/profile/${username}`, { replace: true });
+  const handleProfileClick = async (username) => {
+    const loggedinusername = await window.electron.ipcRenderer.invoke('getUsername');
+    if (username === loggedinusername) {
+      navigate(`/profile`, {replace: true});
+    } else {
+      navigate(`/profile/${username}`, {replace: true});
+    }
     setResults([])
   };
 
