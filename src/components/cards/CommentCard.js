@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { ListItem, Typography, Box, Button, Avatar, ButtonBase, Link, Stack, Divider } from '@mui/material';
+import { ListItem, Typography, Box, Button, Avatar, ButtonBase, Link, Stack, Divider, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { styled } from "@mui/material/styles";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const StyledAccount = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -18,10 +19,24 @@ const CommentText = styled(Typography)(({ theme }) => ({
 
 export default function CommentCard(props) {
     const [expanded, setExpanded] = useState(false);
-    const textLimit = 100; // Set the limit for the text
-    const truncatedText = props.comment.length > textLimit ? props.comment.substring(0, textLimit) + '...' : props.comment;
+    const [openDialog, setOpenDialog] = useState(false);
+    const textLimit = 100;
+    const truncatedText = props.comment.text.length > textLimit ? props.comment.text.substring(0, textLimit) + '...' : props.comment.text;
     const handleClick = () => {
         setExpanded(!expanded);
+    };
+
+    const handleDelete = () => {
+        props.onDelete(props.comment.id);
+        setOpenDialog(false);
+    };
+
+    const handleOpenDialog = () => {
+        setOpenDialog(true);
+    };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
     };
 
     return (
@@ -31,12 +46,11 @@ export default function CommentCard(props) {
                     <StyledAccount>
                         <ButtonBase>
                             <Stack direction="row" sx={{ pl: 1, width: '100%', alignItems: 'flex-start' }}>
-                                <Avatar src="" alt="photoURL" />
-
-                                <Typography display={"inline"} variant="subtitle2" sx={{ color: 'text.primary', mt:1, ml: 1.5 }}>
-                                    {props.nickname}
+                                <Avatar src={props.comment.profilePhotoUrl} alt="photoURL" />
+                                <Typography display={"inline"} variant="subtitle2" sx={{ color: 'text.primary', mt: 1, ml: 1.5 }}>
+                                    {props.comment.username}
                                 </Typography>
-                                <Stack direction="column" sx={{ width: '100%', textAlign: 'left', pt:1 }}>
+                                <Stack direction="column" sx={{ width: '100%', textAlign: 'left', pt: 1 }}>
                                     {expanded ? (
                                         <Typography display={"inline"} variant="subtitle2" sx={{ color: 'text.primary' }}>
                                             <Box fontWeight={"lighter"} display={"inline"}>&nbsp;•&nbsp;{props.comment}</Box>
@@ -47,17 +61,29 @@ export default function CommentCard(props) {
                                         </CommentText>
                                     )}
                                 </Stack>
-                                {props.comment.length > textLimit && (
-                                    <Button onClick={handleClick} size="small">
-                                        {expanded ? 'See less' : 'See more'}
+                                {(props.comment.userId === props.userId) || (props.usersPost) ? (
+                                    <Button onClick={handleOpenDialog} size="small">
+                                        <DeleteIcon />
                                     </Button>
-                                )}
+                                ) : null}
                             </Stack>
                         </ButtonBase>
                     </StyledAccount>
                 </Link>
             </ListItem>
             <Divider variant={"fullWidth"} />
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <DialogTitle>Remove the comment</DialogTitle>
+                <DialogContent>
+                    <Typography>Are you sure?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button onClick={handleDelete} color="error" autoFocus>
+                        Remove
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     )
 }
