@@ -12,12 +12,14 @@ import {
     Typography
 } from "@mui/material";
 import {styled} from "@mui/material/styles";
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Iconify from "../iconify";
 import { format } from 'date-fns';
 import CommentCard from "./CommentCard";
 import axios from "axios";
+import InfiniteScroll from 'react-infinite-scroll-component';
+import LoadingRow from '../../components/loading/LoadingRow';
 
 const StyledAccount = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -37,19 +39,65 @@ export default function PostCardLeft(props) {
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [commentText, setCommentText] = useState('');
-    const [comments, setComments] = useState([
-        { nickname: "JohnDoe", comment: "Great post!" },
-        { nickname: "JaneSmith", comment: "I love it!" },
-        { nickname: "SamJones", comment: "Amazing work!" },
-    ]);
+    const [comments, setComments] = useState([]);
     const [liked, setLiked] = useState(props.post.likedByUser);
     const [likeCount, setLikeCount] = useState(props.post.likeCount)
     const [commentCount, setCommentCount] = useState(props.post.commentCount)
 
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [pageNumber, setPageNumber] = useState(0);
+
     const [isLikedModalOpen, setIsLikedModalOpen] = useState(false);
     const [isRemoveDialogOpen, setRemoveDialogOpen] = useState(false);
 
+    const [loggedInId, setLoggedInId] = useState(null)
+
     const formattedDate = format(new Date(props.post.postDate), 'dd MMMM yyyy HH:mm');
+
+    useEffect(() => {
+        const fetchUserId = async () => {
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+            setLoggedInId(userId);
+        }
+
+        fetchUserId();
+    }, []);
+
+    const fetchComments = useCallback(
+        async (page) => {
+            const source = axios.CancelToken.source();
+            setLoading(true);
+
+            try {
+                const token = await window.electron.ipcRenderer.invoke('getToken');
+                const response = await axios.get(`${BASE_URL}comments/post/${props.post.id}?page=${page}&size=10`, {
+                    headers: {
+                        Authorization: token
+                    },
+                    cancelToken: source.token,  // Passing cancel token
+                });
+
+                if(response.data.content.length === 0){
+                    setHasMore(false);
+                }
+
+                setComments(prevComments => [...prevComments, ...response.data.content]);
+                setPageNumber(prevPageNumber => prevPageNumber + 1);
+                setLoading(false);
+            } catch (error) {
+                if (axios.isCancel(error)) {
+                    console.log("cancelled");
+                } else {
+                    console.log(error);
+                }
+            }
+
+            // Cancel function to be used by InfiniteScroll
+            return () => source.cancel();
+        }, []
+    );
+
 
     const handleOpenLikedModal = () => {
         setIsLikedModalOpen(true);
@@ -118,19 +166,59 @@ export default function PostCardLeft(props) {
 
     const handleOpenCommentModal = () => {
         setIsCommentModalOpen(true);
+        fetchComments(0)
     };
 
     const handleCloseCommentModal = () => {
         setIsCommentModalOpen(false);
         setCommentText('');
+        setComments([])
     };
 
     const handleCommentTextChange = (event) => {
         setCommentText(event.target.value);
     };
 
-    const handleCommentSubmit = () => {
-        console.log('Comment submitted:', commentText);
+    const handleCommentSubmit = async () => {
+        if (commentText.trim() === '') {
+            return;
+        }
+
+        if (commentText.length > 250) {
+            console.log('Comment is too long');
+            return;
+        }
+
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const createCommentRequest = {
+                postId: props.post.id,
+                text: commentText,
+                senderId: userId
+            };
+
+            const response = await axios.post(`${BASE_URL}comments`, createCommentRequest, {
+                headers: {
+                    Authorization: token
+                }
+            });
+
+            const newComment = {
+                id: response.data.id,
+                text: response.data.text,
+                profilePhotoUrl: response.data.profilePhotoUrl,
+                username: response.data.username,
+                userId: response.data.userId
+            };
+
+            setComments(prevComments => [...prevComments, newComment]);
+            setCommentCount(prevCommentCount => prevCommentCount + 1);
+            setCommentText('');
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const handleShare = () => {
@@ -186,6 +274,35 @@ export default function PostCardLeft(props) {
         setReportText(event.target.value);
     };
 
+    const handleDeleteComment = async (commentId) => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+
+            const response = await axios.delete(`${BASE_URL}comments/${commentId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            if (response.status === 204) {
+                const updatedComments = comments.filter((comment) => comment.id !== commentId);
+
+                if (updatedComments.length === 0) {
+                    setComments([]);
+                } else {
+                    setComments(updatedComments);
+                }
+                setLoading(false);
+                setHasMore(false)
+                setCommentCount(commentCount-1)
+            } else {
+                console.error('Failed to delete comment:', response.data);
+            }
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+        }
+    };
+
     return(
         <>
             <Dialog open={isLikedModalOpen} onClose={handleCloseLikedModal}>
@@ -201,66 +318,30 @@ export default function PostCardLeft(props) {
 
             <Dialog open={isCommentModalOpen} onClose={handleCloseCommentModal} maxWidth="md" fullWidth>
                 <DialogContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Avatar src={props.post.photoUrl} alt="photoURL" />
-                        <Typography variant="subtitle2" sx={{ ml: 2, color: 'text.primary' }}>
-                            {props.post.username}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ ml: 3, mb: 2 }}>
-                        <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                            {props.post.description}
-                        </Typography>
-                    </Box>
-                    <Box>
-                        {props.post.mediaUrl && (
-                            <Box sx={{ mb: 2 }}>
-                                {props.post.mediaUrl.endsWith('.mp4') ||
-                                props.post.mediaUrl.endsWith('.mov') ||
-                                props.post.mediaUrl.endsWith('.avi') ? (
-                                    <video
-                                        style={{
-                                            marginLeft: '2px',
-                                            marginBottom: '2px',
-                                            borderRadius: '2px',
-                                            width: '100%',
-                                            height: 'auto',
-                                            objectFit: 'cover',
-                                        }}
-                                        controls
-                                    >
-                                        <source src={props.post.mediaUrl} type="video/mp4" />
-                                    </video>
-                                ) : (
-                                    <img
-                                        src={props.post.mediaUrl}
-                                        style={{
-                                            marginLeft: '2px',
-                                            marginBottom: '2px',
-                                            borderRadius: '2px',
-                                            width: '100%',
-                                            height: 'auto',
-                                            objectFit: 'cover',
-                                        }}
-                                        alt="Post Media"
-                                    />
-                                )}
-                            </Box>
-                        )}
-                    </Box>
-                    <Box sx={{ mb: 2 }}>
-                        <Divider />
-                    </Box>
                     <Typography variant="subtitle1" sx={{ color: 'text.primary', mb: 1 }}>
                         Comments
                     </Typography>
-                    {comments.map((comment, index) => (
-                        <CommentCard
-                            key={index}
-                            nickname={comment.nickname}
-                            comment={comment.comment}
-                        />
-                    ))}
+                    <InfiniteScroll
+                        dataLength={comments.length}
+                        next={() => fetchComments(pageNumber)}
+                        hasMore={hasMore}
+                        loader={<LoadingRow />}
+                        endMessage={
+                            <p style={{ textAlign: 'center' }}>
+                                <b>Yay! You have seen it all</b>
+                            </p>
+                        }
+                    >
+                        {comments.map((comment) => (
+                            <CommentCard
+                                key={comment.id}
+                                comment={comment}
+                                userId={loggedInId}
+                                usersPost={props.post.usersPost}
+                                onDelete={(e) => handleDeleteComment(e)}
+                            />
+                        ))}
+                    </InfiniteScroll>
                     <TextField
                         label="Enter your comment"
                         value={commentText}
@@ -385,9 +466,9 @@ export default function PostCardLeft(props) {
                                 <Typography variant="subtitle2" sx={{ color: 'text.secondary', mr: 1, mt: 1 }}>
                                     {commentCount}
                                 </Typography>
-                                <IconButton onClick={handleShare}>
-                                    <Iconify icon="material-symbols:ios-share" />
-                                </IconButton>
+                                {/*<IconButton onClick={handleShare}>*/}
+                                {/*    <Iconify icon="material-symbols:ios-share" />*/}
+                                {/*</IconButton>*/}
                                 <IconButton onClick={handleMenuOpen}>
                                     <Iconify icon="mdi:dots-horizontal" />
                                 </IconButton>
