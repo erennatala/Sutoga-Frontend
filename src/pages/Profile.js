@@ -27,6 +27,8 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import {useNavigate} from "react-router-dom";
+import { useDispatch } from 'react-redux';
+import { setUserData } from '../actions/authActions';
 
 const bgImage = `${process.env.PUBLIC_URL}/assets/images/bg.jpg`;
 
@@ -62,6 +64,7 @@ const BASE_URL = process.env.REACT_APP_URL
 
 export default function Profile() {
     const theme = useTheme();
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const [toastOpen, setToastOpen] = useState(false);
     const [tab, setTab] = useState(0);
@@ -345,6 +348,10 @@ export default function Profile() {
                 alert('Profile updated successfully!');
                 setUpdate(true)
                 handleEditProfileClose()
+                dispatch(setUserData({
+                    profilePhotoUrl: response.data.profilePhotoUrl,
+                    username: editUsername,
+                }));
             } else {
                 alert('Error updating profile');
             }

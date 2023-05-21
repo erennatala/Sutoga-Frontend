@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 // @mui
 import { styled } from '@mui/material/styles';
 //
 import Header from './header';
 import Nav from './nav';
+import { useSelector } from 'react-redux';
 
 // ----------------------------------------------------------------------
 
@@ -34,15 +35,17 @@ const Main = styled('div')(({ theme }) => ({
 
 export default function DashboardLayout() {
   const [open, setOpen] = useState(false);
+  const userData = useSelector(state => state.auth);
+
   return (
-    <StyledRoot>
-      <Header onOpenNav={() => setOpen(true)}/>
+      <StyledRoot>
+        <Header onOpenNav={() => setOpen(true)} username={userData.username} profilePhotoUrl={userData.profilePhotoUrl}/>
 
-      <Nav openNav={open} onCloseNav={() => setOpen(false)} />
+        <Nav openNav={open} onCloseNav={() => setOpen(false)} username={userData.username} profilePhotoUrl={userData.profilePhotoUrl}/>
 
-      <Main>
-        <Outlet />
-      </Main>
-    </StyledRoot>
+        <Main>
+          <Outlet />
+        </Main>
+      </StyledRoot>
   );
 }

@@ -20,6 +20,7 @@ import CommentCard from "./CommentCard";
 import axios from "axios";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import LoadingRow from '../../components/loading/LoadingRow';
+import ProfileCardSm from "./ProfileCardSm";
 
 const StyledAccount = styled('div')(({ theme }) => ({
     display: 'flex',
@@ -44,6 +45,7 @@ export default function PostCardLeft(props) {
     const [likeCount, setLikeCount] = useState(props.post.likeCount)
     const [commentCount, setCommentCount] = useState(props.post.commentCount)
 
+    const [loadingLikes, setLoadingLikes] = useState(false);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [pageNumber, setPageNumber] = useState(0);
@@ -52,6 +54,7 @@ export default function PostCardLeft(props) {
     const [isRemoveDialogOpen, setRemoveDialogOpen] = useState(false);
 
     const [loggedInId, setLoggedInId] = useState(null)
+    const [likes, setLikes] = useState([])
 
     const formattedDate = format(new Date(props.post.postDate), 'dd MMMM yyyy HH:mm');
 
@@ -98,8 +101,27 @@ export default function PostCardLeft(props) {
         }, []
     );
 
+    const getLikers = async () => {
+        setLoadingLikes(true)
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}likes/getLikersByPostId/${props.post.id}/${userId}`, {
+                headers: {
+                    Authorization: token
+                }
+            });
+
+            setLikes(response.data)
+            setLoadingLikes(false)
+        } catch (e) {
+            console.log(e)
+        }
+    }
 
     const handleOpenLikedModal = () => {
+        getLikers()
         setIsLikedModalOpen(true);
     };
 
@@ -305,11 +327,27 @@ export default function PostCardLeft(props) {
 
     return(
         <>
-            <Dialog open={isLikedModalOpen} onClose={handleCloseLikedModal}>
+            <Dialog open={isLikedModalOpen} onClose={handleCloseLikedModal} fullWidth
+                    maxWidth="sm">
                 <DialogTitle>Liked By</DialogTitle>
                 <DialogContent>
-                    {/* Display the list of users who liked the post */}
-
+                    {loadingLikes ? (
+                        <LoadingRow />
+                    ) : likes.length === 0 ? (
+                        <Typography>No likes yet</Typography>
+                    ) : (
+                        likes.map((liker) => (
+                            <>
+                                <ProfileCardSm
+                                    key={liker.id}
+                                    username={liker.username}
+                                    profilePhotoUrl={liker.profilePhotoUrl}
+                                    isFriend={liker.isFriend || liker.id === loggedInId}
+                                />
+                                <Divider variant={"fullWidth"} />
+                            </>
+                        ))
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseLikedModal}>Close</Button>
@@ -348,7 +386,7 @@ export default function PostCardLeft(props) {
                         onChange={handleCommentTextChange}
                         fullWidth
                         multiline
-                        rows={4}
+                        rows={2}
                         variant="outlined"
                     />
                 </DialogContent>
