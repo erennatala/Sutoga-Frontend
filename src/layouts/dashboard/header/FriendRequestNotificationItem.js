@@ -3,11 +3,18 @@ import PropTypes from 'prop-types';
 import { Avatar, ListItemAvatar, ListItemButton, ListItemText, Typography, IconButton } from '@mui/material';
 import { CheckCircleOutlineOutlined, HighlightOffOutlined } from '@mui/icons-material';
 import axios from 'axios';
+import {useNavigate} from "react-router-dom";
 
 const BASE_URL = process.env.REACT_APP_URL
 
 function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
     const { sender, receiver, id } = friendRequest;
+    const navigate = useNavigate();
+
+    const navigateToProfile = (username) => {
+        const url = `/profile/${username}`;
+        navigate(url, { replace: true });
+    };
 
     const handleAccept = async () => {
         try {
@@ -41,13 +48,13 @@ function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
 
     return (
         <ListItemButton sx={{ py: 1.5, px: 2.5, mt: '1px' }}>
-            <ListItemAvatar>
+            <ListItemAvatar onClick={() => navigateToProfile(sender.username)}>
                 <Avatar src={sender.profilePhotoUrl} alt={sender.username} />
             </ListItemAvatar>
             <ListItemText
                 primary={
                     <Typography variant="subtitle1">
-                        <Typography component="span" variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                        <Typography component="span" variant="subtitle2" sx={{ fontWeight: 'bold' }} onClick={() => navigateToProfile(sender.username)}>
                             {sender.username}
                         </Typography>{' '}
                         sent you a friend request
