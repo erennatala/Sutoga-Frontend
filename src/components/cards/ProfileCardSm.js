@@ -15,7 +15,7 @@ const BASE_URL = process.env.REACT_APP_URL
 export default function ProfileCardSm({ username, profilePhotoUrl, isFriend }) {
 
     const handleAdd = () => {
-        // Handle the Add action here
+
     }
 
     return(

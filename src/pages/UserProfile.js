@@ -94,6 +94,10 @@ export default function UserProfile() {
     const [loadingLike, setLoadingLike] = useState(false)
     const [hasMoreLikes, setHasMoreLikes] = useState(true);
 
+    const [loadingFriendRequest, setLoadingFriendRequest] = useState(true);
+    const [loadingRequest, setLoadingRequest] = useState(false);
+    const [loadingDeclineRequest, setLoadingDeclineRequest] = useState(false);
+
     const [friends, setFriends] = useState([])
 
     useEffect(() => {
@@ -173,6 +177,7 @@ export default function UserProfile() {
 
     const checkFriendRequest = async (userId, accountId) => {
         try {
+            setLoadingRequest(true)
             const token = await window.electron.ipcRenderer.invoke('getToken');
             const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
 
@@ -187,14 +192,19 @@ export default function UserProfile() {
             );
 
             if (response.data) {
-                const { requestId, senderId, receiverId } = response.data;
-                setFriendRequestId(requestId);
+                const { id, senderId, receiverId } = response.data;
+                setFriendRequestId(id);
 
                 if (loggedInUserId === senderId) {
                     setIsSent(true)
                     setIsSender(true);
+                } else {
+                    setIsSent(true)
+                    setIsSender(false);
                 }
             }
+            setLoadingRequest(false)
+            setLoadingFriendRequest(false)
         } catch (error) {
             console.error('Error checking friend request:', error);
         }
@@ -300,6 +310,7 @@ export default function UserProfile() {
 
     const handleAddFriend = async () => {
         try {
+            setLoadingFriendRequest(true);
             const token = await window.electron.ipcRenderer.invoke('getToken');
             const userId = await window.electron.ipcRenderer.invoke('getId');
 
@@ -314,6 +325,7 @@ export default function UserProfile() {
             });
             setIsSent(true);
             setIsSender(true);
+            setLoadingFriendRequest(false);
         } catch (error) {
             console.log(error);
         }
@@ -325,9 +337,10 @@ export default function UserProfile() {
 
     const handleAcceptRequest = async () => {
         try {
+            setLoadingDeclineRequest(true);
             const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
             const token = await window.electron.ipcRenderer.invoke("getToken");
-            const response = await axios.post(`${BASE_URL}users/acceptFriendRequest/${friendRequestId}`, {
+            const response = await axios.post(`${BASE_URL}users/acceptFriendRequest/${friendRequestId}`,{},{
                 headers: {
                     Authorization: token,
                 },
@@ -338,6 +351,7 @@ export default function UserProfile() {
             } else {
                 console.error('Failed to accept friend request.');
             }
+            setLoadingDeclineRequest(false);
         } catch (error) {
             console.error('Error accepting friend request:', error);
         }
@@ -345,9 +359,10 @@ export default function UserProfile() {
 
     const handleDeclineRequest = async () => {
         try {
+            setLoadingDeclineRequest(true);
             const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
             const token = await window.electron.ipcRenderer.invoke("getToken");
-            const response = await axios.post(`${BASE_URL}users/declineFriendRequest/${friendRequestId}`, {
+            const response = await axios.post(`${BASE_URL}users/declineFriendRequest/${friendRequestId}`,{}, {
                 headers: {
                     Authorization: token,
                 },
@@ -355,9 +370,11 @@ export default function UserProfile() {
 
             if (response.status === 200) {
                 setIsFriend(false);
+                setIsSent(false);
             } else {
                 console.error('Failed to decline friend request.');
             }
+            setLoadingDeclineRequest(false);
         } catch (error) {
             console.error('Error declining friend request:', error);
         }
@@ -533,6 +550,7 @@ export default function UserProfile() {
                                             color="primary"
                                             onClick={handleAddFriend}
                                             sx={{ height: 50 }}
+                                            disabled={loadingRequest || loadingFriendRequest}
                                         >
                                             + Add
                                         </Button>) : (
@@ -552,6 +570,7 @@ export default function UserProfile() {
                                                             color="success"
                                                             onClick={handleAcceptRequest}
                                                             sx={{ height: 50 }}
+                                                            disabled={loadingDeclineRequest}
                                                         >
                                                             Accept
                                                         </Button>
@@ -559,7 +578,8 @@ export default function UserProfile() {
                                                             variant="contained"
                                                             color="error"
                                                             onClick={handleDeclineRequest}
-                                                            sx={{ height: 50, marginLeft: 2 }}
+                                                            sx={{ height: 50}}
+                                                            disabled={loadingDeclineRequest}
                                                         >
                                                             Decline
                                                         </Button>
