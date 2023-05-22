@@ -105,13 +105,28 @@ export default function Profile() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isPrivateAccount, setIsPrivateAccount] = useState(false);
 
+    const [snackbarMessage, setSnackbarMessage] = useState("")
+    const [snackbarSeverity, setSnackbarSeverity] = useState(null)
+    const [snackbarOpen, setSnackbarOpen] = useState(false)
+
     const [update, setUpdate] = useState(false)
 
     const [friends, setFriends] = useState([])
 
+    const handleSnackbar = (message, severity) => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbarOpen(false);
+    };
+
     useEffect(() => {
         switch (tab) {
             case 0:
+                setLikes([])
                 if (posts.length === 0) {
                     setHasMore(true);
                     setPage(0);
@@ -119,18 +134,20 @@ export default function Profile() {
                 }
                 break;
             case 2:
+                setLikes([])
                 if (games.length === 0) {
                     setGamePage(0);
+                    setHasMoreGames(true)
                     loadMoreGames();
                 }
                 break;
             case 4:
-                if (likes.length === 0) {
-                    setLikePage(0);
-                    loadMoreLikes();
-                }
+                setLikePage(0);
+                setHasMoreLikes(true)
+                loadMoreLikes();
                 break;
             case 6:
+                setLikes([])
                 if (friends.length === 0) {
                     setHasMoreFriends(true);
                     setFriendPage(0);
@@ -243,8 +260,41 @@ export default function Profile() {
     }
 
     const loadMoreLikes = async () => {
+        if (loadingLike || !hasMoreLikes) {
+            return;
+        }
 
-    }
+        setLoadingLike(true);
+
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}posts/getUserLikedPosts`, {
+                params: {
+                    userId: userId,
+                    pageNumber: likePage,
+                    pageSize: 10
+                },
+                headers: {
+                    'Authorization': token
+                }
+            });
+
+            if (response.data && Array.isArray(response.data.content)) {
+                const newLikes = response.data.content;
+                setLikes(prevLikes => [...prevLikes, ...newLikes]);
+                setLikePage(prevPage => prevPage + 1);
+                setHasMoreLikes(newLikes.length === 10);
+            } else {
+                setHasMoreLikes(false);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoadingLike(false);
+        }
+    };
 
     const [editIsEmailEditable, setEditIsEmailEditable] = useState(true);
     const [editIsUsernameEditable, setEditIsUsernameEditable] = useState(true);
@@ -345,7 +395,7 @@ export default function Profile() {
                 },
             });
             if (response.status === 200) {
-                alert('Profile updated successfully!');
+                handleSnackbar('Profile updated successfully!', 'success');
                 setUpdate(true)
                 handleEditProfileClose()
                 dispatch(setUserData({
@@ -353,9 +403,10 @@ export default function Profile() {
                     username: editUsername,
                 }));
             } else {
-                alert('Error updating profile');
+                handleSnackbar('Error updating profile', 'error');
             }
         } catch (error) {
+            handleSnackbar('Error updating profile', 'error');
             console.error('Error updating profile:', error);
         }
     };
@@ -378,9 +429,6 @@ export default function Profile() {
 
     const handleAccountClose = () => {
         setOpenAccountSettings(false);
-    };
-
-    const handleAccountSave = () => {
     };
 
     const loadMorePosts = async () => {
@@ -480,9 +528,7 @@ export default function Profile() {
 
     function validation(e) {
         let tempFeedbackList = {
-            // Other fields...
             phoneNumber: [phoneNumber, false, "Enter a phone number", 2],
-            // Other fields...
         };
         setFeedbackList(tempFeedbackList);
 
@@ -507,6 +553,34 @@ export default function Profile() {
         return count === 0;
     }
 
+    const handleAccountSave = async () => {
+        try {
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const params = new URLSearchParams();
+            params.append('currentPassword', currentPassword);
+            params.append('newPassword', newPassword);
+            params.append('confirmPassword', confirmPassword);
+
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+
+            const response = await axios.post(`${BASE_URL}users/changePassword/${userId}?${params.toString()}`, null, {
+                headers: {
+                    Authorization: `${token}`,
+                },
+            });
+
+            handleSnackbar('Password updated successfully', 'success');
+            handleAccountClose();
+            setCurrentPassword("")
+            setNewPassword("")
+            setConfirmPassword("")
+        } catch (error) {
+            handleSnackbar('Failed to update password', 'error');
+            console.error('Failed to update password:', error);
+        }
+    };
+
     const handleProfileClick = (username) => {
         navigate(`/profile/${username}`, { replace: true });
     };
@@ -515,11 +589,21 @@ export default function Profile() {
         return(<LoadingRow />)
     }
 
+    const handleLike = (postId, newValue) => {
+        setPosts(prevPosts => prevPosts.map(post => post.id === postId ? { ...post, likeCount: newValue } : post));
+    };
+
     return(
         <>
             <Helmet>
                 <title> {username} </title>
             </Helmet>
+
+            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleCloseSnackbar}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
 
             <Dialog open={openEditProfile} onClose={handleEditProfileClose}>
                 <DialogTitle>Edit Profile</DialogTitle>
@@ -621,14 +705,14 @@ export default function Profile() {
                         fullWidth
                         margin="normal"
                     />
-                    <FormGroup>
-                        <FormControlLabel
-                            control={
-                                <Switch checked={isPrivateAccount} onChange={handlePrivacyToggle} color="primary" />
-                            }
-                            label="Private Account"
-                        />
-                    </FormGroup>
+                    {/*<FormGroup>*/}
+                    {/*    <FormControlLabel*/}
+                    {/*        control={*/}
+                    {/*            <Switch checked={isPrivateAccount} onChange={handlePrivacyToggle} color="primary" />*/}
+                    {/*        }*/}
+                    {/*        label="Private Account"*/}
+                    {/*    />*/}
+                    {/*</FormGroup>*/}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleAccountClose}>Cancel</Button>
@@ -766,8 +850,16 @@ export default function Profile() {
                                                 }
                                             >
                                                 {posts.length > 0 ? (
-                                                    posts.map((post, index) => (
-                                                        <PostCardLeft key={index} post={post} onDelete={handlePostDelete} />
+                                                    posts.map((post) => (
+                                                    <PostCardLeft
+                                                        key={post.id}
+                                                        post={post}
+                                                        onDelete={handlePostDelete}
+                                                        isLiked={post.likedByUser}
+                                                        commentCount={post.commentCount}
+                                                        likeCount={post.likeCount}
+                                                        handleLike={handleLike}
+                                                    />
                                                     ))
                                                 ) : (
                                                     <p style={{ textAlign: 'center', marginTop: '1rem' }}>
@@ -795,18 +887,38 @@ export default function Profile() {
                                         </Grid>
                                     </Grid>
                                 </TabPanel>
-                                <TabPanel value={tab-2} index={2}>
+                                <TabPanel value={tab - 2} index={2}>
                                     <Grid container columns={16} justifyContent="center">
                                         <Grid item xs={16} md={13}>
-                                            {posts.length > 0 ? (
-                                                posts.map((post, index) => (
-                                                    <PostCardLeft key={index} post={post} onDelete={handlePostDelete} />
-                                                ))
-                                            ) : (
-                                                <p style={{ textAlign: 'center', marginTop: '1rem' }}>
-                                                    Looks like there are no posts yet. Stay tuned!
-                                                </p>
-                                            )}
+                                            <InfiniteScroll
+                                                dataLength={likes.length}
+                                                next={loadMoreLikes}
+                                                hasMore={hasMoreLikes}
+                                                loader={<LoadingRow />}
+                                                endMessage={
+                                                    <p style={{ textAlign: 'center' }}>
+                                                        <b>Yay! You have seen it all</b>
+                                                    </p>
+                                                }
+                                            >
+                                                {likes.length > 0 ? (
+                                                    likes.map((post) => (
+                                                        <PostCardLeft
+                                                            key={post.id}
+                                                            post={post}
+                                                            onDelete={handlePostDelete}
+                                                            isLiked={post.likedByUser}
+                                                            commentCount={post.commentCount}
+                                                            likeCount={post.likeCount}
+                                                            handleLike={handleLike}
+                                                        />
+                                                    ))
+                                                ) : (
+                                                    <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                                        Looks like there are no liked posts yet. Stay tuned!
+                                                    </p>
+                                                )}
+                                            </InfiniteScroll>
                                         </Grid>
                                     </Grid>
                                 </TabPanel>
