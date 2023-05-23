@@ -27,6 +27,7 @@ import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
 import axios from 'axios';
 import FriendRequestNotificationItem from './FriendRequestNotificationItem';
+import {useNavigate} from "react-router-dom";
 
 // ----------------------------------------------------------------------
 const BASE_URL = process.env.REACT_APP_URL;
@@ -36,12 +37,18 @@ export default function NotificationsPopover() {
   const [friendRequests, setFriendRequests] = useState([]);
   const [open, setOpen] = useState(null);
   const [socket, setSocket] = useState(null);
+  const navigate = useNavigate();
 
   const [page, setPage] = useState(0);
   const listRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
+  const [totalUnRead, setTotalUnRead] = useState(0);
+
+  useEffect(() => {
+    const initialUnReadCount = countRecentNotifications(notifications);
+    setTotalUnRead(initialUnReadCount);
+  }, [notifications]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -55,6 +62,7 @@ export default function NotificationsPopover() {
       setNotifications(response.data);
     };
 
+
     fetchNotifications();
   }, []);
 
@@ -66,9 +74,15 @@ export default function NotificationsPopover() {
 
       newSocket.on('notification', (newNotification) => {
         setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
-      });
 
-      console.log(notifications)
+        const oneDayAgo = new Date();
+        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+        const notificationDate = new Date(newNotification.createdAt);
+        if (notificationDate > oneDayAgo) {
+          setTotalUnRead(totalUnRead + 1);
+        }
+      });
     };
 
     initializeSocket();
@@ -77,6 +91,28 @@ export default function NotificationsPopover() {
       socket?.close();
     };
   }, []);
+
+  const handleSuccess = (notificationId) => {
+    setNotifications((prevNotifications) =>
+        prevNotifications.filter(notification => notification.id !== notificationId)
+    );
+  };
+
+  const navigateToProfile = (username) => {
+    const url = `/profile/${username}`;
+    navigate(url, { replace: true });
+  };
+
+  const countRecentNotifications = notifications => {
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+    return notifications.reduce((count, notification) => {
+      const notificationDate = new Date(notification.createdAt);
+      return notificationDate > oneDayAgo ? count + 1 : count;
+    }, 0);
+  };
+
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -117,7 +153,6 @@ export default function NotificationsPopover() {
       });
 
       setNotifications(notificationsResponse.data);
-
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -131,6 +166,7 @@ export default function NotificationsPopover() {
           <Badge badgeContent={totalUnRead} color="error">
             <Iconify icon="eva:bell-fill" />
           </Badge>
+
         </IconButton>
 
         <Popover
@@ -150,9 +186,6 @@ export default function NotificationsPopover() {
           <Box sx={{ display: 'flex', alignItems: 'center', py: 2, px: 2.5 }}>
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="subtitle1">Notifications</Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                You have {totalUnRead} unread messages
-              </Typography>
             </Box>
 
             {totalUnRead > 0 && (
@@ -167,17 +200,9 @@ export default function NotificationsPopover() {
           <Divider sx={{ borderStyle: 'dashed' }} />
 
           <Scrollbar sx={{ height: { xs: 340, sm: 'auto' } }}>
-            <List disablePadding subheader={<ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>New</ListSubheader>}>
-              {/* Render friend request notifications */}
-              {friendRequests.map((friendRequest) => (
-                  <FriendRequestNotificationItem key={friendRequest.id} friendRequest={friendRequest} onSuccess={() => handleRequestSuccess(friendRequest.id)} />
-              ))}
-            </List>
-
-            <List disablePadding subheader={<ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>Before that</ListSubheader>}>
-              {/* Render like notifications */}
+            <List disablePadding>
               {notifications.map((notification) => (
-                  <NotificationItem key={notification.id} notification={notification} />
+                  <NotificationItem key={notification.id} notification={notification} handleSuccess={handleSuccess} navigateToProfile={navigateToProfile}/>
               ))}
             </List>
           </Scrollbar>
@@ -206,10 +231,11 @@ NotificationItem.propTypes = {
     type: PropTypes.string,
     avatar: PropTypes.any,
   }),
+  handleSuccess: PropTypes.func,
 };
 
-function NotificationItem({ notification }) {
-  const { avatar, title } = renderContent(notification);
+function NotificationItem({ notification, handleSuccess, navigateToProfile }) {
+  const { avatar, title } = renderContent(notification, handleSuccess, navigateToProfile);
 
   return (
       <ListItemButton
@@ -248,33 +274,30 @@ function NotificationItem({ notification }) {
 
 // ----------------------------------------------------------------------
 
-function renderContent(notification) {
+function renderContent(notification, handleSuccess, navigateToProfile) {
   let title;
   let avatar;
 
   if (notification.likeActivity) {
     title = (
-        <Typography variant="subtitle2">
+        <Typography variant="subtitle2" onClick={() => navigateToProfile(notification.senderUsername)}>
           {notification.senderUsername} liked your post.
         </Typography>
     );
-    avatar = <img alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
+    avatar = <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
   } else if (notification.commentActivity) {
     title = (
-        <Typography variant="subtitle2">
+        <Typography variant="subtitle2" onClick={() => navigateToProfile(notification.senderUsername)}>
           {notification.senderUsername} commented on your post: {notification.commentActivity.content}
         </Typography>
     );
-    avatar = <img alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
+    avatar = <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
   } else if (notification.friendRequestActivity) {
     title = (
-        <Typography variant="subtitle2">
-          {notification.senderUsername} sent you a friend request.
-        </Typography>
+        <FriendRequestNotificationItem key={notification.friendRequestActivity.id} friendRequest={notification} onSuccess={(e) => handleSuccess(e)} onClick={() => navigateToProfile(notification.senderUsername)}/>
     );
-    avatar = <img alt={notification.friendRequestActivity.sender.username} src={notification.senderPhotoUrl} />;
+    avatar = <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
   } else {
-    // Handle other types of notifications if necessary
     title = (
         <Typography variant="subtitle2">
           {notification.title}
@@ -283,7 +306,7 @@ function renderContent(notification) {
           </Typography>
         </Typography>
     );
-    avatar = notification.senderPhotoUrl ? <img alt={notification.title} src={notification.senderPhotoUrl} /> : null;
+    avatar = <Avatar alt={notification.title} src={notification.senderPhotoUrl} />;
   }
 
   return { avatar, title };

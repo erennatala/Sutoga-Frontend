@@ -9,23 +9,17 @@ const BASE_URL = process.env.REACT_APP_URL
 
 function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
     const { sender, receiver, id } = friendRequest;
-    const navigate = useNavigate();
-
-    const navigateToProfile = (username) => {
-        const url = `/profile/${username}`;
-        navigate(url, { replace: true });
-    };
 
     const handleAccept = async () => {
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
 
-            await axios.post(`${BASE_URL}users/acceptFriendRequest/${id}`,{},  {
+            await axios.post(`${BASE_URL}users/acceptFriendRequest/${friendRequest.friendRequestActivity.id}`,{},  {
                 headers: {
                     Authorization: `${token}`,
                 },
             });
-            onSuccess();
+            onSuccess(friendRequest.id);
         } catch (error) {
             console.log(error);
         }
@@ -35,12 +29,12 @@ function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
 
-            await axios.post(`${BASE_URL}users/declineFriendRequest/${id}`,{}, {
+            await axios.post(`${BASE_URL}users/declineFriendRequest/${friendRequest.friendRequestActivity.id}`,{}, {
                 headers: {
                     Authorization: `${token}`,
                 },
             });
-            onSuccess();
+            onSuccess(friendRequest.id);
         } catch (error) {
             console.log(error);
         }
@@ -48,14 +42,11 @@ function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
 
     return (
         <ListItemButton sx={{ py: 1.5, px: 2.5, mt: '1px' }}>
-            <ListItemAvatar onClick={() => navigateToProfile(sender.username)}>
-                <Avatar src={sender.profilePhotoUrl} alt={sender.username} />
-            </ListItemAvatar>
             <ListItemText
                 primary={
                     <Typography variant="subtitle1">
-                        <Typography component="span" variant="subtitle2" sx={{ fontWeight: 'bold' }} onClick={() => navigateToProfile(sender.username)}>
-                            {sender.username}
+                        <Typography component="span" variant="subtitle2" sx={{ fontWeight: 'bold' }} >
+                            {friendRequest.senderUsername}
                         </Typography>{' '}
                         sent you a friend request
                     </Typography>

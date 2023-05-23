@@ -103,6 +103,7 @@ export default function UserProfile() {
     useEffect(() => {
         switch (tab) {
             case 0:
+                setLikes([])
                 if (posts.length === 0) {
                     setHasMore(true);
                     setPage(0);
@@ -110,18 +111,20 @@ export default function UserProfile() {
                 }
                 break;
             case 2:
+                setLikes([])
                 if (games.length === 0) {
                     setGamePage(0);
+                    setHasMoreGames(true)
                     loadMoreGames();
                 }
                 break;
             case 4:
-                if (likes.length === 0) {
-                    setLikePage(0);
-                    loadMoreLikes();
-                }
+                setLikePage(0);
+                setHasMoreLikes(true)
+                loadMoreLikes();
                 break;
             case 6:
+                setLikes([])
                 if (friends.length === 0) {
                     setHasMoreFriends(true);
                     setFriendPage(0);
@@ -172,8 +175,41 @@ export default function UserProfile() {
     }
 
     const loadMoreLikes = async () => {
+        if (loadingLike || !hasMoreLikes) {
+            return;
+        }
 
-    }
+        setLoadingLike(true);
+
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = user.id;
+
+            const response = await axios.get(`${BASE_URL}posts/getUserLikedPosts`, {
+                params: {
+                    userId: userId,
+                    pageNumber: likePage,
+                    pageSize: 10
+                },
+                headers: {
+                    'Authorization': token
+                }
+            });
+
+            if (response.data && Array.isArray(response.data.content)) {
+                const newLikes = response.data.content;
+                setLikes(prevLikes => [...prevLikes, ...newLikes]);
+                setLikePage(prevPage => prevPage + 1);
+                setHasMoreLikes(newLikes.length === 10);
+            } else {
+                setHasMoreLikes(false);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoadingLike(false);
+        }
+    };
 
     const checkFriendRequest = async (userId, accountId) => {
         try {
@@ -458,6 +494,10 @@ export default function UserProfile() {
         return(<LoadingRow />)
     }
 
+    const handleLike = (postId, newValue) => {
+        setPosts(prevPosts => prevPosts.map(post => post.id === postId ? { ...post, likeCount: newValue } : post));
+    };
+
     return(
         <>
             <Helmet>
@@ -638,7 +678,14 @@ export default function UserProfile() {
                                         >
                                             {posts.length > 0 ? (
                                                 posts.map((post, index) => (
-                                                    <PostCardLeft key={index} post={post}/>
+                                                    <PostCardLeft
+                                                        key={post.id}
+                                                        post={post}
+                                                        isLiked={post.likedByUser}
+                                                        commentCount={post.commentCount}
+                                                        likeCount={post.likeCount}
+                                                        handleLike={handleLike}
+                                                    />
                                                 ))
                                             ) : (
                                                 <p style={{ textAlign: 'center', marginTop: '1rem' }}>
@@ -666,10 +713,37 @@ export default function UserProfile() {
                                     </Grid>
                                 </Grid>
                             </TabPanel>
-                            <TabPanel value={tab-2} index={2}>
+                            <TabPanel value={tab - 2} index={2}>
                                 <Grid container columns={16} justifyContent="center">
                                     <Grid item xs={16} md={13}>
-                                        <PostCardLeft img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
+                                        <InfiniteScroll
+                                            dataLength={likes.length}
+                                            next={loadMoreLikes}
+                                            hasMore={hasMoreLikes}
+                                            loader={<LoadingRow />}
+                                            endMessage={
+                                                <p style={{ textAlign: 'center' }}>
+                                                    <b>Yay! You have seen it all</b>
+                                                </p>
+                                            }
+                                        >
+                                            {likes.length > 0 ? (
+                                                likes.map((post) => (
+                                                    <PostCardLeft
+                                                        key={post.id}
+                                                        post={post}
+                                                        isLiked={post.likedByUser}
+                                                        commentCount={post.commentCount}
+                                                        likeCount={post.likeCount}
+                                                        handleLike={handleLike}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                                    Looks like there are no liked posts yet. Stay tuned!
+                                                </p>
+                                            )}
+                                        </InfiniteScroll>
                                     </Grid>
                                 </Grid>
                             </TabPanel>
