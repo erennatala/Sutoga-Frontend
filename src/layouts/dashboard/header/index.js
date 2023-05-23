@@ -10,8 +10,9 @@ import Iconify from '../../../components/iconify';
 //
 import AccountPopover from './AccountPopover';
 import NotificationsPopover from './NotificationsPopover';
-import React from "react";
+import React, {useEffect, useState} from "react";
 import Searchbar from "./Searchbar";
+import axios from "axios";
 
 // ----------------------------------------------------------------------
 
@@ -45,14 +46,48 @@ Header.propTypes = {
     username: PropTypes.string,
 };
 
+const BASE_URL = process.env.REACT_APP_URL
 
-export default function Header({ profilePhotoUrl, username, onOpenNav }) {
+export default function Header({ onOpenNav }) {
+    const [localUsername, setLocalUsername] = useState("")
+    const [photoUrl, setPhotoUrl] = useState("")
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const username = await window.electron.ipcRenderer.invoke('getUsername');
+                setLocalUsername(username);
+            } catch (error) {
+                console.log(error);
+            }
+        })();
+
+        getProfilePhoto()
+    }, []);
+
+    const getProfilePhoto = async () => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const username = await window.electron.ipcRenderer.invoke('getUsername');
+
+            const photoresponse = await axios.get(`${BASE_URL}users/profilePhoto?username=${username}`, {
+                headers: {
+                    'Authorization': `${token}`
+                }
+            });
+
+            setPhotoUrl(photoresponse.data);
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
     return (
         <StyledRoot>
             <StyledToolbar sx={{ml: 3}}>
                 <Typography variant="h5" color="common.black">Welcome back</Typography>
                 <Typography>&nbsp;</Typography>
-                <Typography variant="h5" color="common.black" fontWeight={"bold"}>{username}</Typography>
+                <Typography variant="h5" color="common.black" fontWeight={"bold"}>{localUsername}</Typography>
                 <Typography variant="h5" color="common.black">!</Typography>
 
                 <IconButton
@@ -78,7 +113,7 @@ export default function Header({ profilePhotoUrl, username, onOpenNav }) {
                 >
                     <Searchbar />
                     <NotificationsPopover />
-                    <AccountPopover profilePhotoUrl={profilePhotoUrl} />
+                    <AccountPopover profilePhotoUrl={photoUrl} />
 
                 </Stack>
             </StyledToolbar>

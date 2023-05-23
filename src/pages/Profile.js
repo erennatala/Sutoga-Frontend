@@ -31,7 +31,7 @@ import { useDispatch } from 'react-redux';
 import { setUserData } from '../actions/authActions';
 
 const bgImage = `${process.env.PUBLIC_URL}/assets/images/bg.jpg`;
-
+const { ipcRenderer } = window.electron;
 
 function TabPanel(props: TabPanelProps) {
     const { children, value, index, ...other } = props;
@@ -398,6 +398,12 @@ export default function Profile() {
                 handleSnackbar('Profile updated successfully!', 'success');
                 setUpdate(true)
                 handleEditProfileClose()
+                console.log(token, userId, editUsername)
+                await ipcRenderer.invoke('setCredentials', {
+                    token: token,
+                    userId: userId,
+                    username: editUsername,
+                });
                 dispatch(setUserData({
                     profilePhotoUrl: response.data.profilePhotoUrl,
                     username: editUsername,
@@ -743,7 +749,7 @@ export default function Profile() {
                                         </Typography>
 
                                         <Typography flexWrap variant="h7" gutterBottom>
-                                            {user.profileDescription}
+                                            {user.profileDescription !== null ? ("") : (user.profileDescription)}
                                         </Typography>
                                     </Grid>
 

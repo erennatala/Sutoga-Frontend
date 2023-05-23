@@ -27,7 +27,7 @@ export default function LoginForm(props) {
                 email: email,
                 password: password,
             });
-            const responseBody = response.data; // get response body
+            const responseBody = response.data;
             const { token, userId, username } = responseBody;
 
             const credentials = {
