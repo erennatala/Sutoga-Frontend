@@ -197,7 +197,6 @@ export default function RegisterPage() {
     }
 
     function handleKeyUp(event) {
-        // Enter
         if (event.keyCode === 13) {
             handleClick();
         }

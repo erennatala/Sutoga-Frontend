@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 // utils
 import { fToNow } from '../../../utils/formatTime';
+import io from 'socket.io-client';
 // components
 import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
@@ -34,6 +35,7 @@ export default function NotificationsPopover() {
   const [notifications, setNotifications] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [open, setOpen] = useState(null);
+  const [socket, setSocket] = useState(null);
 
   const [page, setPage] = useState(0);
   const listRef = useRef(null);
@@ -42,14 +44,39 @@ export default function NotificationsPopover() {
   const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
 
   useEffect(() => {
-    fetchData();
+    const fetchNotifications = async () => {
+      const id = await window.electron.ipcRenderer.invoke('getId');
+      const token = await window.electron.ipcRenderer.invoke('getToken');
+
+      const response = await axios.get(`${BASE_URL}users/notifications/${id}`, {
+        headers: {
+          Authorization: `${token}`,
+        },});
+      setNotifications(response.data);
+    };
+
+    fetchNotifications();
   }, []);
 
-  const handleRequestSuccess = (notificationId) => {
-    setFriendRequests((prevFriendRequests) =>
-        prevFriendRequests.filter((request) => request.id !== notificationId)
-    );
-  };
+  useEffect(() => {
+    const initializeSocket = async () => {
+      const newSocket = io("localhost:9092/");
+
+      setSocket(newSocket);
+
+      newSocket.on('notification', (newNotification) => {
+        setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
+      });
+
+      console.log(notifications)
+    };
+
+    initializeSocket();
+
+    return () => {
+      socket?.close();
+    };
+  }, []);
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
@@ -222,43 +249,42 @@ function NotificationItem({ notification }) {
 // ----------------------------------------------------------------------
 
 function renderContent(notification) {
-  const title = (
-      <Typography variant="subtitle2">
-        {notification.title}
-        <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
-          {noCase(notification.description)}
+  let title;
+  let avatar;
+
+  if (notification.likeActivity) {
+    title = (
+        <Typography variant="subtitle2">
+          {notification.senderUsername} liked your post.
         </Typography>
-      </Typography>
-  );
+    );
+    avatar = <img alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
+  } else if (notification.commentActivity) {
+    title = (
+        <Typography variant="subtitle2">
+          {notification.senderUsername} commented on your post: {notification.commentActivity.content}
+        </Typography>
+    );
+    avatar = <img alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
+  } else if (notification.friendRequestActivity) {
+    title = (
+        <Typography variant="subtitle2">
+          {notification.senderUsername} sent you a friend request.
+        </Typography>
+    );
+    avatar = <img alt={notification.friendRequestActivity.sender.username} src={notification.senderPhotoUrl} />;
+  } else {
+    // Handle other types of notifications if necessary
+    title = (
+        <Typography variant="subtitle2">
+          {notification.title}
+          <Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
+            {noCase(notification.description)}
+          </Typography>
+        </Typography>
+    );
+    avatar = notification.senderPhotoUrl ? <img alt={notification.title} src={notification.senderPhotoUrl} /> : null;
+  }
 
-  if (notification.type === 'order_placed') {
-    return {
-      avatar: <img alt={notification.title} src="/assets/icons/ic_notification_package.svg" />,
-      title,
-    };
-  }
-  if (notification.type === 'order_shipped') {
-    return {
-      avatar: <img alt={notification.title} src="/assets/icons/ic_notification_shipping.svg" />,
-      title,
-    };
-  }
-  if (notification.type === 'mail') {
-    return {
-      avatar: <img alt={notification.title}
-
-                   src="/assets/icons/ic_notification_mail.svg" />,
-      title,
-    };
-  }
-  if (notification.type === 'chat_message') {
-    return {
-      avatar: <img alt={notification.title} src="/assets/icons/ic_notification_chat.svg" />,
-      title,
-    };
-  }
-  return {
-    avatar: notification.avatar ? <img alt={notification.title} src={notification.avatar} /> : null,
-    title,
-  };
+  return { avatar, title };
 }
