@@ -4,25 +4,26 @@ import React, {useState, useEffect} from "react";
 import {alpha, useTheme} from '@mui/material/styles';
 import {
     Grid,
-    Container,
     Stack,
-    Button,
     TextField,
     ClickAwayListener, Collapse, InputAdornment, IconButton, Box, Card
 } from '@mui/material';
+import InfiniteScroll from 'react-infinite-scroll-component'
+import LoadingRow from '../components/loading/LoadingRow'
 // components
 import {useSelector} from "react-redux";
 import axios from "axios";
 import Iconify from '../components/iconify';
 import PostCard from "../components/cards/PostCard";
 import { LinearProgress } from '@mui/material';
+import PostCardLeft from "../components/cards/PostCardLeft";
 
 const BASE_URL = process.env.REACT_APP_URL
 
 export default function Home() {
     const theme = useTheme();
     const userName = useSelector((state)=> state.auth.userName);
-    const [friendRec, setFriendRec] = useState([])
+    const [friendRec, setFriendRec] = useState([{id: 1}])
 
     const [openCreate, setOpenCreate] = useState(false);
     const [collapse, setCollapse] = useState(false);
@@ -34,15 +35,66 @@ export default function Home() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [mediaPreview, setMediaPreview] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [fileType, setFileType] = useState('image/jpeg');
 
     const [postLabel, setPostLabel] = useState("What's happening?")
     const [postText, setPostText] = useState("");
 
     const [windowSize, setWindowSize] = useState(getWindowSize());
 
+    const [userId, setUserId] = useState(null)
+
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(0);
+    const [posts, setPosts] = useState([]);
+
     useEffect(() => {
-        getFriendRecs()
-    }, [])
+        loadMorePosts();
+    }, []);
+
+    const loadMorePosts = async () => {
+        if (loading) return;
+
+        setLoading(true);
+
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}posts/getHomePosts`, {
+                params: {
+                    userId: userId,
+                    pageNumber: page,
+                    pageSize: 10
+                },
+                headers: { 'Authorization': `${token}` },
+            });
+
+            if (response.data && Array.isArray(response.data.content)) {
+                setPosts(prevPosts => [...prevPosts, ...response.data.content]);
+                setPage(prevPage => prevPage + 1);
+                setHasMore(response.data.content.length > 0);
+            } else {
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const id = await window.electron.ipcRenderer.invoke('getId');
+                setUserId(id);
+            } catch (error) {
+                console.log(error);
+            }
+        })();
+    }, []);
 
     useEffect(() => {
         function handleWindowResize() {
@@ -75,17 +127,28 @@ export default function Home() {
             const options = {
                 properties: ['openFile'],
                 filters: [
-                    { name: 'Images', extensions: ['jpg', 'png', 'gif'] },
+                    { name: 'Media Files', extensions: ['jpg', 'png', 'gif', 'mp4', 'mov', 'avi'] },
                     { name: 'All Files', extensions: ['*'] },
                 ],
             };
             const filePaths = await window.electron.ipcRenderer.invoke('open-file-dialog', options);
-            console.log(filePaths);
+
             if (filePaths && filePaths[0]) {
                 const fileData = await window.electron.ipcRenderer.invoke('get-file-data', filePaths[0]);
+
+                let fileType = 'image/jpeg';
+                const extension = filePaths[0].split('.').pop().toLowerCase();
+
+                if (extension === 'mp4' || extension === 'mov' || extension === 'avi') {
+                    fileType = 'video/' + extension;
+                }
+
+                setFileType(fileType);
+
                 const file = new File([new Blob([fileData])], filePaths[0].split('/').pop(), {
-                    type: 'image/jpeg',
+                    type: fileType,
                 });
+                setFileType(fileType);
                 setSelectedFile(file);
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -98,27 +161,50 @@ export default function Home() {
         }
     };
 
-    const uploadFile = async (file) => {
+    const createPost = async (postText, userId, media) => {
         try {
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('description', postText);
+            formData.append('userId', userId);
 
-            const uploadUrl = `${BASE_URL}/upload`;
+            if(media) {
+                formData.append('media', media);
+            }
+
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+
+            const postUrl = `${BASE_URL}posts/create`;
 
             const config = {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                onUploadProgress: (event) => {
-                    const progress = Math.round((event.loaded / event.total) * 100);
-                    setUploadProgress(progress);
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `${token}`
                 },
             };
 
-            const response = await axios.post(uploadUrl, formData, config);
-            console.log(response.data);
+            const response = await axios.post(postUrl, formData, config);
+
+            setSelectedFile('');
+            setMediaPreview('');
+            setPostText('');
+            setPostLabel("What's happening?");
+            setCanSend(false);
+            setRow(1)
+            setCollapse(true)
+            setCollapse(false);
+            setOpenCreate(false);
+            setIsInputOpen(false);
+            setPosts(prevPosts => [response.data, ...prevPosts]);
         } catch (error) {
             console.log(error);
         }
     };
+
+    const removeSelectedFile = () => {
+        setSelectedFile(null);
+        setMediaPreview(null);
+    };
+
 
     const handleClickCreate = () => {
         setRow(3)
@@ -146,8 +232,17 @@ export default function Home() {
         }
     }
 
+    const handlePostDelete = (postId) => {
+        setPosts((prevPosts) => prevPosts.filter(post => post.id !== postId));
+    };
+
     const handlePost = () => {
         simulateUpload();
+        createPost(postText, userId, selectedFile);
+    };
+
+    const handleLike = (postId, newValue) => {
+        setPosts(prevPosts => prevPosts.map(post => post.id === postId ? { ...post, likeCount: newValue } : post));
     };
 
     const simulateUpload = () => {
@@ -165,23 +260,6 @@ export default function Home() {
         }, 500);
     };
 
-
-    const getFriendRecs = async () => {
-        try {
-            const recresponse = axios.get(`${BASE_URL  }users/getFriendRecommendations?userId=${  19}`)
-
-            // eslint-disable-next-line no-unused-vars
-            let data;
-            await recresponse.then((result) => {
-                // eslint-disable-next-line no-return-assign,prefer-destructuring
-                return data = result.data;
-            })
-            setFriendRec(data)
-        } catch (e) {
-            console.log(e)
-        }
-    }
-
     return(
         <>
             <Helmet>
@@ -189,7 +267,7 @@ export default function Home() {
             </Helmet>
 
             <Grid container columns={16} direction="column">
-                <Stack direction="row">
+                <Stack direction="column" justifyContent={"center"}>
                     <Grid container xs={12} alignItems="center"
                           justifyContent="center">
                         <ClickAwayListener onClickAway={handleClickAway}>
@@ -229,53 +307,67 @@ export default function Home() {
                                                 fontWeight: 400,
                                             },
                                         }}
+                                        value={postText}
                                         multiline focused={false} rows={row} fullWidth
                                         onChange={(e) => {
-                                            setPostText(e.target.value)
                                             handleWrite(e.target.value)
+                                            setPostText(e.target.value)
                                         }}
+                                        // In TextField's InputProps
                                         InputProps={{
-                                        endAdornment: (
-                                            <>
-                                                {isInputOpen ? (
-                                                    <Stack direction="row">
-                                                        <Grid>
-                                                            {mediaPreview && (
-                                                                <Box mr={1}>
-                                                                    <Card>
-                                                                        <img
-                                                                            src={mediaPreview}
-                                                                            alt="Media preview"
-                                                                            style={{ maxWidth: '100px', maxHeight: '100px', pt: 4 }}
-                                                                        />
+                                            endAdornment: (
+                                                <>
+                                                    {isInputOpen ? (
+                                                        <Stack direction="row">
+                                                            <Grid>
+                                                                {mediaPreview && (
+                                                                    <Box mr={1}>
+                                                                        {fileType.startsWith('image/') ? (
+                                                                            <img
+                                                                                src={mediaPreview}
+                                                                                alt="Media preview"
+                                                                                style={{ maxWidth: '100px', maxHeight: '100px', pt: 4 }}
+                                                                            />
+                                                                        ) : (
+                                                                            <video
+                                                                                src={mediaPreview}
+                                                                                alt="Media preview"
+                                                                                style={{ maxWidth: '100px', maxHeight: '100px', pt: 4 }}
+                                                                                controls
+                                                                            />
+                                                                        )}
                                                                         {uploadProgress > 0 && uploadProgress < 100 && (
                                                                             <div>
                                                                                 <LinearProgress variant="determinate" value={uploadProgress} />
                                                                             </div>
                                                                         )}
-                                                                    </Card>
-                                                                </Box>
-                                                            )}
-                                                        </Grid>
-                                                        <Grid container xs={1} direction={"column"}>
+                                                                    </Box>
+                                                                )}
+                                                            </Grid>
+                                                            <Grid container xs={1} direction={"column"}>
+                                                                <IconButton edge="end" color="black" onClick={openFileDialog}>
+                                                                    <Iconify icon={"material-symbols:broken-image-outline"} />
+                                                                </IconButton>
+                                                                {selectedFile && (
+                                                                    <IconButton edge="end" color="black" onClick={removeSelectedFile}>
+                                                                        <Iconify icon={"material-symbols:close"} />
+                                                                    </IconButton>
+                                                                )}
+                                                                <IconButton edge="end" color={canSend ? ("primary") : ("black")} disabled={!canSend} onClick={handlePost}>
+                                                                    <Iconify icon={canSend ? ("material-symbols:arrow-circle-right") : ("material-symbols:arrow-circle-right-outline")} />
+                                                                </IconButton>
+                                                            </Grid>
+                                                        </Stack>
+                                                    ) : (
+                                                        <InputAdornment position={"end"}>
                                                             <IconButton edge="end" color="black" onClick={openFileDialog}>
                                                                 <Iconify icon={"material-symbols:broken-image-outline"} />
                                                             </IconButton>
-                                                            <IconButton edge="end" color={canSend ? ("primary") : ("black")} disabled={!canSend} onClick={handlePost}>
-                                                                <Iconify icon={canSend ? ("material-symbols:arrow-circle-right") : ("material-symbols:arrow-circle-right-outline")} />
-                                                            </IconButton>
-                                                        </Grid>
-                                                    </Stack>
-                                                ) : (
-                                                    <InputAdornment position={"end"}>
-                                                        <IconButton edge="end" color="black" onClick={openFileDialog}>
-                                                            <Iconify icon={"material-symbols:broken-image-outline"} />
-                                                        </IconButton>
-                                                    </InputAdornment>
+                                                        </InputAdornment>
                                                     )}
-                                            </>
-                                        ),
-                                    }}
+                                                </>
+                                            ),
+                                        }}
                                     >
                                         {uploadProgress !== null && (
                                             <LinearProgress
@@ -294,16 +386,43 @@ export default function Home() {
                                 </Collapse>
                             </Grid>
                         </ClickAwayListener>
+                    </Grid>
 
-                        <Grid item spacing={2}>
-                            <PostCard img="https://i.ytimg.com/vi/WSwUSIfgA4M/maxresdefault.jpg"/>
-                            <PostCard img="https://cdn.motor1.com/images/mgl/2Np2Qp/s1/need-for-speed-unbound-gameplay-trailer.jpg" />
-                            <PostCard img="https://wallpapers.com/images/file/spider-man-action-adventure-1080p-gaming-6psueyj01802y9f1.jpg" />
-                        </Grid>
+                    <Grid item spacing={2} sx={{px: 15}}>
+                        <InfiniteScroll
+                            dataLength={posts.length}
+                            next={loadMorePosts}
+                            hasMore={hasMore}
+                            loader={<LoadingRow />}
+                            endMessage={
+                                <p style={{ textAlign: 'center' }}>
+                                    <b>Yay! You have seen it all</b>
+                                </p>
+                            }
+                        >
+                            {posts.length > 0 ? (
+                                posts.map((post, index) => (
+                                    <PostCardLeft
+                                        key={post.id}
+                                        post={post}
+                                        fileType={fileType}
+                                        onDelete={handlePostDelete}
+                                        isLiked={post.likedByUser}
+                                        commentCount={post.commentCount}
+                                        likeCount={post.likeCount}
+                                        handleLike={handleLike}
+                                    />
+                                ))
+
+                                ) : (
+                                <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+                                    Looks like there are no posts yet. Stay tuned!
+                                </p>
+                            )}
+                        </InfiniteScroll>
                     </Grid>
                 </Stack>
             </Grid>
-
         </>
     );
 }

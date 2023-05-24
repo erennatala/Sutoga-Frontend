@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('electron', {
             }
         },
         on: (channel, listener) => ipcRenderer.on(channel, listener),
+        removeListener: (channel, listener) => ipcRenderer.removeListener(channel, listener),
     },
 });

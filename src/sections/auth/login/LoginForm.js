@@ -3,19 +3,18 @@ import {useRef, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // @mui
-import {Link, Stack, IconButton, InputAdornment, TextField} from '@mui/material';
+import {Link, Stack, IconButton, InputAdornment,Card, TextField} from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import {setAuthenticated, setToken, setUserName} from '../../../actions/authActions';
 // components
 import Iconify from '../../../components/iconify';
-
+import { styled } from '@mui/material/styles';
 // ----------------------------------------------------------------------
 const BASE_URL = process.env.REACT_APP_URL
 const { ipcRenderer } = window.electron;
 
 export default function LoginForm(props) {
   const navigate = useNavigate();
-    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +27,7 @@ export default function LoginForm(props) {
                 email: email,
                 password: password,
             });
-            const responseBody = response.data; // get response body
+            const responseBody = response.data;
             const { token, userId, username } = responseBody;
 
             const credentials = {
@@ -42,9 +41,6 @@ export default function LoginForm(props) {
 
             await ipcRenderer.invoke('setCredentials', credentials);
 
-            dispatch(setAuthenticated(true));
-            dispatch(setToken(token));
-            dispatch(setUserName(username)); // Add this line
             navigate('/home', { replace: true });
         } catch (err) {
             props.onError();
