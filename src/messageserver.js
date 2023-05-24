@@ -14,6 +14,8 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
+
+
 // HTTP server oluşturulması
 const server = http.createServer(app);
 
@@ -27,17 +29,27 @@ const io = socketIo(server, {
 });
 
 app.post("/mediasoup/getMessages", (req, res) => {
-    var messages;
     console.log(req.body);
     console.log(req.body.sender);
     console.log(req.body.receiver);
+    let query = {};
+    if (req.body.roomId) {
+        // If roomId is provided, search only by roomId
+        query = { roomId: req.body.roomId };
+    } else {
+        // If roomId is not provided, search by sender and receiver
+        query = { $or: [
+                { sender: req.body.sender, receiver: req.body.receiver },
+                { sender: req.body.receiver, receiver: req.body.sender }
+            ]};
+    }
+
     Message.find(
-        { sender: req.body.sender, receiver: req.body.receiver },
+        query,
         "sender receiver message date",
-        (err, athletes) => {
+        (err, messages) => {
             if (err) return handleError(err);
 
-            messages = athletes;
             messages.map(
                 (message) => (message.message = cryptr.decrypt(message.message))
             );
@@ -47,28 +59,83 @@ app.post("/mediasoup/getMessages", (req, res) => {
     );
 });
 
+
 app.post("/conservation", async (req, res) => {
-    const { firstUser, secondUser } = req.body;
+    const { firstUser, secondUser,conservationId } = req.body;
+    console.log(req.body)
     const newConservation = new Conservation({
         firstUser,
         secondUser,
+        conservationId,
         lastUpdateDate: new Date().toISOString(),
     });
 
     try {
         const savedConservation = await newConservation.save();
-        res.status(201).json(savedConservation);
+        // Tüm kullanıcılara yeni conservation'ın oluşturulduğunu bildiriyoruz.
+
+        let data = {
+            "conservation": savedConservation,
+            "receiverList": [secondUser] // Assuming secondUser is defined somewhere in your code
+        }
+        io.emit('conservation', data);
+        res.status(201).json(data);
     } catch (error) {
         res.status(500).json({ error: error.toString() });
     }
 });
 
-// Conservation güncelleme endpoint'i
-app.put("/conservation", async (req, res) => {
-    const { firstUser, secondUser } = req.body;
+app.post("/groupconservation", async (req, res) => {
+    const {secondUser, groupId, groupMembers } = req.body;
+    const newConservation = new Conservation({
+        secondUser,
+        groupId,
+        groupMembers,
+        lastUpdateDate: new Date().toISOString(),
+    });
+
+    try {
+        const savedConservation = await newConservation.save();
+        // Tüm kullanıcılara yeni conservation'ın oluşturulduğunu bildiriyoruz.
+
+        let data = {
+            "conservation": savedConservation,
+            "receiverList": groupMembers // Assuming secondUser is defined somewhere in your code
+        }
+        io.emit('conservation', data);
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.toString() });
+    }
+});
+
+app.put("/groupconservation", async (req, res) => {
+    const { groupId,secondUser, groupMembers } = req.body;
     try {
         const updatedConservation = await Conservation.findOneAndUpdate(
-            { firstUser, secondUser },
+            { groupId },
+            { secondUser, groupMembers, lastUpdateDate: new Date().toISOString() },
+            { new: true }
+        );
+
+        if (updatedConservation) {
+            res.json(updatedConservation);
+        } else {
+            res.status(404).json({ error: "Conservation not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.toString() });
+    }
+});
+
+
+
+// Conservation güncelleme endpoint'i
+app.put("/conservation", async (req, res) => {
+    const { firstUser, secondUser,conservationId } = req.body;
+    try {
+        const updatedConservation = await Conservation.findOneAndUpdate(
+            { firstUser, secondUser,conservationId },
             { lastUpdateDate: new Date().toISOString() },
             { new: true }
         );
@@ -87,7 +154,10 @@ app.get("/conservation/:username", async (req, res) => {
     const { username } = req.params;
     try {
         const conservations = await Conservation.find({
-            firstUser : username
+            $or: [
+                { firstUser: username },
+                { groupMembers: { $in: [username] } }
+            ]
         }).sort({ lastUpdateDate: -1 }); // en yenisi en üstte olacak şekilde sıralama
 
         if (conservations) {
@@ -103,27 +173,50 @@ app.get("/conservation/:username", async (req, res) => {
 
 // Client tarafından bağlantı yapıldığında çalışacak event
 io.on('connection', (socket) => {
+
+    socket.on('join room', (roomId) => {
+        socket.join(roomId);
+    });
+
+
     socket.on("message", (data) => {
-        socket.join(data.roomName);
         let dbMessage = new Message({
             sender: data.sender,
             receiver: data.receiver,
             date : data.date,
-            roomId: "",
+            roomId: data.roomId,
             isConservation: data.isConservation,
             message: cryptr.encrypt(data.message),
         });
 
+        let messageToReturn = new Message({
+            sender: data.sender,
+            receiver: data.receiver,
+            date : data.date,
+            roomId: data.roomId,
+            isConservation: data.isConservation,
+            message: data.message,
+        });
+
         dbMessage
             .save()
-            .then((res) => console.log("message saved to mongo", res))
-            .catch((err) => console.error("message not saved to mongo", error));
+            .then((res) => {
+                console.log("message saved to mongo", res)
+                    io.to(data.roomId).emit('createMessage', messageToReturn);
+
+
+                }
+
+            )
+            .catch((error) => console.error("message not saved to mongo", error));
 
 
         // Client bağlantısı kesildiğinde çalışacak event
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
-});});
+
+});
+
+
+
+});
 
 server.listen(3002, () => console.log('Listening on port 3002'));

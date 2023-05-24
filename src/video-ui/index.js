@@ -3,6 +3,18 @@ const socket = io("https://sutogachat.site/")
 
 let producer = null
 
+window.onload = function () {
+  // URL'den parametreleri oku
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get('username');
+  const roomId = urlParams.get('roomId');
+
+  // Parametreler varsa joinRoom fonksiyonunu çağır
+  if (username && roomId) {
+    joinRoom(username, roomId);
+  }
+}
+
 nameInput.value = 'user_' + Math.round(Math.random() * 1000)
 
 socket.request = function request(type, data = {}) {
@@ -44,6 +56,7 @@ function roomOpen() {
   reveal(devicesButton)
   control.className = ''
   reveal(videoMedia)
+
 }
 
 function hide(elem) {

@@ -21,7 +21,9 @@ const Conservation = db.model("Conservation", {
     firstUser: String,
     secondUser: String,
     lastUpdateDate: String,
-    groupId : String
+    groupId : String,
+    groupMembers : [String],
+    conservationId : String
 });
 
 module.exports = { db, Message, Conservation };

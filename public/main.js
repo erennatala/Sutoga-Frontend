@@ -79,27 +79,29 @@ ipcMain.handle('logout', async () => {
     return "Logged out";
 });
 
+const stores = {
+    window1: new Store({ name: 'window1' }),
+    window2: new Store({ name: 'window2' }),
+};
 
+function createWindow(storeName) {
+    const store = stores[storeName];
 
-function createWindow() {
     const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
 
     // Calculate the initial window size based on the screen size
     const windowWidth = Math.round(screenWidth * 0.8); // Set width to 80% of the screen width
     const windowHeight = Math.round(screenHeight * 0.8); // Set height to 80% of the screen height
 
-
     const win = new BrowserWindow({
         width: windowWidth,
-        height: windowHeight, // Adjust height as needed
-        minWidth: 1300, // Set minimum width (optional)
-        minHeight: 800, // Set minimum height (optional)
+        height: windowHeight,
+        minWidth: 1300,
+        minHeight: 800,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: true,
-            enableRemoteModule: true, // Remote modülünü etkinleştirir
-            //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
-            //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
+            enableRemoteModule: true,
             preload: path.join(__dirname, 'preload.js')
         },
     });
@@ -110,9 +112,57 @@ function createWindow() {
         : `file://${path.join(__dirname, '../build/index.html')}`;
 
     win.loadURL(url);
-}
 
-app.whenReady().then(createWindow);
+    // IPC handlers that use the store
+    ipcMain.handle(`${storeName}-getStore`, () => store);
+    ipcMain.handle(`${storeName}-getUsername`, () => store.get('username'));
+    ipcMain.handle(`${storeName}-setCredentials`, (event, { token, userId, username }) => {
+        if (token !== null && token !== undefined) {
+            store.set('token', token);
+        } else {
+            store.delete('token');
+        }
+
+        if (userId !== null && userId !== undefined) {
+            store.set('userId', userId);
+        } else {
+            store.delete('userId');
+        }
+
+        if (username !== null && username !== undefined) {
+            store.set('username', username);
+        } else {
+            store.delete('username');
+        }
+    });
+
+    ipcMain.handle(`${storeName}-getCredentials`, async () => {
+        const token = store.get('token');
+        const userId = store.get('userId');
+        const userName = store.get('username');
+
+        return { token, userId, userName };
+    });
+
+    ipcMain.handle(`${storeName}-clearCredentials`, async () => {
+        store.delete('token');
+        store.delete('userId');
+        store.delete('username');
+    });
+
+    ipcMain.handle(`${storeName}-logout`, async () => {
+        console.log("Logout called in main process");
+        store.delete('token');
+        store.delete('userId');
+        store.delete('username');
+        return "Logged out";
+    });
+}
+app.whenReady().then(() => {
+    createWindow('window1');
+    createWindow('window2');
+});
+
 
 ipcMain.on('open-url', (event, url) => {
     let win = new BrowserWindow({ width: 1300, height: 800 })
@@ -127,6 +177,7 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
+        createWindow('window1');
+        createWindow('window2');
     }
 });
