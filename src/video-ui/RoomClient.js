@@ -632,46 +632,26 @@ class RoomClient {
   }
 
   handleFS(id) {
-    let videoPlayer = document.getElementById(id)
-    videoPlayer.addEventListener('fullscreenchange', (e) => {
-      if (videoPlayer.controls) return
-      let fullscreenElement = document.fullscreenElement
-      if (!fullscreenElement) {
-        videoPlayer.style.pointerEvents = 'auto'
-        this.isVideoOnFullScreen = false
-      }
-    })
-    videoPlayer.addEventListener('webkitfullscreenchange', (e) => {
-      if (videoPlayer.controls) return
-      let webkitIsFullScreen = document.webkitIsFullScreen
-      if (!webkitIsFullScreen) {
-        videoPlayer.style.pointerEvents = 'auto'
-        this.isVideoOnFullScreen = false
-      }
-    })
-    videoPlayer.addEventListener('click', (e) => {
-      if (videoPlayer.controls) return
-      if (!this.isVideoOnFullScreen) {
+    let videoPlayer = document.getElementById(id);
+
+    // Utility function to handle fullscreen mode
+    const toggleFullScreen = () => {
+      if (!document.fullscreenElement && !document.webkitIsFullScreen) {
         if (videoPlayer.requestFullscreen) {
-          videoPlayer.requestFullscreen()
+          videoPlayer.requestFullscreen();
         } else if (videoPlayer.webkitRequestFullscreen) {
-          videoPlayer.webkitRequestFullscreen()
-        } else if (videoPlayer.msRequestFullscreen) {
-          videoPlayer.msRequestFullscreen()
+          videoPlayer.webkitRequestFullscreen();
         }
-        this.isVideoOnFullScreen = true
-        videoPlayer.style.pointerEvents = 'none'
       } else {
         if (document.exitFullscreen) {
-          document.exitFullscreen()
+          document.exitFullscreen();
         } else if (document.webkitCancelFullScreen) {
-          document.webkitCancelFullScreen()
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen()
+          document.webkitCancelFullScreen();
         }
-        this.isVideoOnFullScreen = false
-        videoPlayer.style.pointerEvents = 'auto'
       }
-    })
+    };
+
+    videoPlayer.addEventListener('click', toggleFullScreen);
   }
+
 }

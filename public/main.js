@@ -4,9 +4,68 @@ const axios = require('axios');
 //const isDev = require('electron-is-dev');
 const isDev = app.isPackaged ? false : require('electron-is-dev');
 const Store = require('electron-store');
+const express = require('express');
+const passport = require('passport');
+const SteamStrategy = require('passport-steam').Strategy;
+const session = require('express-session');
+const { URL } = require('url');
 
 const store = new Store();
 const fs = require('fs');
+
+let win;
+
+const BASE_URL = process.env.REACT_APP_URL
+
+const steamAuthApp = express();
+steamAuthApp.use(session({
+    secret: '4D3BE17D82F44DE7727A8287A7F0F869',  // Replace 'your_secret_key' with your actual secret key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }  // Set this to true if you're using HTTPS
+}));
+steamAuthApp.use(passport.initialize());
+steamAuthApp.use(passport.session());
+
+passport.use(new SteamStrategy({
+            returnURL: 'http://localhost:3001/auth/steam/return',
+            realm: 'http://localhost:3001/',
+            apiKey: '4D3BE17D82F44DE7727A8287A7F0F869'
+        },
+        (identifier, profile, done) => {
+            profile.identifier = identifier;
+            return done(null, profile);
+        })
+);
+
+steamAuthApp.get('/auth/steam', passport.authenticate('steam'));
+
+
+steamAuthApp.get(
+    '/auth/steam/return',
+    passport.authenticate('steam', { failureRedirect: 'http://localhost:3000/login' }),
+    (req, res) => {
+        const { _json: { steamid } } = req.user;
+        console.log('Authentication successful');
+        res.redirect(`http://localhost:3000/register?steamid=${steamid}`);
+    }
+);
+
+steamAuthApp.listen(3001);
+
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+    done(null, user);
+});
+
+
+ipcMain.handle('getSteamId', () => {
+    // Return the steamId from the Electron store instance
+    return store.get('steamid');
+});
 
 ipcMain.handle('get-file-data', async (event, filePath) => {
     const data = fs.readFileSync(filePath);
@@ -35,6 +94,15 @@ ipcMain.handle('getUsername', () => {
     return store.get('username');
 });
 
+ipcMain.handle('getId', () => {
+    // Return only the username from the Electron store instance
+    return store.get('userId');
+});
+
+ipcMain.handle('getToken', () => {
+    // Return only the username from the Electron store instance
+    return store.get('token');
+});
 
 ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
     if (token !== null && token !== undefined) {
@@ -76,98 +144,75 @@ ipcMain.handle('logout', async () => {
     store.delete('token');
     store.delete('userId');
     store.delete('username');
+    store.delete('steamid');
     return "Logged out";
 });
 
-const stores = {
-    window1: new Store({ name: 'window1' }),
-    window2: new Store({ name: 'window2' }),
-};
+ipcMain.handle('get-window-size', (event) => {
+    return win.getSize();
+});
 
-function createWindow(storeName) {
-    const store = stores[storeName];
 
+function createWindow() {
     const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
 
     // Calculate the initial window size based on the screen size
     const windowWidth = Math.round(screenWidth * 0.8); // Set width to 80% of the screen width
     const windowHeight = Math.round(screenHeight * 0.8); // Set height to 80% of the screen height
 
-    const win = new BrowserWindow({
+
+    win = new BrowserWindow({
         width: windowWidth,
-        height: windowHeight,
-        minWidth: 1300,
-        minHeight: 800,
+        height: windowHeight, // Adjust height as needed
+        minWidth: 1300, // Set minimum width (optional)
+        minHeight: 800, // Set minimum height (optional)
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: true,
-            enableRemoteModule: true,
-            preload: path.join(__dirname, 'preload.js')
+            //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
+            //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
+            preload: path.join(__dirname, 'preload.js'),
+            webSecurity: false,
+            nodeIntegrationInWorker: true
         },
     });
-    win.webContents.openDevTools();
+
+    win.webContents.on('will-navigate', (event, url) => {
+        const urlObj = new URL(url);
+        const steamid = urlObj.searchParams.get('steamid');
+        if (steamid) {
+            // Save steamid in the Electron store
+            store.set('steamid', steamid);
+            // Prevent the actual navigation
+            event.preventDefault();
+            // Load the app page without the query parameter
+            win.loadURL(`file://${path.join(__dirname, '../build/index.html')}`);
+        }
+    });
+
+    win.webContents.on('did-finish-load', () => {
+        win.webContents.send('baseURL', BASE_URL);
+    });
 
     const url = isDev
         ? 'http://localhost:3000'
         : `file://${path.join(__dirname, '../build/index.html')}`;
 
-    win.loadURL(url);
-
-    // IPC handlers that use the store
-    ipcMain.handle(`${storeName}-getStore`, () => store);
-    ipcMain.handle(`${storeName}-getUsername`, () => store.get('username'));
-    ipcMain.handle(`${storeName}-setCredentials`, (event, { token, userId, username }) => {
-        if (token !== null && token !== undefined) {
-            store.set('token', token);
-        } else {
-            store.delete('token');
-        }
-
-        if (userId !== null && userId !== undefined) {
-            store.set('userId', userId);
-        } else {
-            store.delete('userId');
-        }
-
-        if (username !== null && username !== undefined) {
-            store.set('username', username);
-        } else {
-            store.delete('username');
-        }
+    win.on('resize', () => {
+        win.webContents.send('window-resize', win.getSize());
     });
 
-    ipcMain.handle(`${storeName}-getCredentials`, async () => {
-        const token = store.get('token');
-        const userId = store.get('userId');
-        const userName = store.get('username');
+    if (!win.isDestroyed()) {
+        win.loadURL(url);
+    }
 
-        return { token, userId, userName };
+    win.webContents.on('did-finish-load', () => {
+        win.webContents.openDevTools();
     });
 
-    ipcMain.handle(`${storeName}-clearCredentials`, async () => {
-        store.delete('token');
-        store.delete('userId');
-        store.delete('username');
-    });
-
-    ipcMain.handle(`${storeName}-logout`, async () => {
-        console.log("Logout called in main process");
-        store.delete('token');
-        store.delete('userId');
-        store.delete('username');
-        return "Logged out";
-    });
 }
-app.whenReady().then(() => {
-    createWindow('window1');
-    createWindow('window2');
-});
 
-
-ipcMain.on('open-url', (event, url) => {
-    let win = new BrowserWindow({ width: 1300, height: 800 })
-    win.loadURL(url)
-})
+app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -177,7 +222,6 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow('window1');
-        createWindow('window2');
+        createWindow();
     }
 });

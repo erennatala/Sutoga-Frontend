@@ -6,7 +6,7 @@ import ConservationPage from "./ConservationPage";
 import socketIoClient from "socket.io-client";
 
 
-export default function Messages() {
+export default function EmruxxMessages() {
     const [conversations, setConversations] = useState([]);
 
 
@@ -28,45 +28,9 @@ export default function Messages() {
     const [openNewConversationModal, setOpenNewConversationModal] = useState(false);
 
 
-    useEffect(() => {
-        // Socket bağlantısı oluşturma
-        const socket = socketIoClient("http://localhost:3002");
-
-        socket.on('message', (message) => {
-            // Append the new message to the selected conversation
-            setConversations(conversations => conversations.map(conversation =>
-                conversation.conservationId === message.conservationId ?
-                    { ...conversation, messages: [...conversation.messages, message] } :
-                    conversation));
-        });
-
-        socket.on('conservation', (data) => {
-            // Destructure the data object
-            const { receiverList, conservation } = data;
-
-            // Check if username is in receiverList and no matching groupId exists in the conversations
-            if (receiverList.includes(username) && !conversations.some(conv => conv.groupId === conservation.groupId)) {
-                // Append the new conservation to the conversations list
-                setConversations(conversations => [conservation, ...conversations]);
-            }
-        });
-
-    }, []);
-
-
 
     useEffect(() => {
-        (async () => {
-            try {
-                const username = await window.electron.ipcRenderer.invoke('getUsername');
-                setUsername(username);
-            } catch (error) {
-                console.log(error);
-            }
-        })();
-    }, []);
-
-    useEffect(() => {
+        setUsername("emruxx")
         if (username) {
             console.log(username)
             fetch(`http://localhost:3002/conservation/${username}`, {
@@ -83,6 +47,35 @@ export default function Messages() {
                     console.log(data)
                 });
         }
+
+        const socket = socketIoClient("http://localhost:3002");
+        console.log("user bu", username)
+
+
+        socket.on('conservation', (data) => {
+
+            console.log("sdfdsfdsfds")
+            // Destructure the data object
+            const { receiverList, conservation } = data;
+
+            console.log(data)
+
+            // Check if username is in receiverList and no matching groupId exists in the conversations
+            if (receiverList.includes(username) && !conversations.some(conv => conv.groupId === conservation.groupId)) {
+                let temp;
+                temp=  conservation.firstUser
+
+
+                if(receiverList.length==1){
+                    conservation.firstUser= conservation.secondUser
+                    conservation.secondUser= temp                }
+
+
+                console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                // Append the new conservation to the conversations list
+                setConversations(conversations => [conservation, ...conversations]);
+            }
+        });
     }, [username]);  // username değiştiğinde bu useEffect çalışacak
 
 
@@ -304,7 +297,6 @@ export default function Messages() {
                     </Box>
                 </Box>
             </Modal>
-
         </Box>
     );
 };
