@@ -65,12 +65,12 @@ export default function RegisterPage() {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const steamIdFromUrl = urlParams.get('steamid');
-        console.log(steamIdFromUrl)
         if (steamIdFromUrl) {
             setSteamId(steamIdFromUrl);
-            axios.post(`${BASE_URL}auth/steamLogin/${steamIdFromUrl}`)
-                .then(async response => {
-                    if(response.data) {
+            axios
+                .post(`${BASE_URL}auth/steamLogin/${steamIdFromUrl}`)
+                .then(async (response) => {
+                    if (response.data) {
                         const credentials = {
                             userId: response.data.userId,
                             username: response.data.username,
@@ -83,7 +83,11 @@ export default function RegisterPage() {
                         try {
                             await ipcRenderer.invoke('setCredentials', credentials);
 
-                            await navigate('/home', { replace: true });
+                            if (response.data.token) {
+                                await navigate('/home', { replace: true });
+                            } else {
+                                setLoading(false);
+                            }
                         } catch (error) {
                             console.error('Error storing credentials:', error);
                         }
@@ -93,7 +97,7 @@ export default function RegisterPage() {
                 })
                 .catch(() => {
                     setLoading(false);
-                })
+                });
         } else {
             setLoading(false);
         }
