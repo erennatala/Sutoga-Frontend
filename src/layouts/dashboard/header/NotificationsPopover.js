@@ -45,10 +45,10 @@ export default function NotificationsPopover() {
 
   const [totalUnRead, setTotalUnRead] = useState(0);
 
-  useEffect(() => {
-    const initialUnReadCount = countRecentNotifications(notifications);
-    setTotalUnRead(initialUnReadCount);
-  }, [notifications]);
+  // useEffect(() => {
+  //   const initialUnReadCount = countRecentNotifications(notifications);
+  //   setTotalUnRead(initialUnReadCount);
+  // }, [notifications]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -86,14 +86,8 @@ export default function NotificationsPopover() {
         console.log('New notification received: ' + JSON.stringify(newNotification));
         const notificationObj = JSON.parse(newNotification);
         setNotifications((prevNotifications) => [notificationObj, ...prevNotifications]);
-
-        const oneDayAgo = new Date();
-        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-
-        const notificationDate = new Date(newNotification.createdAt);
-        if (notificationDate > oneDayAgo) {
-          setTotalUnRead((prevTotalUnRead) => prevTotalUnRead + 1);
-        }
+        console.log("TOTAL" + totalUnRead)
+        setTotalUnRead(totalUnRead + 1);
       });
 
       setSocket(newSocket);
