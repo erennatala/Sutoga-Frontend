@@ -56,7 +56,8 @@ export default function PostCardLeft(props) {
     const [loggedInId, setLoggedInId] = useState(null)
     const [likes, setLikes] = useState([])
 
-    const formattedDate = format(new Date(props.post.postDate), 'dd MMMM yyyy HH:mm');
+    const formattedDate = format(new Date(...props.post.postDate), 'dd MMMM yyyy HH:mm');
+
 
     useEffect(() => {
         const fetchUserId = async () => {
