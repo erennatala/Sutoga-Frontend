@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 // utils
 import { fToNow } from '../../../utils/formatTime';
-import io from 'socket.io-client';
+var ioV2 = require('../../../socketio-v2');
 // components
 import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
@@ -68,29 +68,44 @@ export default function NotificationsPopover() {
 
   useEffect(() => {
     const initializeSocket = async () => {
-      const newSocket = io("localhost:9092/");
+      //const newSocket = ioV2("http://13.53.101.21:9092/");
+      const newSocket = ioV2("http://localhost:9092/", {
+        timeout: 5000,
+        transports: ['websocket']
+      });
 
-      setSocket(newSocket);
+      newSocket.on('connect', () => {
+        console.log('Connection successful!');
+      });
+
+      newSocket.on('connect_error', (error) => {
+        console.log('Connection Error: ' + error);
+      });
 
       newSocket.on('notification', (newNotification) => {
-        setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
+        console.log('New notification received: ' + JSON.stringify(newNotification));
+        const notificationObj = JSON.parse(newNotification);
+        setNotifications((prevNotifications) => [notificationObj, ...prevNotifications]);
 
         const oneDayAgo = new Date();
         oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
         const notificationDate = new Date(newNotification.createdAt);
         if (notificationDate > oneDayAgo) {
-          setTotalUnRead(totalUnRead + 1);
+          setTotalUnRead((prevTotalUnRead) => prevTotalUnRead + 1);
         }
       });
+
+      setSocket(newSocket);
     };
 
-    initializeSocket();
+    const intervalId = setInterval(initializeSocket, 10000);
 
     return () => {
       socket?.close();
+      clearInterval(intervalId);
     };
-  }, []);
+  }, [socket, setSocket]);
 
   const handleSuccess = (notificationId) => {
     setNotifications((prevNotifications) =>
@@ -236,6 +251,8 @@ NotificationItem.propTypes = {
 
 function NotificationItem({ notification, handleSuccess, navigateToProfile }) {
   const { avatar, title } = renderContent(notification, handleSuccess, navigateToProfile);
+  const notificationDate = new Date(Date.UTC(...notification.createdAt)).toISOString();
+  const formattedTime = fToNow(notificationDate);
 
   return (
       <ListItemButton
@@ -264,7 +281,7 @@ function NotificationItem({ notification, handleSuccess, navigateToProfile }) {
                   }}
               >
                 <Iconify icon="eva:clock-outline" sx={{ mr: 0.5, width: 16, height: 16 }} />
-                {fToNow(notification.createdAt)}
+                {formattedTime}
               </Typography>
             }
         />
@@ -284,19 +301,36 @@ function renderContent(notification, handleSuccess, navigateToProfile) {
           {notification.senderUsername} liked your post.
         </Typography>
     );
-    avatar = <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
+    avatar = notification.senderPhotoUrl ? (
+        <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />
+    ) : (
+        <Avatar alt={notification.senderUsername}>{notification.senderUsername.charAt(0)}</Avatar>
+    );
   } else if (notification.commentActivity) {
     title = (
         <Typography variant="subtitle2" onClick={() => navigateToProfile(notification.senderUsername)}>
           {notification.senderUsername} commented on your post: {notification.commentActivity.content}
         </Typography>
     );
-    avatar = <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
+    avatar = notification.senderPhotoUrl ? (
+        <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />
+    ) : (
+        <Avatar alt={notification.senderUsername}>{notification.senderUsername.charAt(0)}</Avatar>
+    );
   } else if (notification.friendRequestActivity) {
     title = (
-        <FriendRequestNotificationItem key={notification.friendRequestActivity.id} friendRequest={notification} onSuccess={(e) => handleSuccess(e)} onClick={() => navigateToProfile(notification.senderUsername)}/>
+        <FriendRequestNotificationItem
+            key={notification.friendRequestActivity.id}
+            friendRequest={notification.friendRequestActivity}
+            onSuccess={handleSuccess}
+            onClick={() => navigateToProfile(notification.senderUsername)}
+        />
     );
-    avatar = <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />;
+    avatar = notification.senderPhotoUrl ? (
+        <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />
+    ) : (
+        <Avatar alt={notification.senderUsername}>{notification.senderUsername.charAt(0)}</Avatar>
+    );
   } else {
     title = (
         <Typography variant="subtitle2">
@@ -306,8 +340,9 @@ function renderContent(notification, handleSuccess, navigateToProfile) {
           </Typography>
         </Typography>
     );
-    avatar = <Avatar alt={notification.title} src={notification.senderPhotoUrl} />;
+    avatar = <Avatar>{notification.title.charAt(0)}</Avatar>;
   }
 
   return { avatar, title };
 }
+
