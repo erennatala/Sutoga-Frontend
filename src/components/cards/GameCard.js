@@ -1,5 +1,5 @@
-import {styled} from "@mui/material/styles";
-import {Box, Card, Container, Grid, Typography} from "@mui/material";
+import { styled } from "@mui/material/styles";
+import { Box, Card, Container, Grid, Typography } from "@mui/material";
 import React from "react";
 
 const StyledAccount = styled('div')(({ theme }) => ({
@@ -8,33 +8,38 @@ const StyledAccount = styled('div')(({ theme }) => ({
     padding: theme.spacing(2, 2.5),
 }));
 
-export default function GameCard(props) {
-
-    return(
-        <Container sx={{py: 2}}>
-            <Card sx={{width: 300}}>
-                <Grid container direction={"column"}>
-                    <Grid item style={{height: '%100'}}>
+export default function GameCard({ game, onClick }) {
+    return (
+        <Container onClick={onClick} sx={{ cursor: 'pointer', py: 2 }}>
+            <Card sx={{ width: 400, height: 270, display: 'flex', flexDirection: 'column' }}>
+                <Grid container direction="column" style={{ height: '100%' }}>
+                    <Grid item style={{ flexGrow: 1, overflow: 'hidden' }}>
                         <Box
                             component="img"
                             sx={{
-                                mb: 1,
-                                maxHeight: { xs: 233, md: 340 },
+                                height: '100%',
+                                width: '100%',
+                                objectFit: 'cover',
+                                display: 'block',
                             }}
-                            alt="x"
-                            src= {props.img}
+                            alt={game.gameTitle}
+                            src={game.gamePhotoUrl}
                         />
                     </Grid>
 
-                    <Grid item sx={{pl: 1}}>
-                        <Typography fontSize={20} fontWeight={"bold"}>{props.title}</Typography>
+                    <Grid item>
+                        <Box pl={1} pr={1}>
+                            <Typography variant="h6" noWrap>{game.gameTitle}</Typography>
+                        </Box>
                     </Grid>
 
-                    <Grid item sx={{pl: 1}}>
-                        <Typography fontSize={12} fontWeight={"light"}>{props.publisher}</Typography>
+                    <Grid item>
+                        <Box pl={1} pr={1}>
+                            <Typography variant="body2" noWrap>{game.publisher}</Typography>
+                        </Box>
                     </Grid>
                 </Grid>
             </Card>
         </Container>
-    )
+    );
 }
