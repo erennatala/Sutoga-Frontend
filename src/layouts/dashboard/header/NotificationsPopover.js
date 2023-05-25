@@ -44,11 +44,21 @@ export default function NotificationsPopover() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [totalUnRead, setTotalUnRead] = useState(0);
+  const [username, setUsername] = useState('')
 
   // useEffect(() => {
   //   const initialUnReadCount = countRecentNotifications(notifications);
   //   setTotalUnRead(initialUnReadCount);
   // }, [notifications]);
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      const username1 = await window.electron.ipcRenderer.invoke('getUsername');
+      setUsername(username1)
+    }
+
+    fetchUsername()
+  }, [])
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -59,6 +69,7 @@ export default function NotificationsPopover() {
         headers: {
           Authorization: `${token}`,
         },});
+      console.log(response.data)
       setNotifications(response.data);
     };
 
@@ -69,6 +80,9 @@ export default function NotificationsPopover() {
   useEffect(() => {
     const initializeSocket = async () => {
       //const newSocket = ioV2("http://13.53.101.21:9092/");
+
+      const username1 = await window.electron.ipcRenderer.invoke('getUsername');
+
       const newSocket = ioV2("http://localhost:9092/", {
         timeout: 5000,
         transports: ['websocket']
@@ -83,11 +97,12 @@ export default function NotificationsPopover() {
       });
 
       newSocket.on('notification', (newNotification) => {
-        console.log('New notification received: ' + JSON.stringify(newNotification));
         const notificationObj = JSON.parse(newNotification);
-        setNotifications((prevNotifications) => [notificationObj, ...prevNotifications]);
-        console.log("TOTAL" + totalUnRead)
-        setTotalUnRead(totalUnRead + 1);
+
+        if (notificationObj.senderUsername !== username1) {
+          setNotifications((prevNotifications) => [notificationObj, ...prevNotifications]);
+          setTotalUnRead(totalUnRead + 1);
+        }
       });
 
       setSocket(newSocket);
@@ -311,11 +326,11 @@ function renderContent(notification, handleSuccess, navigateToProfile) {
     ) : (
         <Avatar alt={notification.senderUsername}>{notification.senderUsername.charAt(0)}</Avatar>
     );
-  } else if (notification.friendRequestActivity) {
+  } else if (notification) {
     title = (
         <FriendRequestNotificationItem
             key={notification.friendRequestActivity.id}
-            friendRequest={notification.friendRequestActivity}
+            friendRequest={notification}
             onSuccess={handleSuccess}
             onClick={() => navigateToProfile(notification.senderUsername)}
         />
