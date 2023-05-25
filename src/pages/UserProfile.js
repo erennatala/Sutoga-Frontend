@@ -98,6 +98,8 @@ export default function UserProfile() {
     const [loadingRequest, setLoadingRequest] = useState(false);
     const [loadingDeclineRequest, setLoadingDeclineRequest] = useState(false);
 
+    const [isHovered, setIsHovered] = useState(false);
+
     const [friends, setFriends] = useState([])
 
     useEffect(() => {
@@ -246,6 +248,28 @@ export default function UserProfile() {
         }
     };
 
+    const handleRemoveFriend = async (userId, friendId) => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const loggedInUserId = await window.electron.ipcRenderer.invoke('getId');
+
+            await axios.delete(`${BASE_URL}users/${loggedInUserId}/remove/${user.id}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+            setLoadingFriendRequest(false)
+            setLoadingRequest(false)
+            setIsFriend(false);
+            setIsSender(false);
+            setFriendRequestId(null);
+            setIsSent(false)
+        } catch (error) {
+            console.error('Error removing friend:', error);
+            // Hata durumunda gerekli işlemleri yapabilirsiniz
+        }
+    };
+
     useEffect(() => {
         if (friends.length && friends.length % 10 !== 0) {
             setHasMoreFriends(false);
@@ -294,6 +318,14 @@ export default function UserProfile() {
         } catch (error) {
             console.error('Error fetching friend count:', error);
         }
+    };
+
+    const handleFriendButtonHover = () => {
+        setIsHovered(true);
+    };
+
+    const handleFriendButtonLeave = () => {
+        setIsHovered(false);
     };
 
     const getPostCount = async (id) => {
@@ -585,61 +617,63 @@ export default function UserProfile() {
 
                                 <Grid item xs={3} alignItems="center" justifyContent="center" sx={{py: 6}}>
                                     {!isFriend ? (
-                                        !isSent ? (<Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={handleAddFriend}
-                                            sx={{ height: 50 }}
-                                            disabled={loadingRequest || loadingFriendRequest}
-                                        >
-                                            + Add
-                                        </Button>) : (
+                                        !isSent ? (
+                                            <Button
+                                                variant="contained"
+                                                color={"primary"}
+                                                onClick={handleAddFriend}
+                                                sx={{ height: 50 }}
+                                                disabled={loadingRequest || loadingFriendRequest}
+                                            >
+                                                + Add
+                                            </Button>
+                                        ) : (
                                             isSender ? (
+                                                <Button
+                                                    variant="contained"
+                                                    color="success"
+                                                    sx={{ height: 50 }}
+                                                    onClick={handleRemoveSentRequest}
+                                                >
+                                                    Sent!
+                                                </Button>
+                                            ) : (
+                                                <>
                                                     <Button
                                                         variant="contained"
                                                         color="success"
+                                                        onClick={handleAcceptRequest}
                                                         sx={{ height: 50 }}
-                                                        onClick={handleRemoveSentRequest}
+                                                        disabled={loadingDeclineRequest}
                                                     >
-                                                        Sent!
+                                                        Accept
                                                     </Button>
-                                                ) : (
-                                                    <>
-                                                        <Button
-                                                            variant="contained"
-                                                            color="success"
-                                                            onClick={handleAcceptRequest}
-                                                            sx={{ height: 50 }}
-                                                            disabled={loadingDeclineRequest}
-                                                        >
-                                                            Accept
-                                                        </Button>
-                                                        <Button
-                                                            variant="contained"
-                                                            color="error"
-                                                            onClick={handleDeclineRequest}
-                                                            sx={{ height: 50}}
-                                                            disabled={loadingDeclineRequest}
-                                                        >
-                                                            Decline
-                                                        </Button>
-                                                    </>
-                                                )
+                                                    <Button
+                                                        variant="contained"
+                                                        color="error"
+                                                        onClick={handleDeclineRequest}
+                                                        sx={{ height: 50 }}
+                                                        disabled={loadingDeclineRequest}
+                                                    >
+                                                        Decline
+                                                    </Button>
+                                                </>
+                                            )
                                         )
                                     ) : (
-                                        <>
-                                            <Button
-                                                variant="contained"
-                                                color="primary"
-                                                disabled
-                                                sx={{ height: 50 }}
-                                            >
-                                                Friend
-                                            </Button>
-                                        </>
+                                        <Button
+                                            variant="contained"
+                                            color={isHovered ? "error" : "primary"}
+                                            onClick={handleRemoveFriend}
+                                            onMouseEnter={handleFriendButtonHover}
+                                            onMouseLeave={handleFriendButtonLeave}
+                                            sx={{ height: 50 }}
+                                        >
+                                            {isHovered ? "Remove" : "Friend"}
+                                        </Button>
                                     )}
-
                                 </Grid>
+
                             </Stack>
                         </CardContent>
                     </Card>
