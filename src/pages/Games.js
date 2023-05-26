@@ -109,9 +109,6 @@ export default function Games() {
 
                 const steamid = await window.electron.ipcRenderer.invoke('getSteamId');
 
-                console.log("SAAAAAA")
-                console.log(steamid)
-
                 const response = await axios.get(`${BASE_URL}users/checkSteamId/${userId}`, {
                     headers: { 'Authorization': `${token}` },
                 });
@@ -162,7 +159,10 @@ export default function Games() {
         try {
             const result = await window.electron.ipcRenderer.invoke('open-auth-window');
             if (result) {
-                isSteamConnected(true)
+                const steamid = await window.electron.ipcRenderer.invoke('getSteamId');
+                console.log(steamid)
+
+                setIsSteamConnected(true)
             } else {
                 // bildirim gönder giriş yapılamadı diye
             }

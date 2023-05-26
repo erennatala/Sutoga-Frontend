@@ -209,7 +209,7 @@ export default function Nav({ openNav, onCloseNav }) {
               <Grid xs={12} sx={{ backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius) }}>
                 {friendRec.map((user, index) => (
                     <div key={index}>
-                      <FriendRecCard nickname={user.username} sent={false} photo={user.profilePhotoUrl} onAddFriend={(e, k) => handleAddFriend(e, k)} />
+                      <FriendRecCard index={index} nickname={user.username} sent={false} photo={user.profilePhotoUrl} onAddFriend={(e, k) => handleAddFriend(e, k)} />
                     </div>
                 ))}
               </Grid>

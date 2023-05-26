@@ -4,10 +4,11 @@ import { styled } from "@mui/material/styles";
 import AddIcon from '@mui/icons-material/Add';
 import DoneIcon from '@mui/icons-material/Done';
 import axios from "axios";
+import {useNavigate} from "react-router-dom";
 
 const BASE_URL = process.env.REACT_APP_URL
 
-export default function FriendRecCard({ nickname, photo, onAddFriend, sent }) {
+export default function FriendRecCard({ nickname, photo, onAddFriend, sent, index }) {
     const StyledAccount = styled('div')(({ theme }) => ({
         display: 'flex',
         alignItems: 'center',
@@ -16,14 +17,19 @@ export default function FriendRecCard({ nickname, photo, onAddFriend, sent }) {
     }));
 
     const [isSent, setIsSent] = useState(sent);
+    const navigate = useNavigate();
 
     const handleAdd = async () => {
         try {
-            await onAddFriend(nickname);
+            await onAddFriend(nickname, index);
         } catch (error) {
             console.log(error);
         }
     };
+
+    const handleRecClick = (username) => {
+        navigate(`/profile/${username}`, {replace: true});
+    }
 
     return (
         <StyledAccount>
@@ -33,12 +39,10 @@ export default function FriendRecCard({ nickname, photo, onAddFriend, sent }) {
                 </Grid>
                 <Grid item xs={6}>
                     <Box sx={{ overflow: 'hidden' }}>
-                        <ButtonBase>
-                            <Link underline="none" sx={{color: "black", fontWeight: "bold"}}>
-                                <Box sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 100, mt: 1 }}>
-                                    {nickname}
-                                </Box>
-                            </Link>
+                        <ButtonBase onClick={() => handleRecClick(nickname)}>
+                            <Box sx={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 100, mt: 1 }}>
+                                {nickname}
+                            </Box>
                         </ButtonBase>
                     </Box>
                 </Grid>

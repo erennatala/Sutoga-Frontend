@@ -1,8 +1,8 @@
 {
-  "name": "@minimal/material-kit-react",
-  "author": "minimals.cc",
+  "name": "Sutoga",
+  "author": "sutoga",
   "licence": "MIT",
-  "version": "1.6.0",
+  "version": "1.0.0",
   "private": false,
   "main": "public/main.js",
   "scripts": {

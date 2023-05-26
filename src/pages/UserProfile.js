@@ -25,6 +25,7 @@ import ProfileCardSm from "../components/cards/ProfileCardSm";
 import axios from "axios";
 import LoadingRow from "../components/loading/LoadingRow";
 import InfiniteScroll from "react-infinite-scroll-component";
+import {useLocation} from "react-router-dom";
 
 
 function TabPanel(props: TabPanelProps) {
@@ -62,6 +63,7 @@ export default function UserProfile() {
     const [tab, setTab] = useState(0);
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const [windowSize, setWindowSize] = useState([0, 0]);
+    const location = useLocation();
 
     const avatarSize = windowSize[0] < 1600 ? 200 : 250;
     const usernameFontSize = isSmallScreen ? '0.9rem' : '1.5rem';
@@ -281,6 +283,12 @@ export default function UserProfile() {
             try {
                 const token = await window.electron.ipcRenderer.invoke("getToken");
                 const usernameParam = window.location.pathname.split("/")[2];
+
+                console.log(window.location.pathname)
+
+                console.log("window.location.pathname:", window.location.pathname);
+                console.log("Username Param:", usernameParam);
+
                 const response = await axios.get(`${BASE_URL}users/getByUsername/${usernameParam}`, {
                     headers: { 'Authorization': `${token}` },
                 });
@@ -298,7 +306,7 @@ export default function UserProfile() {
         };
 
         fetchUser();
-    }, []);
+    }, [location.pathname]);
 
     const getFriendCount = async (id) => {
         try {
