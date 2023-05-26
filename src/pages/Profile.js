@@ -157,45 +157,6 @@ export default function Profile() {
         }
     }, [tab]);
 
-    const formatDate = (birthDate) => {
-        if (!birthDate) {
-            return '';
-        }
-
-        const [year, month, day] = birthDate;
-
-        const padZero = (value) => {
-            return value.toString().padStart(2, '0');
-        };
-
-        const formattedDate = `${year}-${padZero(month)}-${padZero(day)}`;
-
-        return formattedDate;
-    };
-
-    const formatDateOnChange = (birthDate) => {
-        if (!birthDate) {
-            return '';
-        }
-
-        const dateParts = birthDate.split('-');
-        if (dateParts.length !== 3) {
-            return ''; // Return empty string for invalid format
-        }
-
-        const [year, month, day] = dateParts;
-
-        const padZero = (value) => {
-            return value.toString().padStart(2, '0');
-        };
-
-        const formattedDate = `${year}-${padZero(month)}-${padZero(day)}`;
-
-        return formattedDate;
-    };
-
-
-
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -437,7 +398,7 @@ export default function Profile() {
                 handleSnackbar('Profile updated successfully!', 'success');
                 setUpdate(true)
                 handleEditProfileClose()
-                console.log(token, userId, editUsername)
+
                 await ipcRenderer.invoke('setCredentials', {
                     token: token,
                     userId: userId,
@@ -694,11 +655,11 @@ export default function Profile() {
 
                         <TextField
                             label="Birth Date"
-                            value={formatDate(editBirthDate)} // Format the birth date value
+                            value={editBirthDate}
                             fullWidth
                             type="date"
                             InputLabelProps={{ shrink: true }}
-                            onChange={(event) => setEditBirthDate(formatDateOnChange(event.target.value))}
+                            onChange={(event) => setEditBirthDate(event.target.value)}
                         />
 
                         <Box display="flex" alignItems="center">

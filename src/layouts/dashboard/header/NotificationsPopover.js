@@ -260,8 +260,6 @@ NotificationItem.propTypes = {
 
 function NotificationItem({ notification, handleSuccess, navigateToProfile }) {
   const { avatar, title } = renderContent(notification, handleSuccess, navigateToProfile);
-  const notificationDate = new Date(Date.UTC(...notification.createdAt)).toISOString();
-  const formattedTime = fToNow(notificationDate);
 
   return (
       <ListItemButton
@@ -290,7 +288,7 @@ function NotificationItem({ notification, handleSuccess, navigateToProfile }) {
                   }}
               >
                 <Iconify icon="eva:clock-outline" sx={{ mr: 0.5, width: 16, height: 16 }} />
-                {formattedTime}
+                {fToNow(notification.createdAt)}
               </Typography>
             }
         />
