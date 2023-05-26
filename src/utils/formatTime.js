@@ -1,4 +1,5 @@
 import { format, getTime, formatDistanceToNow } from 'date-fns';
+import { differenceInMinutes, differenceInHours, differenceInDays, differenceInMonths, differenceInYears } from 'date-fns';
 
 // ----------------------------------------------------------------------
 
@@ -19,9 +20,19 @@ export function fTimestamp(date) {
 }
 
 export function fToNow(date) {
-  return date
-    ? formatDistanceToNow(new Date(date), {
-        addSuffix: true,
-      })
-    : '';
+    return date
+        ? formatDistanceToNow(new Date(date), {
+            addSuffix: true,
+        })
+        : '';}
+
+function formatTime(timeArr) {
+    let [year, month, day, hour, minute, second] = timeArr;
+    month -= 1; // adjust month index to JavaScript Date's 0-11
+    hour -= 3; // adjust hour for Turkey's timezone (UTC+3)
+
+    const dateObj = new Date(Date.UTC(year, month, day, hour, minute, second));
+
+    return formatDistanceToNow(dateObj, {addSuffix: true});
 }
+

@@ -12,36 +12,57 @@ import DashboardAppPage from './pages/DashboardAppPage';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import RegisterPage from "./pages/RegisterPage";
-
+import Games from "./pages/Games";
+import Messages from "./pages/Messages";
+import ProtectedRoute from './pages/ProtectedRoute';
+import LoadingScreen from "./pages/LoadingScreen";
+import UserProfileWrapper from "./pages/UserProfileWrapper";
+import PostPage from "./pages/PostDetailCard"
+import UserProfile from './pages/UserProfile';
 // ----------------------------------------------------------------------
 
-export default function Router() {
+export default function Router({ isLoading, isAuthenticated }) {
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
   const routes = useRoutes([
     {
       path: '/',
-      element: <DashboardLayout />,
+      element: isAuthenticated ? <DashboardLayout/> : <Navigate to="/login" />,
       children: [
-        { element: <Navigate to="/home" />, index: true },
-        { path: 'app', element: <DashboardAppPage /> },
-        { path: 'user', element: <UserPage /> },
-        { path: 'products', element: <ProductsPage /> },
-        { path: 'blog', element: <BlogPage /> },
-        { path: 'home', element: <Home />},
-        { path: 'profile', element: <Profile />},
+        {
+          element: isAuthenticated ? (
+              <Navigate to="/home" />
+          ) : (
+              <Navigate to="/login" />
+          ),
+          index: true,
+        },
+        { path: 'app', element: <ProtectedRoute><DashboardAppPage /></ProtectedRoute> },
+        { path: 'user', element: <ProtectedRoute><UserPage /></ProtectedRoute> },
+        { path: 'products', element: <ProtectedRoute><ProductsPage /></ProtectedRoute> },
+        { path: 'blog', element: <ProtectedRoute><BlogPage /></ProtectedRoute> },
+        { path: 'home', element: <ProtectedRoute><Home /></ProtectedRoute> },
+        { path: 'profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
+        { path: 'games', element: <ProtectedRoute><Games /></ProtectedRoute> },
+        { path: 'messages', element: <ProtectedRoute><Messages /></ProtectedRoute> },
+        { path: 'post/:postId', element: <ProtectedRoute><PostPage /></ProtectedRoute> },
+        { path: 'profile/:username', element: <ProtectedRoute><UserProfileWrapper /></ProtectedRoute>
+        },
       ],
     },
     {
       path: 'login',
-      element: <LoginPage />,
+      element: isAuthenticated ? <Navigate to="/home" /> : <LoginPage />,
     },
     {
       path: 'register',
-      element: <RegisterPage />,
+      element: isAuthenticated ? <Navigate to="/home" /> : <RegisterPage />,
     },
     {
       element: <SimpleLayout />,
       children: [
-        { element: <Navigate to="/home" />, index: true },
+        { element: <Navigate to="/login" />, index: true },
         { path: '404', element: <Page404 /> },
         { path: '*', element: <Navigate to="/404" /> },
       ],

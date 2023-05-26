@@ -1,34 +1,67 @@
-import { useState } from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {useRef, useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // @mui
-import {Link, Stack, IconButton, InputAdornment, TextField, Checkbox, Typography, Grid} from '@mui/material';
+import {Link, Stack, IconButton, InputAdornment,Card, TextField} from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+import {setAuthenticated, setToken, setUserName} from '../../../actions/authActions';
 // components
 import Iconify from '../../../components/iconify';
-
+import { styled } from '@mui/material/styles';
 // ----------------------------------------------------------------------
+const BASE_URL = process.env.REACT_APP_URL
+const { ipcRenderer } = window.electron;
 
-export default function LoginForm() {
+export default function LoginForm(props) {
   const navigate = useNavigate();
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleClick = async () => {
+  const dispatch = useDispatch();
 
-      try {
-          //
-      } catch (err) {
-          //
-      }
+    const handleClick = async () => {
+        try {
+            const response = await axios.post(`${BASE_URL}auth/login`, {
+                email: email,
+                password: password,
+            });
+            const responseBody = response.data;
+            const { token, userId, username } = responseBody;
 
-    navigate('/home', { replace: true }); // burdaki replace geri dönmemesini sağlıyor
-  };
+            const credentials = {
+                userId,
+                username,
+            };
+
+            if (token) {
+                credentials.token = token;
+            }
+
+            await ipcRenderer.invoke('setCredentials', credentials);
+
+            navigate('/home', { replace: true });
+        } catch (err) {
+            props.onError();
+            console.log(err);
+        }
+    };
+
+    const ref = useRef();
+
+    function handleKeyUp(event) {
+        // Enter
+        if (event.keyCode === 13) {
+            handleClick();
+        }
+    }
 
   return (
     <>
       <Stack spacing={3}>
-        <TextField name="email" label="Email address" />
+          {/* eslint-disable-next-line react/jsx-no-bind */}
+        <TextField name="Email" label="Email" onChange={(e) => setEmail(e.target.value)} ref={ref} onKeyUp={handleKeyUp}/>
 
         <TextField
           name="password"
@@ -43,20 +76,18 @@ export default function LoginForm() {
               </InputAdornment>
             ),
           }}
+          onChange={(e) => setPassword(e.target.value)}
+          ref={ref} onKeyUp={handleKeyUp}
         />
       </Stack>
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-          <Stack direction="row">
-              <Checkbox name="remember" label="Remember me"/>
-              <Typography variant="subtitle2" sx={{mt: 1}}> Remember me </Typography>
-          </Stack>
+      <Stack direction="row" alignItems="center" justifyContent="end" sx={{ my: 2 }}>
         <Link variant="subtitle2" underline="hover">
           Forgot password?
         </Link>
       </Stack>
 
-      <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick}>
+      <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick} onSubmit={handleClick}>
         Login
       </LoadingButton>
     </>

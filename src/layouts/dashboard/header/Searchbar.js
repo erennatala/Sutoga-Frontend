@@ -1,77 +1,136 @@
-import { useState } from 'react';
-// @mui
+import {useEffect, useState} from 'react';
 import { styled } from '@mui/material/styles';
-import { Input, Slide, Button, IconButton, InputAdornment, ClickAwayListener } from '@mui/material';
-// utils
-import { bgBlur } from '../../../utils/cssStyles';
-// component
+import {Input, Slide, IconButton, InputAdornment, ClickAwayListener, Box, Link, Avatar} from '@mui/material';
 import Iconify from '../../../components/iconify';
+import axios from "axios";
+import {useNavigate} from "react-router-dom";
 
-// ----------------------------------------------------------------------
-
-const HEADER_MOBILE = 64;
-const HEADER_DESKTOP = 91;
+const BASE_URL = process.env.REACT_APP_URL
 
 const StyledSearchbar = styled('div')(({ theme }) => ({
-  ...bgBlur({ color: theme.palette.background.default }),
-  top: 0,
-  left: 0,
-  zIndex: 99,
-  width: '100%',
+  position: 'relative',
   display: 'flex',
-  position: 'absolute',
   alignItems: 'center',
-  height: HEADER_MOBILE,
-  padding: theme.spacing(0, 3),
-  boxShadow: theme.customShadows.z8,
-  [theme.breakpoints.up('md')]: {
-    height: HEADER_DESKTOP,
-    padding: theme.spacing(0, 5),
+}));
+
+const SearchResultContainer = styled('div')(({ theme }) => ({
+  position: 'absolute',
+  top: '100%',
+  left: 0,
+  right: 0,
+  maxHeight: '200px',
+  overflowY: 'auto',
+  backgroundColor: theme.palette.background.paper,
+  boxShadow: theme.shadows[1],
+  borderRadius: theme.shape.borderRadius,
+  zIndex: 1,
+}));
+
+const SearchResult = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(1),
+  display: 'flex',
+  alignItems: 'center',
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
   },
 }));
 
-// ----------------------------------------------------------------------
+const SearchResultImage = styled('img')({
+  width: '40px',
+  height: '40px',
+  borderRadius: '50%',
+  objectFit: 'cover',
+  marginRight: '10px',
+});
 
 export default function Searchbar() {
   const [open, setOpen] = useState(false);
+  const [results, setResults] = useState([]);
+  const navigate = useNavigate();
+
+  const handleProfileClick = async (username) => {
+    const loggedinusername = await window.electron.ipcRenderer.invoke('getUsername');
+    if (username === loggedinusername) {
+      navigate(`/profile`, {replace: true});
+    } else {
+      navigate(`/profile/${username}`, {replace: true});
+    }
+    setResults([])
+  };
 
   const handleOpen = () => {
-    setOpen(!open);
+    setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
   };
 
+  const handleSearch = async (query) => {
+    if (query !== "") {
+      const token = await window.electron.ipcRenderer.invoke('getToken');
+
+      const config = {
+        headers: {
+          Authorization: `${token}`
+        }
+      };
+      const response = await axios.get(`${BASE_URL}users/search?q=${query}`, config);
+      setResults(response.data.map(user => ({
+        ...user,
+        profilePhotoUrl: user.profilePhotoUrl || ''
+      })));
+    } else {
+      setResults([]);
+    }
+  };
+
   return (
-    <ClickAwayListener onClickAway={handleClose}>
-      <div>
-        {!open && (
+      <ClickAwayListener onClickAway={handleClose}>
+        <StyledSearchbar>
           <IconButton onClick={handleOpen}>
             <Iconify icon="eva:search-fill" />
           </IconButton>
-        )}
 
-        <Slide direction="down" in={open} mountOnEnter unmountOnExit>
-          <StyledSearchbar>
-            <Input
-              autoFocus
-              fullWidth
-              disableUnderline
-              placeholder="Search…"
-              startAdornment={
-                <InputAdornment position="start">
-                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
-                </InputAdornment>
-              }
-              sx={{ mr: 1, fontWeight: 'fontWeightBold' }}
-            />
-            <Button variant="contained" onClick={handleClose}>
-              Search
-            </Button>
-          </StyledSearchbar>
-        </Slide>
-      </div>
-    </ClickAwayListener>
+          {open && (
+              <Input
+                  autoFocus
+                  fullWidth
+                  disableUnderline
+                  placeholder="Search…"
+                  onChange={(e) => handleSearch(e.target.value)}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
+                    </InputAdornment>
+                  }
+                  sx={{ mr: 1, fontWeight: 'fontWeightBold' }}
+              />
+          )}
+
+          {open && results.length > 0 && (
+              <SearchResultContainer>
+                {results.map((result) => {
+                  return (
+                      <SearchResult
+                          key={result.username}
+                          onClick={() => handleProfileClick(result.username)}
+                          sx={{ cursor: 'pointer' }}
+                      >
+                        <Avatar
+                            src={result.profilePhotoUrl || ''}
+                            alt={result.username}
+                            style={{ marginRight: '10px' }}
+                        />
+                        <div style={{ color: 'black' }}>{result.username}</div>
+                      </SearchResult>
+                  );
+                })}
+              </SearchResultContainer>
+          )}
+
+        </StyledSearchbar>
+      </ClickAwayListener>
   );
 }

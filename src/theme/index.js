@@ -6,7 +6,6 @@ import { ThemeProvider as MUIThemeProvider, createTheme, StyledEngineProvider } 
 //
 import palette from './palette';
 import shadows from './shadows';
-import typography from './typography';
 import GlobalStyles from './globalStyles';
 import customShadows from './customShadows';
 import componentsOverride from './overrides';
@@ -22,7 +21,16 @@ export default function ThemeProvider({ children }) {
     () => ({
       palette,
       shape: { borderRadius: 6 },
-      typography,
+      typography: {
+          fontFamily:[
+              "-apple-system",
+              "BlinkMacSystemFont",
+              'Segoe UI', "Roboto", "Helvetica", "Arial", "sans-serif",
+            ].join(','),
+          fontWeightLight: 1300,
+          fontWeightRegular: 1000,
+          fontWeightMedium: 1500
+      },
       shadows: shadows(),
       customShadows: customShadows(),
     }),

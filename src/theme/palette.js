@@ -17,8 +17,14 @@ const GREY = {
 };
 
 const ORANGE = {
-  0: '#FF914D'
-}
+  lighter: '#FFE5CC',
+  light: '#FFC266',
+  main: '#FFA500',
+  dark: '#E59400',
+  darker: '#CC8400',
+  contrastText: GREY[800],
+};
+
 
 const PRIMARY = {
   lighter: '#D1E9FC',
@@ -74,6 +80,24 @@ const ERROR = {
   contrastText: '#fff',
 };
 
+const WHITE = {
+  lighter: '#FFFFFF',
+  light: '#FCFCFC',
+  main: '#F9F9F9',
+  dark: '#F0F0F0',
+  darker: '#E0E0E0',
+  contrastText: GREY[800],
+};
+
+const BLACK = {
+  lighter: '#4D4D4D',
+  light: '#333333',
+  main: '#1A1A1A',
+  dark: '#0D0D0D',
+  darker: '#000000',
+  contrastText: GREY[800],
+};
+
 const palette = {
   common: { black: '#000', white: '#fff' },
   primary: PRIMARY,
@@ -83,7 +107,6 @@ const palette = {
   warning: WARNING,
   error: ERROR,
   grey: GREY,
-  orange: ORANGE,
   divider: alpha(GREY[500], 0.24),
   text: {
     primary: GREY[800],
@@ -98,7 +121,7 @@ const palette = {
   action: {
     active: GREY[600],
     hover: alpha(GREY[500], 0.08),
-    selected: alpha(ORANGE[0], 0.16),
+    selected: alpha(ORANGE.light, 0.16),
     disabled: alpha(GREY[500], 0.8),
     disabledBackground: alpha(GREY[500], 0.24),
     focus: alpha(GREY[500], 0.24),
