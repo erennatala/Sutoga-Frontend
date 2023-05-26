@@ -25,6 +25,8 @@ export default function Messages() {
 
     const socket = socketIoClient("https://sutogachat.site/");
 
+    const BASE_URL = process.env.REACT_APP_URL
+
 
 // Separate useEffect for 'online' event
     useEffect(() => {
@@ -34,6 +36,10 @@ export default function Messages() {
             setOnlineStatus(true);
         }
     }, [username]);
+
+    useEffect(() => {
+
+    }, [conversations]);
 
 // Separate useEffect for 'offline' event (cleanup function)
     useEffect(() => {
@@ -49,25 +55,41 @@ export default function Messages() {
 // Main useEffect for socket events
     useEffect(() => {
 
-        socket.on('message', (message) => {
-            setConversations(conversations => conversations.map(conversation =>
-                conversation.conservationId === message.conservationId ?
-                    { ...conversation, messages: [...conversation.messages, message] } :
-                    conversation));
-        });
+        if(username ){
 
-        socket.on('conservation', (data) => {
-            const { receiverList, conservation } = data;
+            socket.on('message', (message) => {
+                setConversations(conversations => conversations.map(conversation =>
+                    conversation.conservationId === message.conservationId ?
+                        { ...conversation, messages: [...conversation.messages, message] } :
+                        conversation));
+            });
 
-            console.log(conservation, receiverList, username)
-            if (receiverList.includes(username) && !conversations.some(conv => conv.groupId === conservation.groupId)) {
-                setConversations(conversations => [conservation, ...conversations]);
-            }
-        });
+            socket.on('conservation', (data) => {
 
-        socket.on('online-users', (users) => {
-            setOnlineUsers(users);
-        });
+                const { receiverList, conservation } = data;
+                console.log(conservation, receiverList, username,conversations)
+
+                if(conservation.groupId){
+                    console.log("aa")
+                    if (receiverList.includes(username) && !conversations.some(conv => conv.groupId === conservation.groupId)) {
+                        setConversations(conversations => [conservation, ...conversations]);
+                    }
+                }
+
+                if(conservation.conservationId && conversations.length>0){
+                    console.log("bbb")
+                    if (receiverList.includes(username) && !conversations.some(conv => conv.secondUser === conservation.secondUser) ) {
+
+                        setConversations(conversations => [conservation, ...conversations]);
+                    }
+                }
+
+
+            });
+
+            socket.on('online-users', (users) => {
+                setOnlineUsers(users);
+            });}
 
 
 
@@ -107,7 +129,7 @@ export default function Messages() {
                     console.log(data)
                 });
 
-            fetch(`http://localhost:8080/users/getFriendsByUsernameForChat?username=${username}`, {
+            fetch(BASE_URL+`/users/getFriendsByUsernameForChat?username=${username}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -141,7 +163,7 @@ export default function Messages() {
         setShowFriends(false);
     };
 
-    const nonConversedFriends = friends.filter(
+    const nonConversedFriends = friends?.filter(
         friend => !conversations.some(conversation => conversation.secondUser === friend.secondUser)
     );
 
@@ -268,7 +290,7 @@ export default function Messages() {
                         isNewConservation={selectedConversation.isNewConservation}
                         sender={username}
                         receiver={selectedConversation.secondUser}
-                            receiverList={selectedConversation.groupMembers}
+                        receiverList={selectedConversation.groupMembers}
                         setConversations={setConversations}
                         groupId= {selectedConversation.groupId}// isGroup prop'unu burada belirliyoruz
                         conservationId={selectedConversation.conservationId}
@@ -298,7 +320,7 @@ export default function Messages() {
                         onChange={handleGroupNameChange}
                     />
                     <List>
-                        {friends.map((item) => (
+                        {friends?.map((item) => (
                             <React.Fragment key={item.secondUser}>
                                 <ListItem onClick={() => handleSelectGroupFriend(item)}>
                                     <Checkbox checked={selectedFriends.includes(item.secondUser)} />
@@ -332,7 +354,7 @@ export default function Messages() {
                         Start a new conversation
                     </Typography>
                     <List>
-                        {nonConversedFriends.map((item) => (
+                        {nonConversedFriends?.map((item) => (
                             <React.Fragment key={item.id}>
                                 <ListItem onClick={() => { handleSelectFriend(item); setOpenNewConversationModal(false) }}>
                                     <Avatar src="" alt="photoURL" />
