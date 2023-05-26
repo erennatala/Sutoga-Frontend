@@ -101,6 +101,7 @@ export default function UserProfile() {
     const [loadingDeclineRequest, setLoadingDeclineRequest] = useState(false);
 
     const [isHovered, setIsHovered] = useState(false);
+    const [showNotification, setShowNotification] = useState(false);
 
     const [friends, setFriends] = useState([])
 
@@ -550,6 +551,13 @@ export default function UserProfile() {
                 </Alert>
             </Snackbar>
 
+            {showNotification && (
+                <Snackbar open={showNotification} onClose={() => setShowNotification(false)}>
+                    <Alert severity="success">Friend request sent!</Alert>
+                </Snackbar>
+            )}
+
+
             <Grid container columns={16} sx={{px: 7}}>
                 <Grid xs={16}>
                     <Card sx={{height: "300px"}}>
@@ -565,7 +573,7 @@ export default function UserProfile() {
                                     </Typography>
 
                                     <Typography flexWrap variant="h7" gutterBottom>
-                                        {user.profileDescription}
+                                        {user.profileDescription !== null ? ("") : (user.profileDescription)}
                                     </Typography>
                                 </Grid>
 
@@ -804,7 +812,9 @@ export default function UserProfile() {
                                     <Grid container spacing={2}>
                                         {friends.map((friend) => (
                                             <Grid key={friend.id} item xs={12} sm={6}>
-                                                <ProfileCardSm username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
+                                                <ProfileCardSm
+                                                    onSuccess={() => setShowNotification(true)}
+                                                    username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
                                             </Grid>
                                         ))}
                                     </Grid>
