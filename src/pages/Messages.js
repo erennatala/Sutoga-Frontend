@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import {Box, Typography, TextField, Button, List, ListItem, ListItemText, Divider, Card, Avatar, Checkbox, Modal} from '@mui/material';
 import Iconify from "../components/iconify";
 import { v4 as uuidv4 } from 'uuid';
@@ -22,6 +22,10 @@ export default function Messages() {
     const [openNewConversationModal, setOpenNewConversationModal] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [onlineStatus, setOnlineStatus] = useState(false);
+    const conversationsRef = useRef(conversations);
+    const [loading, setLoading] = useState(true);
+
+
 
     const socket = socketIoClient("https://sutogachat.site/");
 
@@ -38,8 +42,9 @@ export default function Messages() {
     }, [username]);
 
     useEffect(() => {
-
+        conversationsRef.current = conversations;
     }, [conversations]);
+
 
 // Separate useEffect for 'offline' event (cleanup function)
     useEffect(() => {
@@ -65,28 +70,20 @@ export default function Messages() {
             });
 
             socket.on('conservation', (data) => {
-
                 const { receiverList, conservation } = data;
-                console.log(conservation, receiverList, username,conversations)
 
-                if(conservation.groupId){
-                    console.log("aa")
-                    if (receiverList.includes(username) && !conversations.some(conv => conv.groupId === conservation.groupId)) {
+                if (conservation.groupId) {
+                    if (receiverList.includes(username) && !conversationsRef.current.some(conv => conv.groupId === conservation.groupId)) {
                         setConversations(conversations => [conservation, ...conversations]);
                     }
                 }
 
-                if(conservation.conservationId && conversations.length>0){
-                    console.log("bbb")
-                    if (receiverList.includes(username) && !conversations.some(conv => conv.secondUser === conservation.secondUser) ) {
-
+                if (conservation.conservationId) {
+                    if (receiverList.includes(username) && !conversationsRef.current.some(conv => conv.secondUser === conservation.secondUser)) {
                         setConversations(conversations => [conservation, ...conversations]);
                     }
                 }
-
-
             });
-
             socket.on('online-users', (users) => {
                 setOnlineUsers(users);
             });}
@@ -123,7 +120,6 @@ export default function Messages() {
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    // En yenisi en üstte olacak şekilde conservation'ları sıralama
                     data.sort((a, b) => new Date(b.lastUpdateDate) - new Date(a.lastUpdateDate));
                     setConversations(data);
                     console.log(data)
@@ -138,14 +134,14 @@ export default function Messages() {
             })
                 .then((response) => response.json())
                 .then((data) => {
-
                     console.log(data)
                     setFriends(data)
+                    setLoading(false);  // set loading to false after data fetching is done.
                 });
 
         }
 
-    }, [username]);  // username değiştiğinde bu useEffect çalışacak
+    }, [username]);
 
 
     const handleSelectConversation = (conversation) => {
@@ -263,25 +259,52 @@ export default function Messages() {
                     Start a new group conversation
                 </Button>
                 <List>
-                    {conversations.map((item) => (
-                        <React.Fragment key={item.secondUser}>
-                            <ListItem button onClick={() => {handleSelectConversation(item)
-                                item.unreadMessageCount= null
-                            }}>
-                                <Avatar src="" alt="photoURL" />
-                                <Box sx={{flexGrow: 0.03}} />
-                                <ListItemText primary={item.secondUser} />
-                                {isUserOnline(item.secondUser) && (
-                                    <ListItemText secondary="Online" style={{ color: "green", fontSize: "small" }} />
-                                )}
-                                {item.unreadMessageCount && (
-                                    <ListItemText primary={item.unreadMessageCount} />
-                                )}
-                            </ListItem>
-                            <Divider />
-                        </React.Fragment>
-                    ))}
+                    {!loading && conversations.map((item) => {
+                        const friend = friends?.find((friend) => friend.secondUser === item.secondUser);
+
+                        console.log("friends", friends)
+
+                        if (!friend) {
+                            return (
+                                <React.Fragment key={item.secondUser}>
+                                    <ListItem button onClick={() => {
+                                        handleSelectConversation(item);
+                                    }}>
+                                        <ListItemText primary={item.secondUser} />
+                                        {isUserOnline(item.secondUser) && (
+                                            <ListItemText secondary="Online" style={{ color: "green", fontSize: "small" }} />
+                                        )}
+                                        {item.unreadMessageCount && (
+                                            <ListItemText primary={item.unreadMessageCount} />
+                                        )}
+                                    </ListItem>
+                                    <Divider />
+                                </React.Fragment>
+                            );
+                        }
+
+                        return (
+                            <React.Fragment key={item.secondUser}>
+                                <ListItem button onClick={() => {
+                                    handleSelectConversation(item);
+                                    item.unreadMessageCount = null;
+                                }}>
+                                    <Avatar src={friend.profilePhotoUrl} alt="photoURL" />
+                                    <Box sx={{ flexGrow: 0.03 }} />
+                                    <ListItemText primary={item.secondUser} />
+                                    {isUserOnline(item.secondUser) && (
+                                        <ListItemText secondary="Online" style={{ color: "green", fontSize: "small" }} />
+                                    )}
+                                    {item.unreadMessageCount && (
+                                        <ListItemText primary={item.unreadMessageCount} />
+                                    )}
+                                </ListItem>
+                                <Divider />
+                            </React.Fragment>
+                        );
+                    })}
                 </List>
+
 
             </Box>
             <Box sx={{ flexGrow: 1 }}>
@@ -324,7 +347,7 @@ export default function Messages() {
                             <React.Fragment key={item.secondUser}>
                                 <ListItem onClick={() => handleSelectGroupFriend(item)}>
                                     <Checkbox checked={selectedFriends.includes(item.secondUser)} />
-                                    <Avatar src="" alt="photoURL" />
+                                    <Avatar src={item.profilePhotoUrl} alt="photoURL" />
                                     <Box sx={{flexGrow: 0.03}} />
                                     <ListItemText primary={item.secondUser} />
                                 </ListItem>
@@ -357,7 +380,7 @@ export default function Messages() {
                         {nonConversedFriends?.map((item) => (
                             <React.Fragment key={item.id}>
                                 <ListItem onClick={() => { handleSelectFriend(item); setOpenNewConversationModal(false) }}>
-                                    <Avatar src="" alt="photoURL" />
+                                    <Avatar src={item.profilePhotoUrl} alt="photoURL" />
                                     <Box sx={{flexGrow: 0.03}} />
                                     <ListItemText primary={item.secondUser} />
                                 </ListItem>
