@@ -18,6 +18,7 @@ import FriendRecCard from "../../../components/cards/FriendRecCard";
 const NAV_WIDTH = 255;
 const BASE_URL = process.env.REACT_APP_URL
 const { electron } = window;
+const bgImage = "http://13.53.101.21:9000/sutogacdnbucket/main-logo.png";
 
 const StyledAccount = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -170,7 +171,7 @@ export default function Nav({ openNav, onCloseNav }) {
   const renderContent = (
       <Box sx={{overflow: "hidden"}}>
         <Box sx={{ px: 2.5, py: 3, display: 'inline-flex', maxWidth: "80%", ml: 3 }}>
-          <img src="/assets/images/brand/main-logo.png" alt="sidebar-logo"/>
+          <img src={bgImage} alt="sidebar-logo"/>
         </Box>
 
         <Box sx={{ mb: 5, mx: 1}}>
