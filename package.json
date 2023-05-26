@@ -25,7 +25,7 @@
     "productName": "Sutoga",
     "appId": "com.sutoga.app",
     "directories": {
-      "output": "dist"
+      "output": "dist/mac1"
     },
     "mac": {
       "target": "dmg",
@@ -98,7 +98,10 @@
     "date-fns": "^2.30.0",
     "dotenv": "^10.0.0",
     "dotenv-expand": "^5.1.0",
+    "electron-is-dev": "^2.0.0",
+    "electron-log": "^4.4.8",
     "electron-main-fetch": "^1.0.0",
+    "electron-reloader": "^1.2.3",
     "electron-store": "^8.1.0",
     "eslint": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",
