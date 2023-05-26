@@ -50,6 +50,8 @@ steamAuthApp.get(
         res.redirect(`http://localhost:3000/register?steamid=${steamid}`);
     }
 );
+steamAuthApp.use('/video',express.static(path.join(__dirname, '../src/./', 'video-ui')))
+
 
 steamAuthApp.listen(3001);
 
@@ -123,6 +125,11 @@ ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
         store.delete('username');
     }
 });
+
+ipcMain.on('open-url', (event, url) => {
+    let win = new BrowserWindow({ width: 1300, height: 800 })
+    win.loadURL(url)
+})
 
 
 ipcMain.handle('getCredentials', async () => {

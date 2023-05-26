@@ -9,31 +9,47 @@ import socketIoClient from "socket.io-client";
 export default function Messages() {
     const [conversations, setConversations] = useState([]);
 
-
-    const [friends, setFriends] = useState([
-        { id: 1, secondUser: 'emruxx' },
-        { id: 2, secondUser: 'friend1' },
-        { id: 3, secondUser: 'friend2' },
-        { id: 4, secondUser: 'friend3' },
-        { id: 5, secondUser: 'friend4' }
-
-    ]);
+    const [friends, setFriends] = useState();
 
     const [username, setUsername] = useState('');
+    const [token, setToken] = useState('');
+
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [showFriends, setShowFriends] = useState(false);
     const [selectedFriends, setSelectedFriends] = useState([]);
     const [groupName, setGroupName] = useState('');
     const [openModal, setOpenModal] = useState(false);
     const [openNewConversationModal, setOpenNewConversationModal] = useState(false);
+    const [onlineUsers, setOnlineUsers] = useState([]);
+    const [onlineStatus, setOnlineStatus] = useState(false);
+
+    const socket = socketIoClient("https://sutogachat.site/");
 
 
+// Separate useEffect for 'online' event
     useEffect(() => {
-        // Socket bağlantısı oluşturma
-        const socket = socketIoClient("http://localhost:3002");
+        if (username) {
+            socket.emit('online', username);
+            console.log(username);
+            setOnlineStatus(true);
+        }
+    }, [username]);
+
+// Separate useEffect for 'offline' event (cleanup function)
+    useEffect(() => {
+        return () => {
+            // Kullanıcının offline olduğunu belirtme
+            socket.emit('offline', username);
+            setOnlineStatus(false);
+
+            socket.disconnect();
+        };
+    }, []);
+
+// Main useEffect for socket events
+    useEffect(() => {
 
         socket.on('message', (message) => {
-            // Append the new message to the selected conversation
             setConversations(conversations => conversations.map(conversation =>
                 conversation.conservationId === message.conservationId ?
                     { ...conversation, messages: [...conversation.messages, message] } :
@@ -41,25 +57,33 @@ export default function Messages() {
         });
 
         socket.on('conservation', (data) => {
-            // Destructure the data object
             const { receiverList, conservation } = data;
 
-            // Check if username is in receiverList and no matching groupId exists in the conversations
+            console.log(conservation, receiverList, username)
             if (receiverList.includes(username) && !conversations.some(conv => conv.groupId === conservation.groupId)) {
-                // Append the new conservation to the conversations list
                 setConversations(conversations => [conservation, ...conversations]);
             }
         });
 
-    }, []);
+        socket.on('online-users', (users) => {
+            setOnlineUsers(users);
+        });
+
+
+
+    }, [username]);
+
+
 
 
 
     useEffect(() => {
         (async () => {
             try {
-                const username = await window.electron.ipcRenderer.invoke('getUsername');
-                setUsername(username);
+                const credentials = await window.electron.ipcRenderer.invoke('getCredentials');
+
+                setUsername(credentials.userName);
+                setToken(credentials.token);
             } catch (error) {
                 console.log(error);
             }
@@ -69,7 +93,7 @@ export default function Messages() {
     useEffect(() => {
         if (username) {
             console.log(username)
-            fetch(`http://localhost:3002/conservation/${username}`, {
+            fetch(`https://sutogachat.site/conservation/${username}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,7 +106,23 @@ export default function Messages() {
                     setConversations(data);
                     console.log(data)
                 });
+
+            fetch(`http://localhost:8080/users/getFriendsByUsernameForChat?username=${username}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+            })
+                .then((response) => response.json())
+                .then((data) => {
+
+                    console.log(data)
+                    setFriends(data)
+                });
+
         }
+
     }, [username]);  // username değiştiğinde bu useEffect çalışacak
 
 
@@ -144,7 +184,7 @@ export default function Messages() {
         let members = selectedFriends;
 
         const groupId = uuidv4(); // UUID oluşturma
-        fetch("http://localhost:3002/groupconservation", {
+        fetch("https://sutogachat.site/groupconservation", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -169,12 +209,15 @@ export default function Messages() {
                 console.error("Error:", error);
             });
 
-        setConversations([ {id: Date.now(), secondUser: groupName, groupMembers: selectedFriends , groupId:groupId,isNewConservation : false},...conversations]);
         setSelectedFriends([]);
         setGroupName('');
         setOpenModal(false);
     };
 
+
+    function isUserOnline(username) {
+        return onlineUsers.includes(username);
+    }
 
 
     return (
@@ -200,10 +243,18 @@ export default function Messages() {
                 <List>
                     {conversations.map((item) => (
                         <React.Fragment key={item.secondUser}>
-                            <ListItem button onClick={() => handleSelectConversation(item)}>
+                            <ListItem button onClick={() => {handleSelectConversation(item)
+                                item.unreadMessageCount= null
+                            }}>
                                 <Avatar src="" alt="photoURL" />
                                 <Box sx={{flexGrow: 0.03}} />
                                 <ListItemText primary={item.secondUser} />
+                                {isUserOnline(item.secondUser) && (
+                                    <ListItemText secondary="Online" style={{ color: "green", fontSize: "small" }} />
+                                )}
+                                {item.unreadMessageCount && (
+                                    <ListItemText primary={item.unreadMessageCount} />
+                                )}
                             </ListItem>
                             <Divider />
                         </React.Fragment>
@@ -304,6 +355,7 @@ export default function Messages() {
                     </Box>
                 </Box>
             </Modal>
+
 
         </Box>
     );

@@ -37,9 +37,10 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
     };
 
 
+    const socket = socketIoClient("https://sutogachat.site/");
+
     useEffect(() => {
         // Socket bağlantısı oluşturma
-        const socket = socketIoClient("http://localhost:3002");
 
 
         console.log("conservationId: ",conservationId)
@@ -53,9 +54,11 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
         socket.emit("join room", roomName);
 
         // Mesajları dinleme
-        socket.on("createMessage", message => {
-            console.log("mesaj geldi")
+        socket.on("createMessage", async message => {
+            console.log("message received")
+
             setMessages(prevMessages => [...prevMessages, message]);
+
         });
 
         // Component temizlenirken, socket bağlantısını kapatırız
@@ -66,10 +69,17 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
 
 
     const getInitalMessages = () => {
+
+        if(groupId || isNewConservation){
+            return;
+
+        }
+
+
         console.log(isNewConservation)
         console.log(receiverList)
         console.log(receiver)
-        fetch("http://localhost:3002/mediasoup/getMessages", {
+        fetch("https://sutogachat.site/mediasoup/getMessages", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -80,26 +90,37 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
             .then((data) => {
                 setMessages(data)
             });
+
+
+
     };
 
     const [newMessage, setNewMessage] = useState('');
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
+
+        console.log(isNewConservation)
         let roomId = groupId ? groupId : conservationId;
 
 
-
         if (newMessage.trim() !== '') {
-            socket.emit("message", {sender: sender, receiver: receiver, date: Date.now(), message: newMessage, roomId:roomId, isConservation: "false"});
+            socket.emit("message", {
+                sender: sender,
+                receiver: receiver,
+                date: Date.now(),
+                message: newMessage,
+                roomId: roomId,
+                isConservation: "false"
+            });
             setNewMessage('');
             let conserId = conservationId
-            if(isNewConservation)
+            if (isNewConservation)
                 conserId = uuidv4()
 
             // Mesaj gönderildiğinde conservation güncelleme
             const fetchPromises = [
                 fetch(
-                    groupId ? "http://localhost:3002/groupconservation" : "http://localhost:3002/conservation",
+                    groupId ? "https://sutogachat.site/groupconservation" : "https://sutogachat.site/conservation",
                     {
                         method: isNewConservation ? "POST" : "PUT",
                         headers: {
@@ -120,11 +141,11 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                 ).then((response) => response.json()),
             ];
 
-            console.log("gönderilen conserVationId:" , conserId)
+            console.log("gönderilen conserVationId:", conserId)
 
             if (!groupId) {
                 fetchPromises.push(
-                    fetch("http://localhost:3002/conservation", {
+                    fetch("https://sutogachat.site/conservation", {
                         method: isNewConservation ? 'POST' : 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -132,7 +153,7 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                         body: JSON.stringify({
                             firstUser: receiver,
                             secondUser: sender,
-                            conservationId: conserId
+                            conservationId: conserId,
                         }),
                     })
                         .then((response) => response.json())
@@ -144,21 +165,32 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                     console.error("An error occurred during the conservation update:", error);
                 });
 
-            if(isNewConservation)
-                setMessages([{sender: sender, receiver: receiver, date: Date.now(), message: newMessage, roomId:roomId, isConservation: "false"}])
+            if (isNewConservation)
+                setMessages([{
+                    sender: sender,
+                    receiver: receiver,
+                    date: Date.now(),
+                    message: newMessage,
+                    roomId: roomId,
+                    isConservation: "false"
+                }])
 
             setIsNewConservation(false);
             setconservationId(conserId)
         }
     };
 
+
     useEffect(() => {
         getInitalMessages();
     }, [receiver]);
 
+    const messagesEndRef = useRef(null);
+
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]); // Bu hook, messages listesi her değiştiğinde tetiklenir.
+
 
 
     const handleEnterKey = (event) => {
@@ -168,14 +200,15 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
     };
 
     const handleVideoCall = () => {
+
+        console.log("video aa")
         let roomId = groupId ? groupId : conservationId;
         window.electron.ipcRenderer.send('open-url', 'http://localhost:3001/video?username='+sender+'&roomId='+roomId);
     };
 
-    const messagesEndRef = useRef(null);
 
     const createNewConversation = () => {
-        fetch("http://localhost:3002/conservation", {
+        fetch("https://sutogachat.site/conservation", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -195,8 +228,8 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
 
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '500px' }}>
-            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2, overflowY: 'auto', maxHeight: '100%' }}>
+        <div>
+            <div>
                 <Box display="flex" alignItems="center">
                     <Typography variant="h4" component="div" gutterBottom>
                         Messages from {receiver}
@@ -205,93 +238,102 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                         Show Group Members
                     </Button>}
                 </Box>
-                <List style={{ display: 'flex', flexDirection: 'column' }}>
-                    {messages?.map((message) => (
-                        <Card
-                            key={message.date}
-                            style={{
-                                textAlign: message.sender === sender ? 'right' : 'left',
-                                maxWidth: '50%',
-                                alignSelf: message.sender === sender ? 'flex-end' : 'flex-start',
-                                wordWrap: 'break-word'
-                            }}
-                        >
-                            <ListItem
+            </div>
+
+            <div style={{marginTop:"20px", display: 'flex', flexDirection: 'column', height: '700px' }}>
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2, overflowY: 'auto', maxHeight: '100%' }}>
+
+                    <List style={{ display: 'flex', flexDirection: 'column' }}>
+                        {messages?.map((message) => (
+                            <Card
                                 key={message.date}
                                 style={{
-                                    display: 'flex',
-                                    alignItems: 'flex-start',
-                                    justifyContent: message.sender === sender ? 'flex-end' : 'flex-start',
+                                    textAlign: message.sender === sender ? 'right' : 'left',
+                                    maxWidth: '50%',
+                                    alignSelf: message.sender === sender ? 'flex-end' : 'flex-start',
+                                    wordWrap: 'break-word'
                                 }}
                             >
-                                {message.sender !== sender && ( // Check if the sender is not equal to the current user
-                                    <Box sx={{ marginRight: '10px', alignSelf: 'center' }}>
-                                        <Typography variant="caption" display="block" style={{ opacity: 0.7, fontSize: '0.7em' }}>
-                                            {message.sender}
-                                        </Typography>
-                                    </Box>
-                                )}
-                                <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
-                                <ListItemText primary={`${message.message}`} />
-                                <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
-                                <Typography variant="caption" display="block" style={{ opacity: 0.7, fontSize: '0.7em' }}>
-                                    {formatDate(message.date)}
-                                </Typography>
-                            </ListItem>
-                        </Card>
-                    ))}
-                </List>
-
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'row', mt: 2, p: 2 }}>
-                <TextField
-                    fullWidth
-                    label="Type your message"
-                    variant="outlined"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={handleEnterKey}
-                />
-                <Button variant="contained" onClick={handleSendMessage} sx={{ ml: 1, mt: '10px' }}>
-                    Send
-                </Button>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                    <Button onClick={handleVideoCall} variant="outlined" color="primary"
-                            startIcon={<Iconify icon={"flat-color-icons:video-call"}/>}
-                    >
-                        Video Call
-                    </Button>
-                </Box>
-
-                <Modal
-                    open={isModalOpen}
-                    onClose={handleCloseModal}
-                    aria-labelledby="group-members-modal-title"
-                    aria-describedby="group-members-modal-description"
-                >
-                    <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 400,
-                        bgcolor: 'background.paper',
-                        border: '2px solid #000',
-                        boxShadow: 24,
-                        p: 4,
-                    }}>
-                        <Typography id="group-members-modal-title" variant="h6" component="h2">
-                            Group Members
-                        </Typography>
-                        {receiverList?.map((member, index) => (
-                            <Typography id={`group-member-${index}`} key={index} variant="body1" component="p">
-                                {member}
-                            </Typography>
+                                <ListItem
+                                    key={message.date}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: message.sender === sender ? 'flex-end' : 'flex-start',
+                                    }}
+                                >
+                                    {message.sender !== sender && ( // Check if the sender is not equal to the current user
+                                        <Box sx={{ marginRight: '10px', alignSelf: 'center' }}>
+                                            <Typography variant="caption" display="block" style={{ opacity: 0.7, fontSize: '0.7em' }}>
+                                                {message.sender}
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                    <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
+                                    <ListItemText primary={`${message.message}`} />
+                                    <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
+                                    <Typography variant="caption" display="block" style={{ opacity: 0.7, fontSize: '0.7em' }}>
+                                        {formatDate(message.date)}
+                                    </Typography>
+                                </ListItem>
+                            </Card>
                         ))}
-                    </Box>
-                </Modal>
-            </Box>
+                        <div ref={messagesEndRef} />
+                    </List>
+
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                    <TextField
+                        fullWidth
+                        label="Type your message"
+                        variant="outlined"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={handleEnterKey}
+                    />
+                        <Button variant="contained" onClick={handleSendMessage} sx={{ ml: 1, mt: 2, marginRight: '15px' }}>
+                            Send
+                        </Button>
+                        <Button onClick={handleVideoCall} variant="outlined" color="primary"
+                                startIcon={<Iconify icon={"flat-color-icons:video-call"}/>}
+                        >
+                            Video Call
+                        </Button>
+
+                    <Modal
+                        open={isModalOpen}
+                        onClose={handleCloseModal}
+                        aria-labelledby="group-members-modal-title"
+                        aria-describedby="group-members-modal-description"
+                    >
+                        <Box sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 400,
+                            bgcolor: 'background.paper',
+                            border: '2px solid #000',
+                            boxShadow: 24,
+                            p: 4,
+                        }}>
+                            <Typography id="group-members-modal-title" variant="h6" component="h2">
+                                Group Members
+                            </Typography>
+                            {receiverList?.map((member, index) => (
+                                <Typography id={`group-member-${index}`} key={index} variant="body1" component="p">
+                                    {member}
+                                </Typography>
+                            ))}
+                        </Box>
+                    </Modal>
+                </Box>
+            </div>
+
+
         </div>
+
+
 
 
 
