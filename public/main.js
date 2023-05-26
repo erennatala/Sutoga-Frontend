@@ -63,6 +63,9 @@ passport.deserializeUser(function(user, done) {
     done(null, user);
 });
 
+ipcMain.handle('check-file-exists', async (event, path) => {
+    return fs.existsSync(path);
+});
 
 ipcMain.handle('getSteamId', () => {
     // Return the steamId from the Electron store instance
@@ -157,6 +160,21 @@ ipcMain.handle('logout', async () => {
 
 ipcMain.handle('get-window-size', (event) => {
     return win.getSize();
+});
+
+ipcMain.handle('open-auth-window', () => {
+    const authWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+        },
+    });
+
+    authWindow.loadURL('http://localhost:3001/auth/steam');
+
+    // ... Geri kalan kod ...
 });
 
 

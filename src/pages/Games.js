@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 // @mui
 import { alpha, useTheme } from '@mui/material/styles';
+import {TabPanelProps} from "@mui/lab";
 import {
     Alert,
     Box,
     Button,
     Card,
-    Container,
     Dialog,
     DialogContent,
     Grid,
     MobileStepper,
-    Paper, Tab,
+    Paper,
+    Tab,
     Tabs,
     Typography
 } from "@mui/material";
@@ -22,8 +23,29 @@ import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import GameCard from "../components/cards/GameCard";
 import axios from "axios";
 import LoadingScreen from "./LoadingScreen";
+import Iconify from "../components/iconify";
 
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
+
+function TabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props;
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && (
+                <Box sx={{ p: 3 }}>
+                    <Typography>{children}</Typography>
+                </Box>
+            )}
+        </div>
+    );
+}
 
 const BASE_URL = process.env.REACT_APP_URL;
 
@@ -37,9 +59,16 @@ export default function Games() {
     const [games, setGames] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [images, setImages] = useState({})
+    const [images, setImages] = useState([
+        {
+            label: "Counter-Strike: Global Offensive (CS: GO)",
+            imgPath: "https://cdn.akamai.steamstatic.com/steam/apps/730/header.jpg?t=1683566799"
+        },
+    ]);
+
     const [tab, setTab] = useState(0);
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(true);
+    const [isSteamConnected, setIsSteamConnected] = useState(false);
 
     useEffect(() => {
         const sortedGames = games.sort((a, b) => b.playtime - a.playtime);
@@ -48,33 +77,55 @@ export default function Games() {
         setTopFiveGames(topFiveGames);
     }, [games]);
 
+    const getUserGames = async () => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}games/getUserGames/${userId}`, {
+                headers: { 'Authorization': `${token}` },
+            });
+
+            setGames(response.data);
+            const updatedImages = response.data.map(game => ({
+                label: game.gameTitle,
+                imgPath: game.gamePhotoUrl,
+            }));
+
+            setImages(updatedImages);
+            setMaxSteps(updatedImages.length);
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const getUserGames = async () => {
+        const checkSteamId = async () => {
             try {
                 const token = await window.electron.ipcRenderer.invoke('getToken');
                 const userId = await window.electron.ipcRenderer.invoke('getId');
 
-                const response = await axios.get(`${BASE_URL}games/getUserGames/${userId}`, {
+                const response = await axios.get(`${BASE_URL}users/checkSteamId/${userId}`, {
                     headers: { 'Authorization': `${token}` },
                 });
 
-                setGames(response.data);
+                if (response.status === 200) {
+                    getUserGames();
+                    setIsSteamConnected(true);
+                } else {
+                    setLoading(false)
+                }
 
-                const updatedImages = response.data.map(game => ({
-                    label: game.gameTitle,
-                    imgPath: game.gamePhotoUrl,
-                }));
-                setImages(updatedImages);
-                setMaxSteps(updatedImages.length)
             } catch (e) {
-                console.log(e);
-            } finally {
                 setLoading(false)
+                console.log(e);
             }
         };
-
-        getUserGames();
+        checkSteamId();
     }, []);
+
 
     const handleTabChange = (event, newValue) => {
         setTab(newValue);
@@ -102,8 +153,12 @@ export default function Games() {
         setDialogOpen(false);
     };
 
+    const handleSteamClick = async () => {
+        await window.electron.ipcRenderer.invoke('open-auth-window');
+    };
+
     if (loading) {
-        return(<LoadingScreen />)
+        return (<LoadingScreen />)
     }
 
     return (
@@ -112,7 +167,20 @@ export default function Games() {
                 <Grid item>
                     <Card sx={{ bgcolor: "background.default" }}>
                         <Box sx={{ pl: 2, flexGrow: 1, width: 200 }}>
-                            <Typography>Connect your steam account / steam account connected </Typography>
+                            {isSteamConnected ? (
+                                <Typography>
+                                    <Button color="success" fullWidth variant="contained" disabled>
+                                        Connected to Steam Account
+                                    </Button>
+                                </Typography>
+                            ) : (
+                                <div>
+                                    <Typography>Connect your steam account </Typography>
+                                    <Button fullWidth size="large" color="inherit" variant="outlined" onClick={handleSteamClick}>
+                                        <Iconify icon="mdi:steam" width={30} height={30} />
+                                    </Button>
+                                </div>
+                            )}
                         </Box>
                     </Card>
                 </Grid>
@@ -188,10 +256,13 @@ export default function Games() {
 
                 <Grid item>
                     <Card sx={{ bgcolor: "background.default" }}>
-                        <Box sx={{ pl: 2, flexGrow: 1, width: 200 }}>
-                            <Typography sx={{fontWeight: "bold"}}>Your top five: </Typography>
+                        <Box sx={{ pl: 2, flexGrow: 1, width: 300 }}>
+                            <Typography sx={{ fontWeight: "bold" }}>Your top five: </Typography>
                             {topFiveGames.map((game, index) => (
-                                <Typography key={game.id}>{index+1}{". "}{game.gameTitle}</Typography>
+                                <Box key={game.id}>
+                                    <Typography variant="body1" display="inline" sx={{ fontWeight: "bold" }}>{index + 1}</Typography>
+                                    <Typography variant="body1" display="inline">{". "}{game.gameTitle}</Typography>
+                                </Box>
                             ))}
                         </Box>
                     </Card>
@@ -199,35 +270,21 @@ export default function Games() {
             </Grid>
 
             <Card sx={{ bgcolor: "background.default" }}>
-                <Grid container spacing={2}>
-                    {games.map((game) => (
-                        <Grid item key={game.id}>
-                            <GameCard
-                                sx={{cursor: "pointer"}}
-                                game={game}
-                                onClick={() => handleGameClick(game)}
-                            />
-                        </Grid>
-                    ))}
-                </Grid>
-            </Card>
-
-            <Card sx={{ bgcolor: "background.default" }}>
                 <Tabs value={tab} onChange={handleTabChange} aria-label="game tabs" centered>
                     <Tab label="Owned Games" />
-                    <Tab label="Recommendation" />
+                    <Tab label="Recommendations" />
                 </Tabs>
 
-                <TabPanel value={tab} index={0}>
-                    {/* Owned Games content */}
-                    <Grid container justifyContent="center">
+                <TabPanel value={tab} index={0} sx={{ width: "100%" }}>
+                    <Grid container justifyContent="center" spacing={2}>
                         {games.map((game) => (
-                            <Grid item key={game.id}>
-                                {/* Render owned game content here */}
+                            <Grid item key={game.id} xs={12} sm={6} md={4}>
+                                <GameCard game={game} onClick={() => handleGameClick(game)} />
                             </Grid>
                         ))}
                     </Grid>
                 </TabPanel>
+
                 <TabPanel value={tab} index={1}>
                     {/* Recommendation content */}
                 </TabPanel>
@@ -239,21 +296,20 @@ export default function Games() {
                         <Box display="flex" alignItems="center" justifyContent="center" mb={2}>
                             <img src={selectedGame.gamePhotoUrl} alt={selectedGame.gameTitle} />
                         </Box>
-                        <Typography variant="h6" sx={{pt: 2}}>{selectedGame.gameTitle}</Typography>
-                        <Typography sx={{pt: 2}}>{selectedGame.gameDescription}</Typography>
-                        <Typography sx={{pt: 2}}>
+                        <Typography variant="h6" sx={{ pt: 2 }}>{selectedGame.gameTitle}</Typography>
+                        <Typography sx={{ pt: 2 }}>{selectedGame.gameDescription}</Typography>
+                        <Typography sx={{ pt: 2 }}>
                             <strong>Publisher:</strong> {selectedGame.publisher}
                         </Typography>
-                        <Typography sx={{pt: 2}}>
+                        <Typography sx={{ pt: 2 }}>
                             <strong>Developer:</strong> {selectedGame.developer}
                         </Typography>
-                        <Typography sx={{pt: 2}}>
+                        <Typography sx={{ pt: 2 }}>
                             <strong>Release Date:</strong> {selectedGame.releaseDate}
                         </Typography>
                     </DialogContent>
                 )}
             </Dialog>
-
         </>
     );
 }

@@ -2,16 +2,21 @@ import { styled } from "@mui/material/styles";
 import { Box, Card, Container, Grid, Typography } from "@mui/material";
 import React from "react";
 
-const StyledAccount = styled('div')(({ theme }) => ({
+const StyledCard = styled(Card)(({ theme }) => ({
+    width: '100%',
+    height: '100%',
     display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(2, 2.5),
+    flexDirection: 'column',
+    [theme.breakpoints.up('sm')]: {
+        width: 400,
+        height: 270,
+    },
 }));
 
 export default function GameCard({ game, onClick }) {
     return (
         <Container onClick={onClick} sx={{ cursor: 'pointer', py: 2 }}>
-            <Card sx={{ width: 400, height: 270, display: 'flex', flexDirection: 'column' }}>
+            <StyledCard>
                 <Grid container direction="column" style={{ height: '100%' }}>
                     <Grid item style={{ flexGrow: 1, overflow: 'hidden' }}>
                         <Box
@@ -39,7 +44,7 @@ export default function GameCard({ game, onClick }) {
                         </Box>
                     </Grid>
                 </Grid>
-            </Card>
+            </StyledCard>
         </Container>
     );
 }
