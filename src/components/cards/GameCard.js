@@ -8,7 +8,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     [theme.breakpoints.up('sm')]: {
-        width: 400,
+        width: '100%', // Yüzde cinsinden genişlik
         height: 270,
     },
 }));
@@ -17,7 +17,7 @@ export default function GameCard({ game, onClick }) {
     return (
         <Container onClick={onClick} sx={{ cursor: 'pointer', py: 2 }}>
             <StyledCard>
-                <Grid container direction="column" style={{ height: '100%' }}>
+                <Grid container direction="column" spacing={1} style={{ height: '100%', alignItems: 'stretch' }}>
                     <Grid item style={{ flexGrow: 1, overflow: 'hidden' }}>
                         <Box
                             component="img"

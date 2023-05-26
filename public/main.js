@@ -17,6 +17,22 @@ let win;
 
 const BASE_URL = process.env.REACT_APP_URL
 
+const getAssetsPath = () => {
+    if (isDev) {
+        // Geliştirme ortamında, proje kök dizinindeki 'public/assets' yolunu döndürür
+        return path.join(app.getAppPath(), 'public', 'assets');
+    } else {
+        // Dağıtımda, uygulamanın çalıştığı dizindeki 'public/assets' yolunu döndürür
+        return path.join(__dirname, 'public', 'assets');
+    }
+};
+
+ipcMain.handle('get-assets-path', (event) => {
+    const assetsPath = getAssetsPath();
+    return assetsPath;
+});
+
+
 const steamAuthApp = express();
 steamAuthApp.use(session({
     secret: '4D3BE17D82F44DE7727A8287A7F0F869',  // Replace 'your_secret_key' with your actual secret key
@@ -67,11 +83,6 @@ ipcMain.handle('check-file-exists', async (event, path) => {
     return fs.existsSync(path);
 });
 
-ipcMain.handle('getSteamId', () => {
-    // Return the steamId from the Electron store instance
-    return store.get('steamid');
-});
-
 ipcMain.handle('get-file-data', async (event, filePath) => {
     const data = fs.readFileSync(filePath);
     return data;
@@ -98,6 +109,10 @@ ipcMain.handle('getUsername', () => {
     // Return only the username from the Electron store instance
     return store.get('username');
 });
+
+ipcMain.handle('getSteamId', () => {
+    return store.get("steamid")
+})
 
 ipcMain.handle('getId', () => {
     // Return only the username from the Electron store instance
@@ -139,14 +154,16 @@ ipcMain.handle('getCredentials', async () => {
     const token = store.get('token');
     const userId = store.get('userId');
     const userName = store.get('username');
+    const steamId = store.get('steamid');
 
-    return { token, userId, userName };
+    return { token, userId, userName, steamId };
 });
 
 ipcMain.handle('clearCredentials', async () => {
     store.delete('token');
     store.delete('userId');
     store.delete('username');
+    store.delete('steamid');
 });
 
 ipcMain.handle('logout', async () => {
@@ -162,7 +179,7 @@ ipcMain.handle('get-window-size', (event) => {
     return win.getSize();
 });
 
-ipcMain.handle('open-auth-window', () => {
+ipcMain.handle('open-auth-window', async () => {
     const authWindow = new BrowserWindow({
         width: 800,
         height: 600,
@@ -174,9 +191,31 @@ ipcMain.handle('open-auth-window', () => {
 
     authWindow.loadURL('http://localhost:3001/auth/steam');
 
-    // ... Geri kalan kod ...
+    return new Promise((resolve, reject) => {
+        authWindow.webContents.on('did-navigate', () => {
+            const { session } = authWindow.webContents;
+            session.cookies
+                .get({})
+                .then((cookies) => {
+                    if (cookies.length > 0) {
+                        const steamCookie = cookies.find(cookie => cookie.name.includes('steamLogin'));
+                        if (steamCookie) {
+                            const steamid = steamCookie.value.split('%')[0];
+                            store.set('steamid', steamid);
+                            authWindow.close();
+                            resolve(true);
+                        } else {
+                            resolve(false);
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                    reject(error);
+                });
+        });
+    });
 });
-
 
 function createWindow() {
     const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
@@ -230,7 +269,7 @@ function createWindow() {
     if (!win.isDestroyed()) {
         win.loadURL(url);
     }
-
+    //TODO unutma
     win.webContents.on('did-finish-load', () => {
         win.webContents.openDevTools();
     });

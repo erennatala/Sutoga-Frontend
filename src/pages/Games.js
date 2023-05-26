@@ -107,6 +107,11 @@ export default function Games() {
                 const token = await window.electron.ipcRenderer.invoke('getToken');
                 const userId = await window.electron.ipcRenderer.invoke('getId');
 
+                const steamid = await window.electron.ipcRenderer.invoke('getSteamId');
+
+                console.log("SAAAAAA")
+                console.log(steamid)
+
                 const response = await axios.get(`${BASE_URL}users/checkSteamId/${userId}`, {
                     headers: { 'Authorization': `${token}` },
                 });
@@ -154,8 +159,18 @@ export default function Games() {
     };
 
     const handleSteamClick = async () => {
-        await window.electron.ipcRenderer.invoke('open-auth-window');
+        try {
+            const result = await window.electron.ipcRenderer.invoke('open-auth-window');
+            if (result) {
+                isSteamConnected(true)
+            } else {
+                // bildirim gönder giriş yapılamadı diye
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
+
 
     if (loading) {
         return (<LoadingScreen />)
@@ -276,10 +291,12 @@ export default function Games() {
                 </Tabs>
 
                 <TabPanel value={tab} index={0} sx={{ width: "100%" }}>
-                    <Grid container justifyContent="center" spacing={2}>
+                    <Grid container justifyContent="center">
                         {games.map((game) => (
                             <Grid item key={game.id} xs={12} sm={6} md={4}>
-                                <GameCard game={game} onClick={() => handleGameClick(game)} />
+                                <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
+                                    <GameCard game={game} onClick={() => handleGameClick(game)} />
+                                </Box>
                             </Grid>
                         ))}
                     </Grid>
