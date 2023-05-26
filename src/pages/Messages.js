@@ -129,7 +129,7 @@ export default function Messages() {
                     console.log(data)
                 });
 
-            fetch(BASE_URL+`/users/getFriendsByUsernameForChat?username=${username}`, {
+            fetch(BASE_URL+`users/getFriendsByUsernameForChat?username=${username}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

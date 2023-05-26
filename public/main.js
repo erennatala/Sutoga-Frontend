@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, dialog ,desktopCapturer} = require('electron');
 const path = require('path');
 const axios = require('axios');
 //const isDev = require('electron-is-dev');
@@ -127,10 +127,15 @@ ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
 });
 
 ipcMain.on('open-url', (event, url) => {
-    let win = new BrowserWindow({ width: 1300, height: 800 })
-    win.loadURL(url)
-})
-
+    let win = new BrowserWindow({
+        width: 1300,
+        height: 800,
+        webPreferences: {
+            preload: path.join(__dirname, "preload.js"),
+        },
+    });
+    win.loadURL(url);
+});
 
 ipcMain.handle('getCredentials', async () => {
     const token = store.get('token');
@@ -218,6 +223,12 @@ function createWindow() {
     });
 
 }
+
+
+ipcMain.handle(
+    'DESKTOP_CAPTURER_GET_SOURCES',
+    (event, opts) => desktopCapturer.getSources(opts)
+)
 
 app.whenReady().then(createWindow);
 
