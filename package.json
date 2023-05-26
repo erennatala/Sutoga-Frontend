@@ -42,7 +42,10 @@
     ],
     "extraMetadata": {
       "main": "build/main.js"
-    }
+    },
+    "asarUnpack": [
+      "./public/**"
+    ]
   },
   "eslintConfig": {
     "extends": [

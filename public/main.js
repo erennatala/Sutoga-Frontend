@@ -66,7 +66,7 @@ steamAuthApp.get(
         res.redirect(`http://localhost:3000/register?steamid=${steamid}`);
     }
 );
-steamAuthApp.use('/video',express.static(path.join(__dirname, '../src/./', 'video-ui')))
+steamAuthApp.use('/video',express.static(path.join(__dirname, './', 'video-ui')))
 
 
 steamAuthApp.listen(3001);
@@ -149,7 +149,11 @@ ipcMain.on('open-url', (event, url) => {
         width: 1300,
         height: 800,
         webPreferences: {
-            preload: path.join(__dirname, "preload.js"),
+            contextIsolation: true,
+            nodeIntegration: false,
+            preload: path.join(__dirname, 'preload.js'),
+            worldSafeExecuteJavaScript: true,
+            contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'"
         },
     });
     win.loadURL(url);
@@ -240,7 +244,8 @@ function createWindow() {
             contextIsolation: true,
             //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
             //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, 'preload.js'), // burası mevcut preload script'inizin yolu olmalı
+            contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'",
             webSecurity: false,
             nodeIntegrationInWorker: true
         },
