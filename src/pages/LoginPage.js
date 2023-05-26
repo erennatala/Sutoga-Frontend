@@ -17,17 +17,14 @@ import Iconify from '../components/iconify';
 import { LoginForm } from '../sections/auth/login';
 import LoadingScreen from "./LoadingScreen";
 
-// ----------------------------------------------------------------------
-
-const bgImage = window.location.href + "assets/images/bg.jpg";
-
+// --------------------------------------------------------------------
 const FormCard = styled(Card)({
   padding: '16px',
   borderRadius: '8px',
   backgroundColor: '#fff',
 });
 
-const StyledRoot = styled('div')(({ theme }) => ({
+const StyledRoot = styled('div')(({ theme, bgImage }) => ({
   [theme.breakpoints.up('md')]: {
     display: 'flex',
   },
@@ -58,6 +55,8 @@ const StyledContent = styled('div')(({ theme }) => ({
 }));
 
 const BASE_URL = process.env.REACT_APP_URL
+
+const bgImage = "http://13.53.101.21:9000/sutogacdnbucket/bg.jpg";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -110,7 +109,6 @@ export default function LoginPage() {
 
 
   const handleError = () => {
-    console.log("as")
     setOpen(true)
   }
 
@@ -132,39 +130,39 @@ export default function LoginPage() {
         <title> Login | Sutoga </title>
       </Helmet>
 
-      <StyledRoot>
+      <StyledRoot bgImage={bgImage}>
         <Container maxWidth="sm">
           <StyledContent>
             <FormCard>
-            <Typography variant="h4" gutterBottom>
-              Sign in to Sutoga
-            </Typography>
-
-            <Typography variant="body2" sx={{ mb: 5 }}>
-              Don’t have an account? {''}
-              <Link variant="subtitle2" to="register" onClick={(e) => {
-                e.preventDefault();
-                navigate("/register");
-              }}>Get started</Link>
-            </Typography>
-
-            <Stack direction="row" spacing={2}>
-              <Button fullWidth size="large" color="inherit" variant="outlined" onClick={handleSteamClick}>
-                <Iconify icon="mdi:steam" width={30} height={30} />
-              </Button>
-            </Stack>
-
-            <Divider sx={{ my: 3 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                OR
+              <Typography variant="h4" gutterBottom>
+                Sign in to Sutoga
               </Typography>
-            </Divider>
 
-            <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
-              <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-                Wrong username or password
-              </Alert>
-            </Snackbar>
+              <Typography variant="body2" sx={{ mb: 5 }}>
+                Don’t have an account? {''}
+                <Link variant="subtitle2" to="register" onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/register");
+                }}>Get started</Link>
+              </Typography>
+
+              <Stack direction="row" spacing={2}>
+                <Button fullWidth size="large" color="inherit" variant="outlined" onClick={handleSteamClick}>
+                  <Iconify icon="mdi:steam" width={30} height={30} />
+                </Button>
+              </Stack>
+
+              <Divider sx={{ my: 3 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  OR
+                </Typography>
+              </Divider>
+
+              <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                  Wrong username or password
+                </Alert>
+              </Snackbar>
 
               <LoginForm onError={handleError}/>
             </FormCard>

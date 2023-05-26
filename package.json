@@ -28,19 +28,12 @@
       "output": "dist"
     },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "public/main-logo.ico"
     },
     "win": {
       "target": "nsis",
-      "icon": "public/icon.ico",
-      "publish": [
-        {
-          "provider": "github",
-          "owner": "keremmican",
-          "repo": "sutoga-build",
-          "token": "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"
-        }
-      ]
+      "icon": "public/main-logo.ico"
     },
     "files": [
       "build/**/*",
