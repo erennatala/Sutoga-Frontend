@@ -25,6 +25,7 @@ import ProfileCardSm from "../components/cards/ProfileCardSm";
 import axios from "axios";
 import LoadingRow from "../components/loading/LoadingRow";
 import InfiniteScroll from "react-infinite-scroll-component";
+import {useLocation} from "react-router-dom";
 
 
 function TabPanel(props: TabPanelProps) {
@@ -62,6 +63,7 @@ export default function UserProfile() {
     const [tab, setTab] = useState(0);
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const [windowSize, setWindowSize] = useState([0, 0]);
+    const location = useLocation();
 
     const avatarSize = windowSize[0] < 1600 ? 200 : 250;
     const usernameFontSize = isSmallScreen ? '0.9rem' : '1.5rem';
@@ -99,6 +101,7 @@ export default function UserProfile() {
     const [loadingDeclineRequest, setLoadingDeclineRequest] = useState(false);
 
     const [isHovered, setIsHovered] = useState(false);
+    const [showNotification, setShowNotification] = useState(false);
 
     const [friends, setFriends] = useState([])
 
@@ -281,6 +284,12 @@ export default function UserProfile() {
             try {
                 const token = await window.electron.ipcRenderer.invoke("getToken");
                 const usernameParam = window.location.pathname.split("/")[2];
+
+                console.log(window.location.pathname)
+
+                console.log("window.location.pathname:", window.location.pathname);
+                console.log("Username Param:", usernameParam);
+
                 const response = await axios.get(`${BASE_URL}users/getByUsername/${usernameParam}`, {
                     headers: { 'Authorization': `${token}` },
                 });
@@ -298,7 +307,7 @@ export default function UserProfile() {
         };
 
         fetchUser();
-    }, []);
+    }, [location.pathname]);
 
     const getFriendCount = async (id) => {
         try {
@@ -542,6 +551,13 @@ export default function UserProfile() {
                 </Alert>
             </Snackbar>
 
+            {showNotification && (
+                <Snackbar open={showNotification} onClose={() => setShowNotification(false)}>
+                    <Alert severity="success">Friend request sent!</Alert>
+                </Snackbar>
+            )}
+
+
             <Grid container columns={16} sx={{px: 7}}>
                 <Grid xs={16}>
                     <Card sx={{height: "300px"}}>
@@ -557,7 +573,7 @@ export default function UserProfile() {
                                     </Typography>
 
                                     <Typography flexWrap variant="h7" gutterBottom>
-                                        {user.profileDescription}
+                                        {user.profileDescription !== null ? ("") : (user.profileDescription)}
                                     </Typography>
                                 </Grid>
 
@@ -796,7 +812,9 @@ export default function UserProfile() {
                                     <Grid container spacing={2}>
                                         {friends.map((friend) => (
                                             <Grid key={friend.id} item xs={12} sm={6}>
-                                                <ProfileCardSm username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
+                                                <ProfileCardSm
+                                                    onSuccess={() => setShowNotification(true)}
+                                                    username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
                                             </Grid>
                                         ))}
                                     </Grid>

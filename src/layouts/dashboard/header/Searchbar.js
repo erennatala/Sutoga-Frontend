@@ -111,14 +111,25 @@ export default function Searchbar() {
 
           {open && results.length > 0 && (
               <SearchResultContainer>
-                {results.map((result) => (
-                    <SearchResult key={result.username} onClick={() => handleProfileClick(result.username)} sx={{cursor: 'pointer'}}>
-                      <Avatar src={result.profilePhotoUrl || ''} alt={result.username} style={{ marginRight: '10px' }} />
-                      <div style={{ color: 'black' }}>{result.username}</div>
-                    </SearchResult>
-                ))}
+                {results.map((result) => {
+                  return (
+                      <SearchResult
+                          key={result.username}
+                          onClick={() => handleProfileClick(result.username)}
+                          sx={{ cursor: 'pointer' }}
+                      >
+                        <Avatar
+                            src={result.profilePhotoUrl || ''}
+                            alt={result.username}
+                            style={{ marginRight: '10px' }}
+                        />
+                        <div style={{ color: 'black' }}>{result.username}</div>
+                      </SearchResult>
+                  );
+                })}
               </SearchResultContainer>
           )}
+
         </StyledSearchbar>
       </ClickAwayListener>
   );

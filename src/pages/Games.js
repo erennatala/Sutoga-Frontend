@@ -24,6 +24,7 @@ import GameCard from "../components/cards/GameCard";
 import axios from "axios";
 import LoadingScreen from "./LoadingScreen";
 import Iconify from "../components/iconify";
+import LoadingRow from "../components/loading/LoadingRow";
 
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
@@ -56,6 +57,9 @@ export default function Games() {
     const [sortedGames, setSortedGames] = useState([]);
     const [topFiveGames, setTopFiveGames] = useState([]);
 
+    const [gamesLoading, setGamesLoading] = useState(false)
+
+    const [recoms, setRecoms] = useState([])
     const [games, setGames] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -109,9 +113,6 @@ export default function Games() {
 
                 const steamid = await window.electron.ipcRenderer.invoke('getSteamId');
 
-                console.log("SAAAAAA")
-                console.log(steamid)
-
                 const response = await axios.get(`${BASE_URL}users/checkSteamId/${userId}`, {
                     headers: { 'Authorization': `${token}` },
                 });
@@ -162,7 +163,8 @@ export default function Games() {
         try {
             const result = await window.electron.ipcRenderer.invoke('open-auth-window');
             if (result) {
-                isSteamConnected(true)
+                setIsSteamConnected(true)
+                setGamesLoading(true)
             } else {
                 // bildirim gönder giriş yapılamadı diye
             }
@@ -292,18 +294,38 @@ export default function Games() {
 
                 <TabPanel value={tab} index={0} sx={{ width: "100%" }}>
                     <Grid container justifyContent="center">
-                        {games.map((game) => (
+                        {games.length === 0 ? (gamesLoading ? (
+                                <Grid>
+                                    <LoadingRow />
+                                    <Typography>
+                                        Loading your games, please wait!
+                                    </Typography>
+                                </Grid>
+                            ) : (
+                                <Typography>
+                                    Unfortunately, we couldn't retrieve your games :(
+                                </Typography>
+                                )
+                        ) : (
+                            games.map((game) => (
                             <Grid item key={game.id} xs={12} sm={6} md={4}>
                                 <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
                                     <GameCard game={game} onClick={() => handleGameClick(game)} />
                                 </Box>
                             </Grid>
-                        ))}
+                        ))
+                            )}
                     </Grid>
                 </TabPanel>
 
                 <TabPanel value={tab} index={1}>
-                    {/* Recommendation content */}
+                    {recoms.map((game) => (
+                        <Grid item key={game.id} xs={12} sm={6} md={4}>
+                            <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
+                                <GameCard game={game} onClick={() => handleGameClick(game)} />
+                            </Box>
+                        </Grid>
+                    ))}
                 </TabPanel>
             </Card>
 
