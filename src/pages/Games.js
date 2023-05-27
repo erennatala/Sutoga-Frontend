@@ -11,7 +11,7 @@ import {
     DialogContent,
     Grid,
     MobileStepper,
-    Paper,
+    Paper, Snackbar,
     Tab,
     Tabs,
     Typography
@@ -58,6 +58,9 @@ export default function Games() {
     const [topFiveGames, setTopFiveGames] = useState([]);
 
     const [gamesLoading, setGamesLoading] = useState(false)
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarSeverity, setSnackbarSeverity] = useState('');
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const [recoms, setRecoms] = useState([])
     const [games, setGames] = useState([]);
@@ -162,17 +165,42 @@ export default function Games() {
     const handleSteamClick = async () => {
         try {
             const result = await window.electron.ipcRenderer.invoke('open-auth-window');
-            if (result) {
-                setIsSteamConnected(true)
-                setGamesLoading(true)
+            if (result !== null) {
+                const token = await window.electron.ipcRenderer.invoke('getToken');
+                const userId = await window.electron.ipcRenderer.invoke('getId');
+
+                if (token && userId && result) {
+                    const response = await axios.post(`${BASE_URL}users/connectSteamForGames`, null, {
+                        params: { userId: userId, steamId: result },
+                        headers: { 'Authorization': `${token}` },
+                    });
+
+                    const isSuccess = response.data;
+
+                    if (isSuccess) {
+                        setGamesLoading(true);
+                        setIsSteamConnected(true);
+                        setSnackbarOpen(true);
+                        setSnackbarSeverity('success');
+                        setSnackbarMessage('Steam connected successfully!');
+                        await axios.post(`${BASE_URL}games/startFetchUserGames/${userId}`, null, {
+                            headers: { 'Authorization': `${token}` },
+                        });
+                    } else {
+                        setSnackbarOpen(true);
+                        setSnackbarSeverity('error');
+                        setSnackbarMessage('Steam connection failed.');
+                    }
+                }
             } else {
-                // bildirim gönder giriş yapılamadı diye
+                setSnackbarOpen(true);
+                setSnackbarSeverity('info');
+                setSnackbarMessage("Couldn't connect.");
             }
         } catch (error) {
             console.error(error);
         }
     };
-
 
     if (loading) {
         return (<LoadingScreen />)
@@ -180,6 +208,12 @@ export default function Games() {
 
     return (
         <>
+            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+                <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+
             <Grid container justifyContent="space-around" sx={{ pb: 3 }}>
                 <Grid item>
                     <Card sx={{ bgcolor: "background.default" }}>
