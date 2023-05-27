@@ -128,7 +128,7 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                     fetch(
                         groupId ? "https://sutogachat.site/groupconservation" : "https://sutogachat.site/conservation",
                         {
-                            method: (groupId ||existingConversation.error )? 'POST' :'PUT',
+                            method: (groupId ||!existingConversation.error )? 'PUT' :'POST',
                             headers: {
                                 "Content-Type": "application/json",
                             },
