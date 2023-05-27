@@ -15,11 +15,11 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <HelmetProvider>
-    <BrowserRouter>
+    <HashRouter>
         <Provider store={store}>
             <App />
         </Provider>
-    </BrowserRouter>
+    </HashRouter>
   </HelmetProvider>
 );
 

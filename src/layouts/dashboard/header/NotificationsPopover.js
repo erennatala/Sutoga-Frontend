@@ -83,7 +83,7 @@ export default function NotificationsPopover() {
 
       const username1 = await window.electron.ipcRenderer.invoke('getUsername');
 
-      const newSocket = ioV2("http://localhost:9092/", {
+      const newSocket = ioV2("http://13.53.101.21:9092/", {
         timeout: 5000,
         transports: ['websocket']
       });

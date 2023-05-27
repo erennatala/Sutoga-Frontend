@@ -91,7 +91,6 @@ export default function Profile() {
     const [games, setGames] = useState([])
     const [gamePage, setGamePage] = useState(0)
     const [loadingGame, setLoadingGame] = useState(false)
-    const [hasMoreGames, setHasMoreGames] = useState(true);
 
     const [likes, setLikes] = useState([])
     const [likePage, setLikePage] = useState(0)
@@ -137,8 +136,7 @@ export default function Profile() {
                 setLikes([])
                 if (games.length === 0) {
                     setGamePage(0);
-                    setHasMoreGames(true)
-                    loadMoreGames();
+                    getUserGames();
                 }
                 break;
             case 4:
@@ -171,6 +169,7 @@ export default function Profile() {
                 setUser(userData);
                 getPostCount()
                 getFriendCount()
+                getGameCount()
             } catch (error) {
                 console.log("Error fetching user data:", error);
             } finally {
@@ -186,6 +185,26 @@ export default function Profile() {
             setHasMoreFriends(false);
         }
     }, [friends]);
+
+    const getGameCount = async (id) => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}games/getUserGameCount/${userId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            setUser((prevUser) => ({
+                ...prevUser,
+                gameCount: response.data,
+            }));
+        } catch (error) {
+            console.error('Error fetching friend count:', error);
+        }
+    };
 
     const getFriendCount = async () => {
         try {
@@ -253,10 +272,6 @@ export default function Profile() {
         } finally {
             setLoadingFriend(false);
         }
-    }
-
-    const loadMoreGames = async () => {
-
     }
 
     const loadMoreLikes = async () => {
@@ -361,7 +376,7 @@ export default function Profile() {
         if (user) {
             setEditEmail(user.email);
             setEditUsername(user.userName);
-            setEditDescription(user.profileDescription);
+            setEditDescription(user.profileDescription !== null ? ("") : (user.profileDescription));
             setEditProfilePicture(user.profilePhotoUrl);
             setEditFirstName(user.firstName);
             setEditLastName(user.lastName);
@@ -598,6 +613,24 @@ export default function Profile() {
         setPosts(prevPosts => prevPosts.map(post => post.id === postId ? { ...post, likeCount: newValue } : post));
     };
 
+    const getUserGames = async () => {
+        try {
+            setLoadingGame(true)
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}games/getUserGames/${userId}`, {
+                headers: { 'Authorization': `${token}` },
+            });
+
+            setGames(response.data);
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setLoadingGame(false);
+        }
+    };
+
     return(
         <>
             <Helmet>
@@ -792,7 +825,7 @@ export default function Profile() {
                                         <Grid item sx={{mt: 1}}>
                                             <Stack direction={"row"}>
                                                 <Typography fontWeight={"bold"} fontSize={22}>
-                                                    53
+                                                    {user.gameCount}
                                                 </Typography>
 
                                                 <Typography>
@@ -877,19 +910,17 @@ export default function Profile() {
                                 </TabPanel>
                                 <TabPanel value={tab-1} index={1}>
                                     <Grid container justifyContent={"center"}>
-                                        <Grid item>
-                                            <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
-                                        </Grid>
-                                        <Grid item>
-                                            <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
-                                        </Grid>
-                                        <Grid item>
-                                            <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
-                                        </Grid>
-
-                                        <Grid item>
-                                            <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
-                                        </Grid>
+                                            {games.length !== 0 ? (
+                                                games.map((game) => (
+                                                    <Grid item key={game.id} xs={12} sm={6} md={4}>
+                                                        <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
+                                                            <GameCard game={game} />
+                                                        </Box>
+                                                    </Grid>
+                                                ))
+                                            ) : (<Typography>
+                                                Unfortunately, we couldn't retrieve your games :(
+                                            </Typography>)}
                                     </Grid>
                                 </TabPanel>
                                 <TabPanel value={tab - 2} index={2}>
@@ -941,8 +972,16 @@ export default function Profile() {
                                         >
                                             <Grid container spacing={2}>
                                             {friends.map((friend) => (
-                                                <Grid key={friend.id} item xs={12} sm={6} onClick={() => handleProfileClick(friend.username)}>
-                                                    <ProfileCardSm username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
+                                                <Grid key={friend.id} item xs={12} sm={6}>
+                                                    <ProfileCardSm
+                                                        onSuccess={(e) => {
+                                                            if (e === "add") {
+                                                                handleSnackbar('Friend request sent!', 'success');
+                                                            } else {
+                                                                handleSnackbar('Friend removed', 'success');
+                                                            }
+                                                        }}
+                                                        username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
                                                 </Grid>
                                             ))}
                                             </Grid>
