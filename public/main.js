@@ -14,6 +14,7 @@ const store = new Store();
 const fs = require('fs');
 
 let win;
+let authWindow;
 
 const BASE_URL = process.env.REACT_APP_URL
 
@@ -67,7 +68,6 @@ steamAuthApp.get(
     }
 );
 steamAuthApp.use('/video',express.static(path.join(__dirname, './', 'video-ui')))
-
 
 steamAuthApp.listen(3001);
 
@@ -247,7 +247,6 @@ function createWindow() {
     // Calculate the initial window size based on the screen size
     const windowWidth = Math.round(screenWidth * 0.8); // Set width to 80% of the screen width
     const windowHeight = Math.round(screenHeight * 0.8); // Set height to 80% of the screen height
-
 
     win = new BrowserWindow({
         width: windowWidth,

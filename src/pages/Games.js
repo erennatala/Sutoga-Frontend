@@ -85,7 +85,7 @@ export default function Games() {
         setTopFiveGames(topFiveGames);
     }, [games]);
 
-    const getUserGames = async (pageNumber = 0, pageSize = 15) => {
+    const getUserGames = async (pageNumber = 0, pageSize = 9) => {
         setGamesLoading(true);
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
@@ -209,7 +209,32 @@ export default function Games() {
         }
     };
 
+    const updateSteamGames = async () => {
+        const token = await window.electron.ipcRenderer.invoke('getToken');
+        const userId = await window.electron.ipcRenderer.invoke('getId');
+
+        await axios.post(`${BASE_URL}games/startFetchUserGames/${userId}`, null, {
+            headers: { 'Authorization': `${token}` },
+        });
+    }
+
     const handleGetRecommendation = async () => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            const response = await axios.get(`${BASE_URL}games/fetchRecommendations/${userId}`, {
+                headers: { 'Authorization': `${token}` },
+            });
+
+            if (recommendations.data !== null)
+                setRecommendations(response.data)
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleRecommendations = async () => {
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
             const userId = await window.electron.ipcRenderer.invoke('getId');
@@ -218,12 +243,12 @@ export default function Games() {
                 headers: { 'Authorization': `${token}` },
             });
 
-            setRecommendations(response.data)
+            if (recommendations.data !== null)
+                setRecommendations(response.data)
         } catch (error) {
             console.error(error);
         }
     };
-
 
     if (loading) {
         return (<LoadingScreen />)
@@ -242,11 +267,19 @@ export default function Games() {
                     <Card sx={{ bgcolor: "background.default" }}>
                         <Box sx={{ pl: 2, flexGrow: 1, width: 200 }}>
                             {isSteamConnected ? (
-                                <Typography>
-                                    <Button color="success" fullWidth variant="contained" disabled>
-                                        Connected to Steam Account
-                                    </Button>
-                                </Typography>
+                                <>
+                                    <Typography>
+                                        <Button color="success" fullWidth variant="contained" disabled>
+                                            Connected to Steam Account
+                                        </Button>
+                                    </Typography>
+
+                                    <Grid>
+                                        <Button fullWidth size="large" color="inherit" variant="outlined" onClick={updateSteamGames}>
+                                            Update Games
+                                        </Button>
+                                    </Grid>
+                                </>
                             ) : (
                                 <div>
                                     <Typography>Connect your steam account </Typography>
@@ -381,9 +414,13 @@ export default function Games() {
 
                 <TabPanel value={tab} index={1}>
                     <Grid container justifyContent="center" sx={{ pt: 2 }}>
-                        <Button variant="contained" onClick={handleGetRecommendation}>
-                            Get Recommendations
-                        </Button>
+                        <Grid item>
+                            <Button variant="contained" onClick={handleGetRecommendation}>
+                                Get Recommendations
+                            </Button>
+                        </Grid>
+                    </Grid>
+                    <Grid container justifyContent="center" sx={{ pt: 2 }}>
                         {recommendations.map((game) => (
                             <Grid item key={game.id} xs={12} sm={6} md={4}>
                                 <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
