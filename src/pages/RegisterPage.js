@@ -66,46 +66,46 @@ export default function RegisterPage() {
     const { ipcRenderer } = window.electron;
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const steamIdFromUrl = urlParams.get('steamid');
-        if (steamIdFromUrl) {
-            setSteamId(steamIdFromUrl);
-            axios
-                .post(`${BASE_URL}auth/steamLogin/${steamIdFromUrl}`)
-                .then(async (response) => {
-                    if (response.data) {
-                        const credentials = {
-                            userId: response.data.userId,
-                            username: response.data.username,
-                        };
-
-                        if (response.data.token) {
-                            credentials.token = response.data.token;
-                        }
-
-                        try {
-                            await ipcRenderer.invoke('setCredentials', credentials);
-
-                            if (response.data.token) {
-                                await navigate('/home', { replace: true });
-                            } else {
-                                setLoading(false);
-                            }
-                        } catch (error) {
-                            console.error('Error storing credentials:', error);
-                        }
-                    } else {
-                        setLoading(false);
-                    }
-                })
-                .catch(() => {
-                    setLoading(false);
-                });
-        } else {
-            setLoading(false);
-        }
-    }, [dispatch]);
+    // useEffect(() => {
+    //     const urlParams = new URLSearchParams(window.location.search);
+    //     const steamIdFromUrl = urlParams.get('steamid');
+    //     if (steamIdFromUrl) {
+    //         setSteamId(steamIdFromUrl);
+    //         axios
+    //             .post(`${BASE_URL}auth/steamLogin/${steamIdFromUrl}`)
+    //             .then(async (response) => {
+    //                 if (response.data) {
+    //                     const credentials = {
+    //                         userId: response.data.userId,
+    //                         username: response.data.username,
+    //                     };
+    //
+    //                     if (response.data.token) {
+    //                         credentials.token = response.data.token;
+    //                     }
+    //
+    //                     try {
+    //                         await ipcRenderer.invoke('setCredentials', credentials);
+    //
+    //                         if (response.data.token) {
+    //                             await navigate('/home', { replace: true });
+    //                         } else {
+    //                             setLoading(false);
+    //                         }
+    //                     } catch (error) {
+    //                         console.error('Error storing credentials:', error);
+    //                     }
+    //                 } else {
+    //                     setLoading(false);
+    //                 }
+    //             })
+    //             .catch(() => {
+    //                 setLoading(false);
+    //             });
+    //     } else {
+    //         setLoading(false);
+    //     }
+    // }, [dispatch]);
 
     const [feedbackList, setFeedbackList] = useState({
         firstName: [firstName, false, "", 2],
@@ -165,6 +165,8 @@ export default function RegisterPage() {
 
         const steam = await window.electron.ipcRenderer.invoke('getSteamId');
 
+        console.log(steam)
+
         try {
             const signuprequest = JSON.stringify({
                 firstName: firstName,
@@ -191,7 +193,7 @@ export default function RegisterPage() {
             });
             setSuccess(true);
             setToastOpen(true);
-            navigate('/home', { replace: true });
+            navigate('/login', { replace: true });
         } catch(err) {
             await window.electron.ipcRenderer.invoke('deleteSteamId');
             console.log("error")
