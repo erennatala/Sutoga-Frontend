@@ -61,7 +61,6 @@ const bgImage = "http://13.53.101.21:9000/sutogacdnbucket/bg.jpg";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { ipcRenderer } = window.electron;
   const dispatch = useDispatch();
 
   const [steamId, setSteamId] = useState(null);
@@ -79,6 +78,7 @@ export default function LoginPage() {
           axios
               .post(`${BASE_URL}auth/steamLogin/${result}`)
               .then(async (response) => {
+                console.log("burada")
                 if (response.data) {
                   const credentials = {
                     userId: response.data.userId,
@@ -91,7 +91,7 @@ export default function LoginPage() {
                   }
 
                   try {
-                    await ipcRenderer.invoke('setCredentials', credentials);
+                    await window.electron.ipcRenderer.invoke('setCredentials', credentials);
 
                     if (response.data.token) {
                       await navigate('/home', { replace: true });
@@ -102,7 +102,7 @@ export default function LoginPage() {
                     console.error('Error storing credentials:', error);
                   }
                 } else {
-                  await ipcRenderer.invoke('setSteamId', result);
+                  await window.electron.ipcRenderer.invoke('setSteamId', result);
                   await navigate('/register', { replace: true });
                   setLoading(false);
                 }

@@ -14,8 +14,6 @@ const store = new Store();
 const fs = require('fs');
 
 let win;
-let authWindow;
-
 const BASE_URL = process.env.REACT_APP_URL
 
 const getAssetsPath = () => {
