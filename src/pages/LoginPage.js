@@ -93,6 +93,8 @@ export default function LoginPage() {
                   try {
                     await window.electron.ipcRenderer.invoke('setCredentials', credentials);
 
+                    await window.electron.ipcRenderer.invoke('deleteCookie');
+
                     if (response.data.token) {
                       await navigate('/home', { replace: true });
                     } else {
