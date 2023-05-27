@@ -215,12 +215,6 @@ ipcMain.handle('open-auth-window', async () => {
 
     authWindow.loadURL('http://localhost:3001/auth/steam');
 
-    const { session } = authWindow.webContents;
-    await session.clearStorageData({
-        storages: ['cookies'],
-        quotas: ['persistent']
-    });
-
     return new Promise((resolve, reject) => {
         authWindow.webContents.on('did-navigate', () => {
             const { session } = authWindow.webContents;
