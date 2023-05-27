@@ -187,10 +187,20 @@ export default function RegisterPage() {
             await response.then((result) => {
                 data = result.data;
                 return data;
-            })
+            });
+
+            // credentials are set here
+            await window.electron.ipcRenderer.invoke('setCredentials', {
+                token: data.token,
+                userId: data.userId,
+                username: userName,
+                steamId: steam,
+            });
+
             await axios.post(`${BASE_URL}games/startFetchUserGames/${data.userId}`, null, {
                 headers: { 'Authorization': `${data.token}` },
             });
+
             setSuccess(true);
             setToastOpen(true);
             navigate('/login', { replace: true });
