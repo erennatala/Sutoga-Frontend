@@ -124,7 +124,16 @@ ipcMain.handle('getToken', () => {
     return store.get('token');
 });
 
-ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
+ipcMain.handle('setSteamId', async (event, steamId) => {
+    store.set('steamid', steamId);
+});
+
+ipcMain.handle('deleteSteamId', async (event) => {
+    store.delete('steamid');
+});
+
+
+ipcMain.handle('setCredentials', async (event, { token, userId, username, steamId }) => {
     if (token !== null && token !== undefined) {
         store.set('token', token);
     } else {
@@ -141,6 +150,12 @@ ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
         store.set('username', username);
     } else {
         store.delete('username');
+    }
+
+    if (steamId !== null && steamId !== undefined) {
+        store.set('steamid', steamId);
+    } else {
+        store.delete('steamid');
     }
 });
 
@@ -212,9 +227,9 @@ ipcMain.handle('open-auth-window', async () => {
                             const steamid = steamCookie.value.split('%')[0];
                             store.set('steamid', steamid);
                             authWindow.close();
-                            resolve(true);
+                            resolve(steamid);
                         } else {
-                            resolve(false);
+                            resolve(null);
                         }
                     }
                 })

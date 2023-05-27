@@ -59,6 +59,10 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState(true);
     const [userData, setUserData] = useState(null);
 
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarSeverity, setSnackbarSeverity] = useState('');
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+
     const { ipcRenderer } = window.electron;
     const dispatch = useDispatch();
 
@@ -159,6 +163,8 @@ export default function RegisterPage() {
             return;
         }
 
+        const steam = await window.electron.ipcRenderer.invoke('getSteamId');
+
         try {
             const signuprequest = JSON.stringify({
                 firstName: firstName,
@@ -168,7 +174,7 @@ export default function RegisterPage() {
                 password: pwd,
                 phoneNumber: phoneNumber,
                 birthDate: birthDate,
-                steamId: steamId
+                steamId: steam
             });
 
             const response = axios.post(`${BASE_URL}auth/register`, signuprequest, {
@@ -180,10 +186,14 @@ export default function RegisterPage() {
                 data = result.data;
                 return data;
             })
+            await axios.post(`${BASE_URL}games/startFetchUserGames/${data.userId}`, null, {
+                headers: { 'Authorization': `${data.token}` },
+            });
             setSuccess(true);
-            setToastOpen(true)
+            setToastOpen(true);
             navigate('/home', { replace: true });
         } catch(err) {
+            await window.electron.ipcRenderer.invoke('deleteSteamId');
             console.log("error")
         }
     }
@@ -215,6 +225,11 @@ export default function RegisterPage() {
         <Helmet>
             <title> Register | Sutoga </title>
         </Helmet>
+            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+                <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
 
             <Snackbar open={toastOpen} autoHideDuration={3000} onClose={handleClose}>
                 <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
