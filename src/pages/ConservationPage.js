@@ -241,8 +241,8 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                 </Box>
             </div>
 
-            <div style={{marginTop:"20px", display: 'flex', flexDirection: 'column', height: '700px' }}>
-                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2, overflowY: 'auto', maxHeight: '100%' }}>
+            <div style={{marginTop:"20px", display: 'flex', flexDirection: 'column', height: '500px' }}>
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 1, overflowY: 'auto', maxHeight: '100%' }}>
 
                     <List style={{ display: 'flex', flexDirection: 'column' }}>
                         {messages?.map((message) => (
@@ -252,7 +252,8 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                                     textAlign: message.sender === sender ? 'right' : 'left',
                                     maxWidth: '50%',
                                     alignSelf: message.sender === sender ? 'flex-end' : 'flex-start',
-                                    wordWrap: 'break-word'
+                                    wordWrap: 'break-word',
+                                    marginBottom: '10px'  // Add margin at the bottom of each Card
                                 }}
                             >
                                 <ListItem
@@ -270,10 +271,11 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                                             </Typography>
                                         </Box>
                                     )}
-                                    <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
-                                    <ListItemText primary={`${message.message}`} />
-                                    <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
-                                    <Typography variant="caption" display="block" style={{ opacity: 0.7, fontSize: '0.7em' }}>
+                                    <Box sx={{ flexGrow: 0.01, m: 0.2 }} />
+                                    <Typography variant="body1" sx={{ fontSize: '1em', fontWeight: 'normal' }}>
+                                        {message.message}
+                                    </Typography>                                    <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
+                                    <Typography variant="caption" display="block" style={{ opacity: 0.7, fontSize: '0.6em' }}>
                                         {formatDate(message.date)}
                                     </Typography>
                                 </ListItem>
@@ -283,7 +285,7 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                     </List>
 
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2,maxWidth: '930px' }}>
                     <TextField
                         fullWidth
                         label="Type your message"
@@ -292,14 +294,27 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyDown={handleEnterKey}
                     />
-                    <Button variant="contained" onClick={handleSendMessage} sx={{ ml: 1, mt: 2, marginRight: '15px' }}>
-                        Send
-                    </Button>
-                    <Button onClick={handleVideoCall} variant="outlined" color="primary"
-                            startIcon={<Iconify icon={"flat-color-icons:video-call"}/>}
-                    >
-                        Video Call
-                    </Button>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
+
+
+                        <Button
+                            variant="contained"
+                            onClick={handleSendMessage}
+                            sx={{ ml:5, mt: 6, width: '100%', maxWidth: '400px' }} // Butonun genişliğini ayarlamak için width ve maxWidth özellikleri eklendi
+                        >
+                            Send
+                        </Button>
+                        <Button
+                            onClick={handleVideoCall}
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<Iconify icon={"flat-color-icons:video-call"} />}
+                            sx={{ ml:5 ,  mt: 3, width: '100%', maxWidth: '300px' }} // Butonun genişliğini ayarlamak için width ve maxWidth özellikleri eklendi
+                        >
+                            Video Call
+                        </Button>
+                    </Box>
 
                     <Modal
                         open={isModalOpen}
