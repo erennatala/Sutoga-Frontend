@@ -110,72 +110,76 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                 isConservation: "false"
             });
             setNewMessage('');
-            let conserId = conservationId
+            let conserId = conservationId;
             if (isNewConservation)
-                conserId = uuidv4()
+                conserId = uuidv4();
 
-            // Mesaj gönderildiğinde conservation güncelleme
-            const fetchPromises = [
-                fetch(
-                    groupId ? "https://sutogachat.site/groupconservation" : "https://sutogachat.site/conservation",
-                    {
-                        method: isNewConservation ? "POST" : "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: groupId
-                            ? JSON.stringify({
-                                secondUser: receiver,
-                                groupId: groupId,
-                                groupMembers: receiverList,
-                            })
-                            : JSON.stringify({
-                                firstUser: sender,
-                                secondUser: receiver,
-                                ...(isNewConservation && {conservationId: conserId})
-                            }),
-                    }
-                ).then((response) => response.json()),
-            ];
+// First, check if the conversation exists
+            try {
+                const res = await fetch(`https://sutogachat.site/conservation/${receiver}/${sender}`);
+                const existingConversation = await res.json();
 
-            console.log("gönderilen conserVationId:", conserId)
+                // Determine method based on whether conversation exists
+                const method = existingConversation.error ? 'POST' : 'PUT';
 
-            if (!groupId) {
-                fetchPromises.push(
+                console.log(method, existingConversation)
+
+                const fetchPromises = [
+                    fetch(
+                        groupId ? "https://sutogachat.site/groupconservation" : "https://sutogachat.site/conservation",
+                        {
+                            method: (groupId ||existingConversation.error )? 'POST' :'PUT',
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: groupId
+                                ? JSON.stringify({
+                                    secondUser: receiver,
+                                    groupId: groupId,
+                                    groupMembers: receiverList,
+                                })
+                                : JSON.stringify({
+                                    firstUser: sender,
+                                    secondUser: receiver,
+                                    ...(isNewConservation && {conservationId: conserId}),
+                                }),
+                        }
+                    ).then((response) => response.json()),
                     fetch("https://sutogachat.site/conservation", {
-                        method: isNewConservation ? 'POST' : 'PUT',
+                        method: method,
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
                             firstUser: receiver,
                             secondUser: sender,
-                            ...(isNewConservation && {conservationId: conserId})
+                            ...(isNewConservation && {conservationId: conserId}),
                         }),
                     })
-                        .then((response) => response.json())
-                );
+                        .then((response) => response.json()),
+                ];
+
+                Promise.all(fetchPromises)
+                    .catch((error) => {
+                        console.error("An error occurred during the conversation update:", error);
+                    });
+
+                if (isNewConservation)
+                    setMessages([{
+                        sender: sender,
+                        receiver: receiver,
+                        date: Date.now(),
+                        message: newMessage,
+                        roomId: roomId,
+                        isConservation: "false"
+                    }]);
+
+                setIsNewConservation(false);
+                setconservationId(conserId);
+            } catch (error) {
+                console.error('There has been a problem with your fetch operation:', error);
             }
-
-            Promise.all(fetchPromises)
-                .catch((error) => {
-                    console.error("An error occurred during the conservation update:", error);
-                });
-
-            if (isNewConservation)
-                setMessages([{
-                    sender: sender,
-                    receiver: receiver,
-                    date: Date.now(),
-                    message: newMessage,
-                    roomId: roomId,
-                    isConservation: "false"
-                }])
-
-            setIsNewConservation(false);
-            setconservationId(conserId)
-        }
-    };
+    }};
 
 
     useEffect(() => {
