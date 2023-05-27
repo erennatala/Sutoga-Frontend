@@ -57,6 +57,11 @@ export default function Messages() {
         };
     }, []);
 
+
+    useEffect(() => {
+        // selectedFriends veya selectedConversation değiştiğinde yapılacak işlemleri burada yapabilirsiniz.
+        // Örneğin, bir şeyleri kontrol etmek veya işlem yapmak isterseniz.
+    }, [selectedFriends, selectedConversation]);
 // Main useEffect for socket events
     useEffect(() => {
 
@@ -310,6 +315,7 @@ export default function Messages() {
             <Box sx={{ flexGrow: 1 }}>
                 {selectedConversation ? (
                     <ConservationPage
+
                         isNewConservation={selectedConversation.isNewConservation}
                         sender={username}
                         receiver={selectedConversation.secondUser}
