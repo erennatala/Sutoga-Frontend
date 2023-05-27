@@ -201,6 +201,22 @@ ipcMain.handle('get-window-size', (event) => {
     return win.getSize();
 });
 
+ipcMain.handle('deleteCookie', async () => {
+    const { session } = require('electron')
+
+    const url = 'http://localhost:3001';
+    const cookieName = 'steamLogin';
+
+    return session.defaultSession.cookies.remove(url, cookieName)
+        .then(() => {
+            console.log('Cookie is deleted');
+        })
+        .catch((error) => {
+            console.error('Error deleting cookie:', error);
+        });
+});
+
+
 ipcMain.handle('open-auth-window', async () => {
     const authWindow = new BrowserWindow({
         width: 800,

@@ -71,6 +71,7 @@ export default function Profile() {
     const [username, setUsername] = useState('');
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const [windowSize, setWindowSize] = useState([0, 0]);
+    const [gamesLoading, setGamesLoading] = useState(true);
 
     const avatarSize = windowSize[0] < 1600 ? 200 : 250;
     const usernameFontSize = isSmallScreen ? '0.9rem' : '1.5rem';
@@ -614,8 +615,8 @@ export default function Profile() {
     };
 
     const getUserGames = async () => {
+        setGamesLoading(true);
         try {
-            setLoadingGame(true)
             const token = await window.electron.ipcRenderer.invoke('getToken');
             const userId = await window.electron.ipcRenderer.invoke('getId');
 
@@ -623,11 +624,13 @@ export default function Profile() {
                 headers: { 'Authorization': `${token}` },
             });
 
-            setGames(response.data);
+            const newGames = response.data;
+
+            setGames(newGames);
         } catch (e) {
             console.log(e);
         } finally {
-            setLoadingGame(false);
+            setGamesLoading(false);
         }
     };
 
@@ -909,19 +912,34 @@ export default function Profile() {
                                     </Grid>
                                 </TabPanel>
                                 <TabPanel value={tab-1} index={1}>
-                                    <Grid container justifyContent={"center"}>
-                                            {games.length !== 0 ? (
-                                                games.map((game) => (
-                                                    <Grid item key={game.id} xs={12} sm={6} md={4}>
-                                                        <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
-                                                            <GameCard game={game} />
-                                                        </Box>
+                                    <Grid container justifyContent="center">
+                                        {games.length === 0 ?
+                                            gamesLoading ?
+                                                (
+                                                    <Grid>
+                                                        <LoadingRow />
+                                                        <Typography>
+                                                            Loading your games, please wait!
+                                                        </Typography>
                                                     </Grid>
-                                                ))
-                                            ) : (<Typography>
-                                                Unfortunately, we couldn't retrieve your games :(
-                                            </Typography>)}
+                                                )
+                                                :
+                                                (
+                                                    <Typography>
+                                                        Unfortunately, we couldn't retrieve your games :(
+                                                    </Typography>
+                                                )
+                                            :
+                                            games.map((game) => (
+                                                <Grid item key={game.id} xs={12} sm={6} md={4}>
+                                                    <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
+                                                        <GameCard game={game} />
+                                                    </Box>
+                                                </Grid>
+                                            ))
+                                        }
                                     </Grid>
+
                                 </TabPanel>
                                 <TabPanel value={tab - 2} index={2}>
                                     <Grid container columns={16} justifyContent="center">

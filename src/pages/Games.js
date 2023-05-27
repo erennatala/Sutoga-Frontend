@@ -25,6 +25,7 @@ import axios from "axios";
 import LoadingScreen from "./LoadingScreen";
 import Iconify from "../components/iconify";
 import LoadingRow from "../components/loading/LoadingRow";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
@@ -63,6 +64,7 @@ export default function Games() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarSeverity, setSnackbarSeverity] = useState('');
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [hasMoreGames, setHasMoreGames] = useState(true);
 
     const [games, setGames] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
@@ -85,28 +87,56 @@ export default function Games() {
         setTopFiveGames(topFiveGames);
     }, [games]);
 
-    const getUserGames = async (pageNumber = 0, pageSize = 9) => {
+    // const getUserGames = async (pageNumber = 0, pageSize = 20) => {
+    //     setGamesLoading(true);
+    //     try {
+    //         const token = await window.electron.ipcRenderer.invoke('getToken');
+    //         const userId = await window.electron.ipcRenderer.invoke('getId');
+    //
+    //         const response = await axios.get(`${BASE_URL}games/getUserGames/${userId}?pageNumber=${pageNumber}&pageSize=${pageSize}`, {
+    //             headers: { 'Authorization': `${token}` },
+    //         });
+    //
+    //         const newGames = response.data.content;
+    //         const updatedImages = response.data.content.map(game => ({
+    //             label: game.gameTitle,
+    //             imgPath: game.gamePhotoUrl,
+    //         }));
+    //
+    //         setGames((prevGames) => [...prevGames, ...newGames]);
+    //         setImages(updatedImages);
+    //         setMaxSteps(updatedImages.length);
+    //     } catch (e) {
+    //         console.log(e);
+    //     } finally {
+    //         setLoading(false)
+    //         setGamesLoading(false);
+    //     }
+    // };
+
+    const getUserGames = async () => {
         setGamesLoading(true);
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
             const userId = await window.electron.ipcRenderer.invoke('getId');
 
-            const response = await axios.get(`${BASE_URL}games/getUserGames/${userId}?pageNumber=${pageNumber}&pageSize=${pageSize}`, {
+            const response = await axios.get(`${BASE_URL}games/getUserGames/${userId}`, {
                 headers: { 'Authorization': `${token}` },
             });
 
-            setGames(response.data.content); // Assuming the games are in the 'content' field of the response.
-            const updatedImages = response.data.content.map(game => ({
+            const newGames = response.data;
+            const updatedImages = response.data.map((game) => ({
                 label: game.gameTitle,
                 imgPath: game.gamePhotoUrl,
             }));
 
+            setGames(newGames);
             setImages(updatedImages);
             setMaxSteps(updatedImages.length);
         } catch (e) {
             console.log(e);
         } finally {
-            setLoading(false)
+            setLoading(false);
             setGamesLoading(false);
         }
     };
@@ -263,7 +293,7 @@ export default function Games() {
             </Snackbar>
 
             <Grid container justifyContent="space-around" sx={{ pb: 3 }}>
-                <Grid item>
+                <Grid item xs={12} sm={3} md={2.5}>
                     <Card sx={{ bgcolor: "background.default" }}>
                         <Box sx={{ pl: 2, flexGrow: 1, width: 200 }}>
                             {isSteamConnected ? (
@@ -292,7 +322,7 @@ export default function Games() {
                     </Card>
                 </Grid>
 
-                <Grid item>
+                <Grid item xs={12} sm={6} md={4}>
                     <Card>
                         <Box sx={{ maxWidth: 500, flexGrow: 1 }}>
                             <Paper
@@ -361,7 +391,7 @@ export default function Games() {
                     </Card>
                 </Grid>
 
-                <Grid item>
+                <Grid item xs={10} sm={6} md={3}>
                     <Card sx={{ bgcolor: "background.default" }}>
                         <Box sx={{ pl: 2, flexGrow: 1, width: 300 }}>
                             <Typography sx={{ fontWeight: "bold" }}>Your top five: </Typography>
@@ -383,6 +413,34 @@ export default function Games() {
                 </Tabs>
 
                 <TabPanel value={tab} index={0} sx={{ width: "100%" }}>
+                        {/*<InfiniteScroll xs={12} sm={6} md={4}*/}
+                        {/*    dataLength={games.length}*/}
+                        {/*    next={getUserGames}*/}
+                        {/*    hasMore={hasMoreGames}*/}
+                        {/*    loader={<LoadingRow />}*/}
+                        {/*    endMessage={<p style={{ textAlign: 'center' }}>Yay! You have seen it all</p>}*/}
+                        {/*>*/}
+                        {/*    <Grid container spacing={2}>*/}
+                        {/*    {games.length === 0 ? (*/}
+                        {/*        gamesLoading ? (*/}
+                        {/*            <Grid>*/}
+                        {/*                <LoadingRow />*/}
+                        {/*                <Typography>Loading your games, please wait!</Typography>*/}
+                        {/*            </Grid>*/}
+                        {/*        ) : (*/}
+                        {/*            <Typography>Unfortunately, we couldn't retrieve your games :(</Typography>*/}
+                        {/*        )*/}
+                        {/*    ) : (*/}
+                        {/*        games.map((game) => (*/}
+                        {/*            <Grid item key={game.id} xs={12} sm={6} md={4}>*/}
+                        {/*                <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>*/}
+                        {/*                    <GameCard game={game} onClick={() => handleGameClick(game)}/>*/}
+                        {/*                </Box>*/}
+                        {/*            </Grid>*/}
+                        {/*        ))*/}
+                        {/*    )}*/}
+                        {/*    </Grid>*/}
+                        {/*</InfiniteScroll>*/}
                     <Grid container justifyContent="center">
                         {games.length === 0 ?
                             gamesLoading ?
