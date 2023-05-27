@@ -132,6 +132,7 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                             : JSON.stringify({
                                 firstUser: sender,
                                 secondUser: receiver,
+                                ...(isNewConservation && {conservationId: conserId})
                             }),
                     }
                 ).then((response) => response.json()),
@@ -149,6 +150,7 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                         body: JSON.stringify({
                             firstUser: receiver,
                             secondUser: sender,
+                            ...(isNewConservation && {conservationId: conserId})
                         }),
                     })
                         .then((response) => response.json())
