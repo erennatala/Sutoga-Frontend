@@ -527,7 +527,7 @@ export default function PostCardLeft(props) {
                                 </Box>
 
                                 <Grid container justifyContent="center" alignItems="center" style={{ height: '100%' }}>
-                                    <Box>
+                                    <Box justifyContent="center" alignItems="center">
                                         {props.post.mediaUrl.endsWith('.mp4') ||
                                         props.post.mediaUrl.endsWith('.mov') ||
                                         props.post.mediaUrl.endsWith('.avi') ? (
@@ -551,7 +551,7 @@ export default function PostCardLeft(props) {
                                                     marginLeft: '2px',
                                                     marginBottom: '2px',
                                                     borderRadius: '2px',
-                                                    width: '96%',
+                                                    width: '100%',
                                                     height: 'auto',
                                                     objectFit: 'cover',
                                                 }}
