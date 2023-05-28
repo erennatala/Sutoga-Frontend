@@ -175,6 +175,9 @@ export default function Games() {
 
     const handleTabChange = (event, newValue) => {
         setTab(newValue);
+        if (newValue === 1) {
+            handleRecommendations();
+        }
     };
 
     const handleNext = () => {
@@ -293,20 +296,26 @@ export default function Games() {
             </Snackbar>
 
             <Grid container justifyContent="space-around" sx={{ pb: 3 }}>
-                <Grid item xs={12} sm={3} md={2.5}>
+                <Grid item xs={12} sm={3} md={2.5} sx={{ pt: 4}}>
                     <Card sx={{ bgcolor: "background.default" }}>
                         <Box sx={{ pl: 2, flexGrow: 1, width: 200 }}>
                             {isSteamConnected ? (
                                 <>
-                                    <Typography>
+                                    <Typography sx={{py: 1}}>
                                         <Button color="success" fullWidth variant="contained" disabled>
                                             Connected to Steam Account
                                         </Button>
                                     </Typography>
 
-                                    <Grid>
+                                    <Grid sx={{py: 1}}>
                                         <Button fullWidth size="large" color="inherit" variant="outlined" onClick={updateSteamGames}>
                                             Update Games
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid sx={{py: 1}}>
+                                        <Button variant="contained" onClick={handleGetRecommendation}>
+                                            Get Recommendations
                                         </Button>
                                     </Grid>
                                 </>
@@ -391,7 +400,7 @@ export default function Games() {
                     </Card>
                 </Grid>
 
-                <Grid item xs={10} sm={6} md={3}>
+                <Grid item xs={10} sm={6} md={3} sx={{ pt: 6}}>
                     <Card sx={{ bgcolor: "background.default" }}>
                         <Box sx={{ pl: 2, flexGrow: 1, width: 300 }}>
                             <Typography sx={{ fontWeight: "bold" }}>Your top five: </Typography>
@@ -472,17 +481,10 @@ export default function Games() {
 
                 <TabPanel value={tab} index={1}>
                     <Grid container justifyContent="center" sx={{ pt: 2 }}>
-                        <Grid item>
-                            <Button variant="contained" onClick={handleGetRecommendation}>
-                                Get Recommendations
-                            </Button>
-                        </Grid>
-                    </Grid>
-                    <Grid container justifyContent="center" sx={{ pt: 2 }}>
-                        {recommendations.map((game) => (
+                        {recommendations.map((game, index) => (
                             <Grid item key={game.id} xs={12} sm={6} md={4}>
                                 <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
-                                    <GameCard game={game} onClick={() => handleGameClick(game)} />
+                                    <GameCard game={game} onClick={() => handleGameClick(game)} index={index+1}/>
                                 </Box>
                             </Grid>
                         ))}
