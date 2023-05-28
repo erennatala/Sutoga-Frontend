@@ -7,18 +7,19 @@ const StyledCard = styled(Card)(({ theme }) => ({
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
+    position: 'relative', // Adding relative positioning to the card
     [theme.breakpoints.up('sm')]: {
         width: '100%', // Yüzde cinsinden genişlik
         height: 270,
     },
 }));
 
-export default function GameCard({ game, onClick }) {
+export default function GameCard({ game, onClick, index }) {
     return (
         <Container onClick={onClick} sx={{ cursor: 'pointer', py: 2 }}>
             <StyledCard>
                 <Grid container direction="column" spacing={1} style={{ height: '100%', alignItems: 'stretch' }}>
-                    <Grid item style={{ flexGrow: 1, overflow: 'hidden' }}>
+                    <Grid item style={{ flexGrow: 1, overflow: 'hidden', position: 'relative' }}>
                         <Box
                             component="img"
                             sx={{
@@ -30,6 +31,8 @@ export default function GameCard({ game, onClick }) {
                             alt={game.gameTitle}
                             src={game.gamePhotoUrl}
                         />
+                        <Typography variant="body1" sx={{ ml: 1.5, position: 'absolute', bottom: 0, left: 0, color: 'white', background: 'rgba(0, 0, 0, 0.5)', p: 1 }}>{index}</Typography>
+                        {/*<Typography variant="body1" sx={{ position: 'absolute', bottom: 0, right: 0, color: 'white', background: 'rgba(0, 0, 0, 0.5)', p: 1 }}>Right Text</Typography>*/}
                     </Grid>
 
                     <Grid item>
