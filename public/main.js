@@ -308,9 +308,9 @@ function createWindow() {
         win.loadURL(url);
     }
     //TODO unutma
-    win.webContents.on('did-finish-load', () => {
-        win.webContents.openDevTools();
-    });
+    // win.webContents.on('did-finish-load', () => {
+    //     win.webContents.openDevTools();
+    // });
 
 }
 
