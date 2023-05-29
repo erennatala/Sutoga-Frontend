@@ -57,7 +57,13 @@ function roomOpen() {
   control.className = ''
   reveal(videoMedia)
 
+  // get the username
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get('username');
+  // change "Local media" to the username
+  document.querySelector("#videoMedia h4").innerHTML = `<i class="fab fa-youtube"></i> ${''}`;
 }
+
 
 function hide(elem) {
   elem.className = 'hidden'

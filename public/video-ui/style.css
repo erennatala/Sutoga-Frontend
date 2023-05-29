@@ -27,6 +27,11 @@ body {
   row-gap: 10px;
 }
 
+#videoMedia {
+  display: flex; /* Flexbox layout'unu etkinleştirir */
+  flex-direction: row; /* Elemanların yatay doğrultuda sıralanmasını sağlar */
+}
+
 .localMedia,
 .remoteMedia {
   flex: 1 1 auto;
@@ -71,4 +76,14 @@ button:disabled {
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+.producer-container {
+  display: flex;
+  flex-direction: column; /* Bu ile 'you' üstte, video altta olacak */
+  align-items: center; /* Bu ile 'you' ve video merkezde olacak */
+}
+
+.producer-id {
+  font-weight: bold; /* Kalın yazı */
+  font-size: 1.5em; /* Büyük yazı, bu boyutu istediğiniz gibi ayarlayabilirsiniz */
 }

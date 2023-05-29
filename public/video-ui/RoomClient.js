@@ -243,16 +243,13 @@ class RoomClient {
      *  producer_socket_id:
      * }]
      */
-    this.socket.on(
-      'newProducers',
-      async function (data) {
-        console.log('New producers', data)
-        for (let { producer_id } of data) {
-          await this.consume(producer_id)
-        }
-      }.bind(this)
-    )
-
+    this.socket.on('newProducers', async function (data) {
+      console.log('New producers', data)
+      for (let { producer_id, producer_socket_id, producer_name } of data) {
+        console.log(producer_id, producer_socket_id, producer_name)
+        await this.consume(producer_id, producer_name)
+      }
+    }.bind(this))
     this.socket.on(
       'disconnect',
       function () {
@@ -354,14 +351,26 @@ class RoomClient {
 
       let elem
       if (!audio) {
-        elem = document.createElement('video')
-        elem.srcObject = stream
-        elem.id = producer.id
-        elem.playsinline = false
-        elem.autoplay = true
-        elem.className = 'vid'
-        this.localMediaEl.appendChild(elem)
-        this.handleFS(elem.id)
+        let containerElem = document.createElement('div'); // Yeni div elementi oluşturduk.
+        containerElem.className = 'producer-container'; // Div elementine bir class atadık.
+
+        let idElem = document.createElement('p');
+        idElem.innerText = "You";
+        idElem.id = 'you';
+        idElem.className = 'producer-id';
+
+        elem = document.createElement('video');
+        elem.srcObject = stream;
+        elem.id = producer.id;
+        elem.playsinline = false;
+        elem.autoplay = true;
+        elem.className = 'vid';
+
+        containerElem.appendChild(idElem); // idElem ve elem'i containerElem div'inin içine ekledik.
+        containerElem.appendChild(elem);
+
+        this.localMediaEl.appendChild(containerElem); // localMediaEl'e artık sadece containerElem'i ekliyoruz.
+        this.handleFS(elem.id);
       }
 
       producer.on('trackended', () => {
@@ -410,23 +419,39 @@ class RoomClient {
     }
   }
 
-  async consume(producer_id) {
-    //let info = await this.roomInfo()
-
+  async consume(producer_id,name) {
     this.getConsumeStream(producer_id).then(
-      function ({ consumer, stream, kind }) {
-        this.consumers.set(consumer.id, consumer)
+        function ({ consumer, stream, kind }) {
+          this.consumers.set(consumer.id, consumer)
 
-        let elem
-        if (kind === 'video') {
-          elem = document.createElement('video')
-          elem.srcObject = stream
-          elem.id = consumer.id
-          elem.playsinline = false
-          elem.autoplay = true
-          elem.className = 'vid'
-          this.remoteVideoEl.appendChild(elem)
-          this.handleFS(elem.id)
+          let elem
+          if (kind === 'video') {
+            // Create a new div to hold the video and the ID
+            let videoContainer = document.createElement('div');
+            videoContainer.className = 'video-container';
+
+            // Create the video element as before
+            elem = document.createElement('video')
+            elem.srcObject = stream
+            elem.id = consumer.id
+            elem.playsinline = false
+            elem.autoplay = true
+            elem.className = 'vid'
+
+            // Add the video element to the container
+            let idElem = document.createElement('p');
+            idElem.innerText = name;
+            idElem.id = 'producer-name-' + consumer.id; // assign a unique id
+            idElem.className = 'producer-id';
+            videoContainer.appendChild(idElem);
+
+
+            videoContainer.appendChild(elem);
+
+
+
+            this.remoteVideoEl.appendChild(videoContainer)
+            this.handleFS(elem.id)
         } else {
           elem = document.createElement('audio')
           elem.srcObject = stream
@@ -503,8 +528,19 @@ class RoomClient {
       elem.srcObject.getTracks().forEach(function (track) {
         track.stop()
       })
+      // remove the name element
+
+      // remove the video element
+      // remove the video element
       elem.parentNode.removeChild(elem)
+
     }
+    let nameElem = document.getElementById('you');
+    if(nameElem){
+      nameElem.remove();
+
+    }
+
 
     switch (type) {
       case mediaType.audio:
@@ -547,6 +583,14 @@ class RoomClient {
       track.stop()
     })
     elem.parentNode.removeChild(elem)
+
+    let nameElem = document.getElementById('producer-name-' + consumer_id);
+    if(nameElem){
+      nameElem.remove();
+
+    }
+
+
 
     this.consumers.delete(consumer_id)
   }
