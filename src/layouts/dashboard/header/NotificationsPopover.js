@@ -83,6 +83,7 @@ export default function NotificationsPopover({onSuccess}) {
       //const newSocket = ioV2("http://13.53.101.21:9092/");
 
       const username1 = await window.electron.ipcRenderer.invoke('getUsername');
+      const id = await window.electron.ipcRenderer.invoke('getId');
 
       const newSocket = ioV2("http://13.53.101.21:9092/", {
         timeout: 5000,
@@ -97,7 +98,7 @@ export default function NotificationsPopover({onSuccess}) {
         console.log('Connection Error: ' + error);
       });
 
-      newSocket.on('notification', (newNotification) => {
+      newSocket.on('notification'+id, (newNotification) => {
         const notificationObj = JSON.parse(newNotification);
 
         if (notificationObj.senderUsername !== username1) {
@@ -106,7 +107,7 @@ export default function NotificationsPopover({onSuccess}) {
         }
       });
 
-      newSocket.on('cancelNotification', (cancelledNotification) => {
+      newSocket.on('cancelNotification'+id, (cancelledNotification) => {
         const notificationObj = JSON.parse(cancelledNotification);
 
         setNotifications((prevNotifications) =>
@@ -131,6 +132,7 @@ export default function NotificationsPopover({onSuccess}) {
     setNotifications((prevNotifications) =>
         prevNotifications.filter(notification => notification.id !== notificationId)
     );
+    setTotalUnRead(totalUnRead - 1)
     onSuccess()
   };
 
