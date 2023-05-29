@@ -165,6 +165,8 @@ export default function RegisterPage() {
 
         const steam = await window.electron.ipcRenderer.invoke('getSteamId');
 
+        console.log(steam)
+
         try {
             const signuprequest = JSON.stringify({
                 firstName: firstName,
@@ -185,13 +187,23 @@ export default function RegisterPage() {
             await response.then((result) => {
                 data = result.data;
                 return data;
-            })
+            });
+
+            // credentials are set here
+            await window.electron.ipcRenderer.invoke('setCredentials', {
+                token: data.token,
+                userId: data.userId,
+                username: userName,
+                steamId: steam,
+            });
+
             await axios.post(`${BASE_URL}games/startFetchUserGames/${data.userId}`, null, {
                 headers: { 'Authorization': `${data.token}` },
             });
+
             setSuccess(true);
             setToastOpen(true);
-            navigate('/home', { replace: true });
+            navigate('/login', { replace: true });
         } catch(err) {
             await window.electron.ipcRenderer.invoke('deleteSteamId');
             console.log("error")

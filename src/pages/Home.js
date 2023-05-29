@@ -127,7 +127,7 @@ export default function Home() {
             const options = {
                 properties: ['openFile'],
                 filters: [
-                    { name: 'Media Files', extensions: ['jpg', 'png', 'gif', 'mp4', 'mov', 'avi'] },
+                    { name: 'Media Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi'] },
                     { name: 'All Files', extensions: ['*'] },
                 ],
             };
