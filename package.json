@@ -29,7 +29,7 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "public/main-logo.ico"
+      "icon": "public/main-logo.ico",
     },
     "win": {
       "target": "nsis",
@@ -37,6 +37,7 @@
     },
     "files": [
       "build/**/*",
+      "public/**/*",
       "node_modules/**/*",
       "package.json"
     ],
