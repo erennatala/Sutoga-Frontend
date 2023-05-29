@@ -85,14 +85,20 @@ export default function Home() {
         }
     };
 
+    useEffect(() => {
+        if(refreshing){
+            loadMorePosts();
+            setRefreshing(false);
+        }
+    }, [refreshing]);
+
     const refreshPosts = async () => {
         setRefreshing(true);
         setPosts([]);
         setPage(0);
         setHasMore(true);
-        await loadMorePosts();
-        setRefreshing(false);
     };
+
 
     useEffect(() => {
         (async () => {

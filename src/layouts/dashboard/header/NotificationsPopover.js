@@ -70,6 +70,7 @@ export default function NotificationsPopover() {
           Authorization: `${token}`,
         },});
       console.log(response.data)
+      setTotalUnRead(response.data.length)
       setNotifications(response.data);
     };
 
@@ -137,9 +138,10 @@ export default function NotificationsPopover() {
     }, 0);
   };
 
-
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
+    setTotalUnRead(0);
+    setNotifications(notifications.map(notification => ({ ...notification, isUnRead: false })));
   };
 
   const handleClose = () => {
