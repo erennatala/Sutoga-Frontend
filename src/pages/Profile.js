@@ -403,6 +403,8 @@ export default function Profile() {
         const token = await window.electron.ipcRenderer.invoke('getToken');
         const userId = await window.electron.ipcRenderer.invoke('getId');
 
+        console.log(editDescription)
+
         try {
             const response = await axios.put(`${BASE_URL}users/${userId}`, formData, {
                 headers: {
@@ -707,7 +709,7 @@ export default function Profile() {
 
                         <TextField
                             label="Description"
-                            defaultValue={editDescription}
+                            value={editDescription}
                             fullWidth
                             onChange={event => setEditDescription(event.target.value)}
                         />
@@ -779,12 +781,14 @@ export default function Profile() {
                                     </Grid>
 
                                     <Grid direction="column" sx={{paddingY: 6}} xs={6}>
+                                        <Typography variant="subtitle1" gutterBottom>{user.firstName} {' '} {user.lastName}</Typography>
+
                                         <Typography variant="h3" sx={{fontWeight: "bold", fontSize: usernameFontSize}} gutterBottom>
                                             {username}
                                         </Typography>
 
-                                        <Typography flexWrap variant="h7" gutterBottom>
-                                            {user.profileDescription !== null ? ("") : (user.profileDescription)}
+                                        <Typography flexWrap variant="h7" gutterBottom sx={{pt: 0.5}}>
+                                            {user.profileDescription === null ? ("") : (user.profileDescription)}
                                         </Typography>
                                     </Grid>
 
