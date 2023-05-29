@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 // @mui
 import { styled } from '@mui/material/styles';
@@ -6,6 +6,8 @@ import { styled } from '@mui/material/styles';
 import Header from './header';
 import Nav from './nav';
 import { useSelector } from 'react-redux';
+import {Alert} from "@mui/lab";
+import {Snackbar} from "@mui/material";
 
 // ----------------------------------------------------------------------
 
@@ -37,11 +39,34 @@ export default function DashboardLayout() {
   const [open, setOpen] = useState(false);
   const userData = useSelector(state => state.auth);
 
+    const [snackbarMessage, setSnackbarMessage] = useState("")
+    const [snackbarSeverity, setSnackbarSeverity] = useState(null)
+    const [snackbarOpen, setSnackbarOpen] = useState(false)
+
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbarOpen(false);
+    };
+
+    const handleSnackbar = (message, severity) => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
   return (
       <StyledRoot>
-        <Header onOpenNav={() => setOpen(true)} username={userData.username} profilePhotoUrl={userData.profilePhotoUrl}/>
+          <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleCloseSnackbar}>
+              <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                  {snackbarMessage}
+              </Alert>
+          </Snackbar>
 
-        <Nav openNav={open} onCloseNav={() => setOpen(false)} username={userData.username} profilePhotoUrl={userData.profilePhotoUrl}/>
+        <Header onOpenNav={() => setOpen(true)} username={userData.username} profilePhotoUrl={userData.profilePhotoUrl} onSuccess={() => handleSnackbar("Friend request accepted!", "success")}/>
+
+        <Nav openNav={open} onCloseNav={() => setOpen(false)} username={userData.username} profilePhotoUrl={userData.profilePhotoUrl} onSuccess={() => handleSnackbar("Friend request sent!", "success")}/>
 
         <Main>
           <Outlet />

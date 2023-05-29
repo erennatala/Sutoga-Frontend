@@ -35,7 +35,7 @@ Nav.propTypes = {
   onCloseNav: PropTypes.func,
 };
 
-export default function Nav({ openNav, onCloseNav }) {
+export default function Nav({ openNav, onCloseNav, onSuccess }) {
   const theme = useTheme();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -101,15 +101,30 @@ export default function Nav({ openNav, onCloseNav }) {
         }
       });
 
-      const nextRecommendation = await getFriendRecommendation(userId);
+      let nextRecommendation = await getFriendRecommendation(userId);
+      let retryCount = 0;
+
+      while (friendRec.find(user => user.username === nextRecommendation.username) && retryCount < 2) {
+        nextRecommendation = await getFriendRecommendation(userId);
+        retryCount++;
+      }
 
       setFriendRec((prevFriendRec) => {
         const updatedFriendRec = [...prevFriendRec];
         updatedFriendRec.splice(index, 1);
-        updatedFriendRec.push(nextRecommendation);
+        if (!updatedFriendRec.find(user => user.username === nextRecommendation.username)) {
+          updatedFriendRec.push(nextRecommendation);
+        }
+        onSuccess()
         return updatedFriendRec;
       });
     } catch (error) {
+      setFriendRec((prevFriendRec) => {
+        const updatedFriendRec = [...prevFriendRec];
+        updatedFriendRec.splice(index, 1);
+        onSuccess()
+        return updatedFriendRec;
+      });
       console.log(error);
     }
   };
@@ -207,7 +222,7 @@ export default function Nav({ openNav, onCloseNav }) {
           <Grid xs={12}>
             <Container columns={12} sx={{ height: "400px" }}>
               <Grid xs={12} sx={{ backgroundColor: alpha(theme.palette.grey[500], 0.12), borderRadius: Number(theme.shape.borderRadius) }}>
-                {Array.isArray(friendRec) && friendRec.map((user, index) => (
+                {Array.isArray(friendRec) && friendRec.length > 0 && friendRec.map((user, index) => (
                     <div key={index}>
                       <FriendRecCard index={index} nickname={user.username} sent={false} photo={user.profilePhotoUrl} onAddFriend={(e, k) => handleAddFriend(e, k)} />
                     </div>

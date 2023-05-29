@@ -451,13 +451,32 @@ export default function UserProfile() {
             setIsSent(true);
             setIsSender(true);
             setLoadingFriendRequest(false);
+            handleSnackbar('Friend request sent!!', 'success');
         } catch (error) {
             console.log(error);
         }
     };
 
     const handleRemoveSentRequest = async () => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
 
+            const response = await axios.delete(`${BASE_URL}users/${userId}/removeRequest/${user.userName}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            if (response.status === 200) {
+                setIsSent(false);
+                setIsSender(false);
+            } else {
+                console.log('Failed to remove friend request');
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     const handleAcceptRequest = async () => {

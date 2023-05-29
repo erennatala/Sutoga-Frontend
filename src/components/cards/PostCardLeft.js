@@ -521,7 +521,7 @@ export default function PostCardLeft(props) {
                         {props.post.mediaUrl ? (
                             <Box>
                                 <Box sx={{ ml: 3, mb: 2 }}>
-                                    <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
+                                    <Typography variant="subtitle-1" sx={{ color: 'text.primary' }}>
                                         {props.post.description}
                                     </Typography>
                                 </Box>
@@ -533,7 +533,7 @@ export default function PostCardLeft(props) {
                                         props.post.mediaUrl.endsWith('.avi') ? (
                                             <video
                                                 style={{
-                                                    marginLeft: '2px',
+                                                    marginLeft: '4px',
                                                     marginBottom: '2px',
                                                     borderRadius: '2px',
                                                     width: '100%',
@@ -562,7 +562,7 @@ export default function PostCardLeft(props) {
                                 </Grid>
                             </Box>
                         ) : (
-                            <Typography variant={props.img ? 'subtitle2' : 'h6'} sx={{ color: 'text.primary', ml: 2, mb: 2 }}>
+                            <Typography variant={props.img ? 'subtitle1' : 'subtitle1'} sx={{ color: 'text.primary', ml: 2, mb: 2 }}>
                                 {props.post.description}
                             </Typography>
                         )}
