@@ -23,7 +23,7 @@ const BASE_URL = process.env.REACT_APP_URL
 export default function Home() {
     const theme = useTheme();
     const userName = useSelector((state)=> state.auth.userName);
-    const [friendRec, setFriendRec] = useState([{id: 1}])
+    const [refreshing, setRefreshing] = useState(false);
 
     const [openCreate, setOpenCreate] = useState(false);
     const [collapse, setCollapse] = useState(false);
@@ -84,6 +84,21 @@ export default function Home() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if(refreshing){
+            loadMorePosts();
+            setRefreshing(false);
+        }
+    }, [refreshing]);
+
+    const refreshPosts = async () => {
+        setRefreshing(true);
+        setPosts([]);
+        setPage(0);
+        setHasMore(true);
+    };
+
 
     useEffect(() => {
         (async () => {
@@ -387,6 +402,10 @@ export default function Home() {
                             </Grid>
                         </ClickAwayListener>
                     </Grid>
+
+                    <IconButton onClick={refreshPosts} disabled={refreshing}>
+                        <Iconify icon="mdi:refresh" />
+                    </IconButton>
 
                     <Grid item spacing={2} sx={{px: 15}}>
                         <InfiniteScroll

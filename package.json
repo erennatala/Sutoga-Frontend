@@ -25,7 +25,7 @@
     "productName": "Sutoga",
     "appId": "com.sutoga.app",
     "directories": {
-      "output": "dist/mac1"
+      "output": "dist"
     },
     "mac": {
       "target": "dmg",
@@ -37,6 +37,7 @@
     },
     "files": [
       "build/**/*",
+      "public/**/*",
       "node_modules/**/*",
       "package.json"
     ],

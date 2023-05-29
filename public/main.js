@@ -268,7 +268,7 @@ function createWindow() {
         minWidth: 1300, // Set minimum width (optional)
         minHeight: 800, // Set minimum height (optional)
         webPreferences: {
-            nodeIntegration: true,
+            nodeIntegration: false,
             contextIsolation: true,
             //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
             //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
@@ -296,9 +296,13 @@ function createWindow() {
         win.webContents.send('baseURL', BASE_URL);
     });
 
+    //TODO prod ve dev'de burası kesinlikle değişiyior!
+
     const url = isDev
         ? 'http://localhost:3000'
         : `file://${path.join(__dirname, '../build/index.html')}`;
+
+    //const url = `file://${path.join(__dirname, '../build/index.html')}`;
 
     win.on('resize', () => {
         win.webContents.send('window-resize', win.getSize());
@@ -308,12 +312,10 @@ function createWindow() {
         win.loadURL(url);
     }
     //TODO unutma
-    // win.webContents.on('did-finish-load', () => {
-    //     win.webContents.openDevTools();
-    // });
-
+    win.webContents.on('did-finish-load', () => {
+        win.webContents.openDevTools();
+    });
 }
-
 
 ipcMain.handle(
     'DESKTOP_CAPTURER_GET_SOURCES',
