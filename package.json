@@ -28,22 +28,10 @@
       "output": "dist"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "identity": null
-    },
-    "dmg": {
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
     },
     "win": {
       "target": "nsis",
@@ -187,8 +175,8 @@
     "@svgr/webpack": "^6.5.0",
     "concurrently": "^8.0.1",
     "cross-env": "^7.0.3",
-    "electron": "^19.1.9",
-    "electron-builder": "^22.14.13",
+    "electron": "^25.0.0",
+    "electron-builder": "^23.6.0",
     "electron-is-dev": "^2.0.0",
     "electron-reloader": "^1.2.3",
     "eslint": "8.22.0",
