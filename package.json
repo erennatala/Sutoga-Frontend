@@ -28,8 +28,22 @@
       "output": "dist"
     },
     "mac": {
-      "target": "dmg",
-      "icon": "public/main-logo.ico"
+      "target": ["dmg"],
+      "identity": null
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     },
     "win": {
       "target": "nsis",

@@ -7,7 +7,7 @@ import {useNavigate} from "react-router-dom";
 
 const BASE_URL = process.env.REACT_APP_URL
 
-function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
+function FriendRequestNotificationItem({ friendRequest, onSuccess, navigateToProfile }) {
     const { sender, receiver, id } = friendRequest;
 
     const handleAccept = async () => {
@@ -41,7 +41,7 @@ function FriendRequestNotificationItem({ friendRequest, onSuccess }) {
     };
 
     return (
-        <ListItemButton sx={{ py: 1.5, px: 2.5, mt: '1px' }}>
+        <ListItemButton sx={{ py: 1.5, px: 2.5, mt: '1px' }} onClick={() => navigateToProfile(friendRequest.senderUsername)}>
             <ListItemText
                 primary={
                     <Typography variant="subtitle1">

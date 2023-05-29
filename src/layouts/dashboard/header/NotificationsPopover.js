@@ -32,7 +32,7 @@ import {useNavigate} from "react-router-dom";
 // ----------------------------------------------------------------------
 const BASE_URL = process.env.REACT_APP_URL;
 
-export default function NotificationsPopover() {
+export default function NotificationsPopover({onSuccess}) {
   const [notifications, setNotifications] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [open, setOpen] = useState(null);
@@ -106,6 +106,16 @@ export default function NotificationsPopover() {
         }
       });
 
+      newSocket.on('cancelNotification', (cancelledNotification) => {
+        const notificationObj = JSON.parse(cancelledNotification);
+
+        setNotifications((prevNotifications) =>
+            prevNotifications.filter(
+                (notification) => notification.id !== notificationObj.id
+            )
+        );
+      });
+
       setSocket(newSocket);
     };
 
@@ -121,6 +131,7 @@ export default function NotificationsPopover() {
     setNotifications((prevNotifications) =>
         prevNotifications.filter(notification => notification.id !== notificationId)
     );
+    onSuccess()
   };
 
   const navigateToProfile = (username) => {
@@ -332,7 +343,7 @@ function renderContent(notification, handleSuccess, navigateToProfile) {
             key={notification.friendRequestActivity.id}
             friendRequest={notification}
             onSuccess={handleSuccess}
-            onClick={() => navigateToProfile(notification.senderUsername)}
+            navigateToProfile={navigateToProfile}
         />
     );
     avatar = notification.senderPhotoUrl ? (

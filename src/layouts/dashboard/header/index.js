@@ -48,7 +48,7 @@ Header.propTypes = {
 
 const BASE_URL = process.env.REACT_APP_URL
 
-export default function Header({ onOpenNav }) {
+export default function Header({ onOpenNav, onSuccess }) {
     const [localUsername, setLocalUsername] = useState("")
     const [photoUrl, setPhotoUrl] = useState("")
 
@@ -112,7 +112,7 @@ export default function Header({ onOpenNav }) {
                     }}
                 >
                     <Searchbar />
-                    <NotificationsPopover />
+                    <NotificationsPopover onSuccess={onSuccess}/>
                     <AccountPopover profilePhotoUrl={photoUrl} />
 
                 </Stack>
