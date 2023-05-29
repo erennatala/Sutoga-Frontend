@@ -25,11 +25,11 @@
     "productName": "Sutoga",
     "appId": "com.sutoga.app",
     "directories": {
-      "output": "dist/mac1"
+      "output": "dist"
     },
     "mac": {
       "target": "dmg",
-      "icon": "public/main-logo.ico",
+      "icon": "public/main-logo.ico"
     },
     "win": {
       "target": "nsis",
