@@ -57,7 +57,8 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 const BASE_URL = process.env.REACT_APP_URL
 
-const bgImage = "http://13.53.101.21:9000/sutogacdnbucket/bg.jpg";
+//const bgImage = "http://13.51.177.125:9000/sutogacdnbucket/bg.jpg";
+const bgImage = "http://16.170.204.127:9000/sutogacdnbucket/bg.jpg";
 
 export default function LoginPage() {
   const navigate = useNavigate();

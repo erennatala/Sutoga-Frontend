@@ -80,12 +80,12 @@ export default function NotificationsPopover({onSuccess}) {
 
   useEffect(() => {
     const initializeSocket = async () => {
-      //const newSocket = ioV2("http://13.53.101.21:9092/");
+      //const newSocket = ioV2("http://13.51.177.125:9092/");
 
       const username1 = await window.electron.ipcRenderer.invoke('getUsername');
       const id = await window.electron.ipcRenderer.invoke('getId');
 
-      const newSocket = ioV2("http://13.53.101.21:9092/", {
+      const newSocket = ioV2("http://16.170.204.127:9092/", {
         timeout: 5000,
         transports: ['websocket']
       });

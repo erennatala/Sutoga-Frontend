@@ -18,7 +18,8 @@ import FriendRecCard from "../../../components/cards/FriendRecCard";
 const NAV_WIDTH = 255;
 const BASE_URL = process.env.REACT_APP_URL
 const { electron } = window;
-const bgImage = "http://13.53.101.21:9000/sutogacdnbucket/main-logo.png";
+//const bgImage = "http://13.51.177.125:9000/sutogacdnbucket/main-logo.png";
+const bgImage = "http://16.170.204.127:9000/sutogacdnbucket/main-logo.png";
 
 const StyledAccount = styled('div')(({ theme }) => ({
   display: 'flex',
