@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain, dialog ,desktopCapturer} = require('electron');
+const { app, BrowserWindow, screen, ipcMain, dialog , desktopCapturer, systemPreferences} = require('electron');
 const path = require('path');
 const axios = require('axios');
 //const isDev = require('electron-is-dev');
@@ -327,7 +327,19 @@ ipcMain.handle(
     (event, opts) => desktopCapturer.getSources(opts)
 )
 
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+    if (process.platform === 'darwin') {
+        const microphonePermission = await systemPreferences.askForMediaAccess('microphone');
+        const cameraPermission = await systemPreferences.askForMediaAccess('camera');
+        const screenPermission = await systemPreferences.askForMediaAccess('screen');
+
+        if (!microphonePermission || !cameraPermission || !screenPermission) {
+            console.error('Kamera, mikrofon ve ekran paylaşımı izinleri verilmedi.');
+        }
+    }
+
+    createWindow();
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

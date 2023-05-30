@@ -7,7 +7,8 @@
   },
   "mac": {
     "category": "public.app-category.utilities",
-    "target": "default"
+    "target": "default",
+    "entitlements": "entitlements.mac.plist"
   },
   "dmg": {
     "contents": [
