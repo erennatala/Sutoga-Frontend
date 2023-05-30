@@ -28,10 +28,23 @@
       "output": "dist"
     },
     "mac": {
-      "target": [
-        "dmg"
-      ],
-      "identity": null
+      "target": ["dmg"],
+      "identity": null,
+      "entitlements": "entitlements.mac.plist"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     },
     "win": {
       "target": "nsis",

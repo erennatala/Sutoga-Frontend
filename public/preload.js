@@ -39,4 +39,5 @@ contextBridge.exposeInMainWorld('electron', {
         removeListener: (channel, listener) => ipcRenderer.removeListener(channel, listener),
         checkFileExists: (path) => ipcRenderer.invoke('check-file-exists', path),
     },
+    openDevTools: () => ipcRenderer.invoke('open-devtools')
 });

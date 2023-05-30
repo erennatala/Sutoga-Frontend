@@ -283,20 +283,21 @@ export default function Messages() {
                         if (!friend) {
                             return (
                                 <React.Fragment key={item.secondUser}>
-                                    <ListItem button onClick={() => handleSelectConversation(item)}>
-                                        <Typography variant="caption" style={{ opacity: 0.7 ,marginRight:'14px' }}>
-                                            Group
-                                        </Typography>
-                                        <ListItemText
-                                            primary={
-                                                <Typography noWrap={true} style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                    {item.secondUser.length > 10 ? item.secondUser.substring(0, 10) + '...' : item.secondUser}
-                                                </Typography>
-                                            }
-                                        />
-
-                                    </ListItem>
-                                    <Divider />
+                                    {item.groupMembers && item.groupMembers.length > 0 && (
+                                        <ListItem button onClick={() => handleSelectConversation(item)}>
+                                            <Typography variant="caption" style={{ opacity: 0.7 ,marginRight:'14px' }}>
+                                                Group
+                                            </Typography>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography noWrap={true} style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {item.secondUser.length > 10 ? item.secondUser.substring(0, 10) + '...' : item.secondUser}
+                                                    </Typography>
+                                                }
+                                            />
+                                            <Divider />
+                                        </ListItem>
+                                    )}
                                 </React.Fragment>
                             );
                         }

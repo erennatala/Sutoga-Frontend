@@ -78,6 +78,7 @@ export default function Games() {
 
     const [tab, setTab] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [recloading, setRecloading] = useState(false);
     const [isSteamConnected, setIsSteamConnected] = useState(false);
 
     useEffect(() => {
@@ -252,6 +253,7 @@ export default function Games() {
     }
 
     const handleGetRecommendation = async () => {
+        setRecloading(true)
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
             const userId = await window.electron.ipcRenderer.invoke('getId');
@@ -264,6 +266,8 @@ export default function Games() {
                 setRecommendations(response.data)
         } catch (error) {
             console.error(error);
+        } finally {
+            setRecloading(false); // Stop loading after fetching data
         }
     };
 
@@ -481,16 +485,23 @@ export default function Games() {
 
                 <TabPanel value={tab} index={1}>
                     <Grid container justifyContent="center" sx={{ pt: 2 }}>
-                        {recommendations.map((game, index) => (
-                            <Grid item key={game.id} xs={12} sm={6} md={4}>
-                                <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
-                                    <GameCard game={game} onClick={() => handleGameClick(game)} index={index+1}/>
-                                </Box>
-                            </Grid>
-                        ))}
+                        {recommendations.length ?
+                            recommendations.map((game, index) => (
+                                <Grid item key={game.id} xs={12} sm={6} md={4}>
+                                    <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
+                                        <GameCard game={game} onClick={() => handleGameClick(game)} index={index+1}/>
+                                    </Box>
+                                </Grid>
+                            ))
+                            :
+                            (!recloading ?
+                                    <Typography variant="h5">No Recommendations Found</Typography>
+                                    :
+                                    <LoadingRow/>
+                            )
+                        }
                     </Grid>
                 </TabPanel>
-
             </Card>
 
             <Dialog open={dialogOpen} onClose={handleCloseDialog}>
