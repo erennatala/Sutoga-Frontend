@@ -81,6 +81,19 @@ export default function Games() {
     const [recloading, setRecloading] = useState(false);
     const [isSteamConnected, setIsSteamConnected] = useState(false);
 
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbarOpen(false);
+    };
+
+    const handleSnackbar = (message, severity) => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
     useEffect(() => {
         const sortedGames = games.sort((a, b) => b.playtime - a.playtime);
         const topFiveGames = sortedGames.slice(0, 5);
@@ -262,8 +275,13 @@ export default function Games() {
                 headers: { 'Authorization': `${token}` },
             });
 
-            if (recommendations.data !== null)
+            if (recommendations.data !== null) {
                 setRecommendations(response.data)
+                setSnackbarOpen(true);
+                setSnackbarSeverity('success');
+                setSnackbarMessage('Getting your recommendations...');
+            }
+
         } catch (error) {
             console.error(error);
         } finally {
