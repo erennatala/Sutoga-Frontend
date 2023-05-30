@@ -132,7 +132,6 @@ export default function NotificationsPopover({onSuccess}) {
     setNotifications((prevNotifications) =>
         prevNotifications.filter(notification => notification.id !== notificationId)
     );
-    setTotalUnRead(totalUnRead - 1)
     onSuccess()
   };
 
@@ -341,12 +340,14 @@ function renderContent(notification, handleSuccess, navigateToProfile) {
     );
   } else if (notification) {
     title = (
-        <FriendRequestNotificationItem
-            key={notification.friendRequestActivity.id}
-            friendRequest={notification}
-            onSuccess={handleSuccess}
-            navigateToProfile={navigateToProfile}
-        />
+        (notification.friendRequestActivity !== null &&
+              <FriendRequestNotificationItem
+                  key={notification.friendRequestActivity.id}
+                  friendRequest={notification}
+                  onSuccess={handleSuccess}
+                  navigateToProfile={navigateToProfile}
+              />
+        )
     );
     avatar = notification.senderPhotoUrl ? (
         <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />

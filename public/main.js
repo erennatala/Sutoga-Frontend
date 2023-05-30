@@ -93,6 +93,11 @@ if (isDev) {
     });
 }
 
+ipcMain.handle('open-devtools', async (event) => {
+    BrowserWindow.getFocusedWindow().webContents.openDevTools();
+});
+
+
 ipcMain.handle('open-file-dialog', async (event, options) => {
     const result = await dialog.showOpenDialog(options);
     return result.filePaths;
@@ -298,9 +303,9 @@ function createWindow() {
 
     //TODO prod ve dev'de burası kesinlikle değişiyior!
 
-    //const url = isDev
-    //    ? 'http://localhost:3000'
-    //    : `file://${path.join(__dirname, '../build/index.html')}`;
+    // const url = isDev
+    //     ? 'http://localhost:3000'
+    //     : `file://${path.join(__dirname, '../build/index.html')}`;
 
     const url = `file://${path.join(__dirname, '../build/index.html')}`;
 
@@ -312,9 +317,9 @@ function createWindow() {
         win.loadURL(url);
     }
     //TODO unutma
-    //win.webContents.on('did-finish-load', () => {
-    //    win.webContents.openDevTools();
-    //});
+    // win.webContents.on('did-finish-load', () => {
+    //     win.webContents.openDevTools();
+    // });
 }
 
 ipcMain.handle(
