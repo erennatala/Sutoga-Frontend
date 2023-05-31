@@ -5,6 +5,10 @@
     "output": "dist",
     "buildResources": "build"
   },
+  "win": {
+    "target": "nsis",
+    "icon": "public/main-logo.ico"
+  },
   "mac": {
     "category": "public.app-category.utilities",
     "target": "default",
@@ -38,7 +42,11 @@
     "!_config.yml",
     "!karma.conf.js",
     "!tsconfig.json",
-    "!tslint.json"
+    "!tslint.json",
+    "build/**/*",
+    "public/**/*",
+    "node_modules/**/*",
+    "package.json"
   ],
   "asar": true
 }
