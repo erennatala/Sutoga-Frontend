@@ -269,11 +269,7 @@ export default function Games() {
 
         await axios.post(`${BASE_URL}games/startFetchUserGames/${userId}`, null, {
             headers: { 'Authorization': `${token}` },
-        });
-
-        setSnackbarOpen(true);
-        setSnackbarSeverity('success');
-        setSnackbarMessage('Done!');
+        });');
     }
 
     const handleGetRecommendation = async () => {

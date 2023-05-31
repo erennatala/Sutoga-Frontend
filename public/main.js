@@ -199,6 +199,17 @@ ipcMain.handle('logout', async () => {
     store.delete('userId');
     store.delete('username');
     store.delete('steamid');
+
+    const allWindows = BrowserWindow.getAllWindows();
+    if(allWindows.length) {
+        const win = allWindows[0];
+        const cookies = await win.webContents.session.cookies.get({});
+        cookies.forEach((cookie) => {
+            if (cookie.name.includes('steamLogin')) {
+                win.webContents.session.cookies.remove(cookie.domain, cookie.name);
+            }
+        });
+    }
     return "Logged out";
 });
 
