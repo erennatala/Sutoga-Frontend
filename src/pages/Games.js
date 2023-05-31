@@ -240,6 +240,9 @@ export default function Games() {
                         await axios.post(`${BASE_URL}games/startFetchUserGames/${userId}`, null, {
                             headers: { 'Authorization': `${token}` },
                         });
+                        setSnackbarOpen(true);
+                        setSnackbarSeverity('success');
+                        setSnackbarMessage('Fetching your games...');
                     } else {
                         setSnackbarOpen(true);
                         setSnackbarSeverity('error');
