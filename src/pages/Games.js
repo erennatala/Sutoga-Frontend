@@ -263,9 +263,17 @@ export default function Games() {
         const token = await window.electron.ipcRenderer.invoke('getToken');
         const userId = await window.electron.ipcRenderer.invoke('getId');
 
+        setSnackbarOpen(true);
+        setSnackbarSeverity('success');
+        setSnackbarMessage('Fetching your steam library...');
+
         await axios.post(`${BASE_URL}games/startFetchUserGames/${userId}`, null, {
             headers: { 'Authorization': `${token}` },
         });
+
+        setSnackbarOpen(true);
+        setSnackbarSeverity('success');
+        setSnackbarMessage('Done!');
     }
 
     const handleGetRecommendation = async () => {
@@ -273,6 +281,10 @@ export default function Games() {
         try {
             const token = await window.electron.ipcRenderer.invoke('getToken');
             const userId = await window.electron.ipcRenderer.invoke('getId');
+
+            setSnackbarOpen(true);
+            setSnackbarSeverity('success');
+            setSnackbarMessage('Getting your recommendations...');
 
             const response = await axios.get(`${BASE_URL}games/fetchRecommendations/${userId}`, {
                 headers: { 'Authorization': `${token}` },
@@ -282,7 +294,7 @@ export default function Games() {
                 setRecommendations(response.data)
                 setSnackbarOpen(true);
                 setSnackbarSeverity('success');
-                setSnackbarMessage('Getting your recommendations...');
+                setSnackbarMessage('Done!');
             }
 
         } catch (error) {
