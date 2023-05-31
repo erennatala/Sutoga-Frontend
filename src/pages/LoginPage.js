@@ -16,6 +16,7 @@ import Iconify from '../components/iconify';
 // sections
 import { LoginForm } from '../sections/auth/login';
 import LoadingScreen from "./LoadingScreen";
+import axios from "axios";
 
 // --------------------------------------------------------------------
 const FormCard = styled(Card)({
@@ -56,7 +57,8 @@ const StyledContent = styled('div')(({ theme }) => ({
 
 const BASE_URL = process.env.REACT_APP_URL
 
-const bgImage = "http://13.53.101.21:9000/sutogacdnbucket/bg.jpg";
+//const bgImage = "http://13.51.177.125:9000/sutogacdnbucket/bg.jpg";
+const bgImage = "http://16.170.204.127:9000/sutogacdnbucket/bg.jpg";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -66,10 +68,59 @@ export default function LoginPage() {
   const [open, setOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
+  const [isSteamConnected, setIsSteamConnected] = useState(false);
 
-  const handleSteamClick = () => {
-    window.location.href = "http://localhost:3001/auth/steam";
-  }
+  const handleSteamClick = async () => {
+    try {
+      const result = await window.electron.ipcRenderer.invoke('open-auth-window');
+      if (result !== null) {
+        setIsSteamConnected(true)
+        if (true) {
+          axios
+              .post(`${BASE_URL}auth/steamLogin/${result}`)
+              .then(async (response) => {
+                console.log("burada")
+                if (response.data) {
+                  const credentials = {
+                    userId: response.data.userId,
+                    username: response.data.username,
+                    steamid: result
+                  };
+
+                  if (response.data.token) {
+                    credentials.token = response.data.token;
+                  }
+
+                  try {
+                    await window.electron.ipcRenderer.invoke('setCredentials', credentials);
+
+                    await window.electron.ipcRenderer.invoke('deleteCookie');
+
+                    if (response.data.token) {
+                      await navigate('/home', { replace: true });
+                    } else {
+                      setLoading(false);
+                    }
+                  } catch (error) {
+                    console.error('Error storing credentials:', error);
+                  }
+                } else {
+                  await window.electron.ipcRenderer.invoke('setSteamId', result);
+                  await navigate('/register', { replace: true });
+                  setLoading(false);
+                }
+              })
+              .catch(() => {
+                setLoading(false);
+              });
+        }
+      } else {
+        // bildirim gönder giriş yapılamadı diye
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
     dispatch(setAuthenticated(false));

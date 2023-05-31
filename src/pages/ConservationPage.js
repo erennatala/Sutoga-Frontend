@@ -110,72 +110,76 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                 isConservation: "false"
             });
             setNewMessage('');
-            let conserId = conservationId
+            let conserId = conservationId;
             if (isNewConservation)
-                conserId = uuidv4()
+                conserId = uuidv4();
 
-            // Mesaj gönderildiğinde conservation güncelleme
-            const fetchPromises = [
-                fetch(
-                    groupId ? "https://sutogachat.site/groupconservation" : "https://sutogachat.site/conservation",
-                    {
-                        method: isNewConservation ? "POST" : "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: groupId
-                            ? JSON.stringify({
-                                secondUser: receiver,
-                                groupId: groupId,
-                                groupMembers: receiverList,
-                            })
-                            : JSON.stringify({
-                                firstUser: sender,
-                                secondUser: receiver,
-                                conservationId: conserId,
-                            }),
-                    }
-                ).then((response) => response.json()),
-            ];
+// First, check if the conversation exists
+            try {
+                const res = await fetch(`https://sutogachat.site/conservation/${receiver}/${sender}`);
+                const existingConversation = await res.json();
 
-            console.log("gönderilen conserVationId:", conserId)
+                // Determine method based on whether conversation exists
+                const method = existingConversation.error ? 'POST' : 'PUT';
 
-            if (!groupId) {
-                fetchPromises.push(
+                console.log(method, existingConversation)
+
+                const fetchPromises = [
+                    fetch(
+                        groupId ? "https://sutogachat.site/groupconservation" : "https://sutogachat.site/conservation",
+                        {
+                            method: (groupId ||!existingConversation.error )? 'PUT' :'POST',
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: groupId
+                                ? JSON.stringify({
+                                    secondUser: receiver,
+                                    groupId: groupId,
+                                    groupMembers: receiverList,
+                                })
+                                : JSON.stringify({
+                                    firstUser: sender,
+                                    secondUser: receiver,
+                                    ...(isNewConservation && {conservationId: conserId}),
+                                }),
+                        }
+                    ).then((response) => response.json()),
                     fetch("https://sutogachat.site/conservation", {
-                        method: isNewConservation ? 'POST' : 'PUT',
+                        method: method,
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
                             firstUser: receiver,
                             secondUser: sender,
-                            conservationId: conserId,
+                            ...(isNewConservation && {conservationId: conserId}),
                         }),
                     })
-                        .then((response) => response.json())
-                );
+                        .then((response) => response.json()),
+                ];
+
+                Promise.all(fetchPromises)
+                    .catch((error) => {
+                        console.error("An error occurred during the conversation update:", error);
+                    });
+
+                if (isNewConservation)
+                    setMessages([{
+                        sender: sender,
+                        receiver: receiver,
+                        date: Date.now(),
+                        message: newMessage,
+                        roomId: roomId,
+                        isConservation: "false"
+                    }]);
+
+                setIsNewConservation(false);
+                setconservationId(conserId);
+            } catch (error) {
+                console.error('There has been a problem with your fetch operation:', error);
             }
-
-            Promise.all(fetchPromises)
-                .catch((error) => {
-                    console.error("An error occurred during the conservation update:", error);
-                });
-
-            if (isNewConservation)
-                setMessages([{
-                    sender: sender,
-                    receiver: receiver,
-                    date: Date.now(),
-                    message: newMessage,
-                    roomId: roomId,
-                    isConservation: "false"
-                }])
-
-            setIsNewConservation(false);
-            setconservationId(conserId)
-        }
-    };
+    }};
 
 
     useEffect(() => {
@@ -237,8 +241,8 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                 </Box>
             </div>
 
-            <div style={{marginTop:"20px", display: 'flex', flexDirection: 'column', height: '700px' }}>
-                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2, overflowY: 'auto', maxHeight: '100%' }}>
+            <div style={{marginTop:"20px", display: 'flex', flexDirection: 'column', height: '500px' }}>
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 1, overflowY: 'auto', maxHeight: '100%' }}>
 
                     <List style={{ display: 'flex', flexDirection: 'column' }}>
                         {messages?.map((message) => (
@@ -248,7 +252,8 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                                     textAlign: message.sender === sender ? 'right' : 'left',
                                     maxWidth: '50%',
                                     alignSelf: message.sender === sender ? 'flex-end' : 'flex-start',
-                                    wordWrap: 'break-word'
+                                    wordWrap: 'break-word',
+                                    marginBottom: '10px'  // Add margin at the bottom of each Card
                                 }}
                             >
                                 <ListItem
@@ -266,10 +271,11 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                                             </Typography>
                                         </Box>
                                     )}
-                                    <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
-                                    <ListItemText primary={`${message.message}`} />
-                                    <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
-                                    <Typography variant="caption" display="block" style={{ opacity: 0.7, fontSize: '0.7em' }}>
+                                    <Box sx={{ flexGrow: 0.01, m: 0.2 }} />
+                                    <Typography variant="body1" sx={{ fontSize: '1em', fontWeight: 'normal' }}>
+                                        {message.message}
+                                    </Typography>                                    <Box sx={{ flexGrow: 0.01, m: 0.5 }} />
+                                    <Typography variant="caption" display="block" style={{ opacity: 0.7, fontSize: '0.6em' }}>
                                         {formatDate(message.date)}
                                     </Typography>
                                 </ListItem>
@@ -279,7 +285,7 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                     </List>
 
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2,maxWidth: '930px' }}>
                     <TextField
                         fullWidth
                         label="Type your message"
@@ -288,14 +294,27 @@ export default function ConservationPage({isNewConservation: initialIsNewConserv
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyDown={handleEnterKey}
                     />
-                    <Button variant="contained" onClick={handleSendMessage} sx={{ ml: 1, mt: 2, marginRight: '15px' }}>
-                        Send
-                    </Button>
-                    <Button onClick={handleVideoCall} variant="outlined" color="primary"
-                            startIcon={<Iconify icon={"flat-color-icons:video-call"}/>}
-                    >
-                        Video Call
-                    </Button>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
+
+
+                        <Button
+                            variant="contained"
+                            onClick={handleSendMessage}
+                            sx={{ ml:5, mt: 6, width: '100%', maxWidth: '400px' }} // Butonun genişliğini ayarlamak için width ve maxWidth özellikleri eklendi
+                        >
+                            Send
+                        </Button>
+                        <Button
+                            onClick={handleVideoCall}
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<Iconify icon={"flat-color-icons:video-call"} />}
+                            sx={{ ml:5 ,  mt: 3, width: '100%', maxWidth: '300px' }} // Butonun genişliğini ayarlamak için width ve maxWidth özellikleri eklendi
+                        >
+                            Video Call
+                        </Button>
+                    </Box>
 
                     <Modal
                         open={isModalOpen}

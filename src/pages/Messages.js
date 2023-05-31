@@ -4,6 +4,8 @@ import Iconify from "../components/iconify";
 import { v4 as uuidv4 } from 'uuid';
 import ConservationPage from "./ConservationPage";
 import socketIoClient from "socket.io-client";
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+
 
 
 export default function Messages() {
@@ -57,6 +59,11 @@ export default function Messages() {
         };
     }, []);
 
+
+    useEffect(() => {
+        // selectedFriends veya selectedConversation değiştiğinde yapılacak işlemleri burada yapabilirsiniz.
+        // Örneğin, bir şeyleri kontrol etmek veya işlem yapmak isterseniz.
+    }, [selectedFriends, selectedConversation]);
 // Main useEffect for socket events
     useEffect(() => {
 
@@ -240,24 +247,33 @@ export default function Messages() {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row', height: '100%', p: 2 }}>
-            <Box sx={{ flexGrow: 0, width: '25%', borderRight: '1px solid #ccc', mr: 2 }}>
+            <Box sx={{ flexGrow: 0, width: '18%', paddingRight:'10px', borderRight: '1px solid #ccc', mr: 2 }}>
                 <Typography variant="h6" component="div" gutterBottom>
                     Conversations
                 </Typography>
                 <Button
-
                     onClick={handleNewConversation}
                     variant="outlined"
-                    style={{backgroundColor: newConversation ? '#cfe8fc' : 'white'}}
+                    size="small"
+                    style={{
+                        backgroundColor: newConversation ? '#cfe8fc' : 'white',
+                        marginBottom: '10px',
+                        fontWeight: 'bold' // Yazıyı kalın yapmak için fontWeight özelliği eklendi
+                    }}
                 >
                     Start a new conversation
                 </Button>
                 <Button
                     onClick={handleOpenModal}
                     variant="outlined"
+                    size="small"
+                    style={{
+                        fontWeight: 'bold' // Yazıyı kalın yapmak için fontWeight özelliği eklendi
+                    }}
                 >
                     Start a new group conversation
                 </Button>
+
                 <List>
                     {!loading && conversations.map((item) => {
                         const friend = friends?.find((friend) => friend.secondUser === item.secondUser);
@@ -267,21 +283,25 @@ export default function Messages() {
                         if (!friend) {
                             return (
                                 <React.Fragment key={item.secondUser}>
-                                    <ListItem button onClick={() => {
-                                        handleSelectConversation(item);
-                                    }}>
-                                        <ListItemText primary={item.secondUser} />
-                                        {isUserOnline(item.secondUser) && (
-                                            <ListItemText secondary="Online" style={{ color: "green", fontSize: "small" }} />
-                                        )}
-                                        {item.unreadMessageCount && (
-                                            <ListItemText primary={item.unreadMessageCount} />
-                                        )}
-                                    </ListItem>
-                                    <Divider />
+                                    {item.groupMembers && item.groupMembers.length > 0 && (
+                                        <ListItem button onClick={() => handleSelectConversation(item)}>
+                                            <Typography variant="caption" style={{ opacity: 0.7 ,marginRight:'14px' }}>
+                                                Group
+                                            </Typography>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography noWrap={true} style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {item.secondUser.length > 10 ? item.secondUser.substring(0, 10) + '...' : item.secondUser}
+                                                    </Typography>
+                                                }
+                                            />
+                                            <Divider />
+                                        </ListItem>
+                                    )}
                                 </React.Fragment>
                             );
                         }
+
 
                         return (
                             <React.Fragment key={item.secondUser}>
@@ -289,18 +309,20 @@ export default function Messages() {
                                     handleSelectConversation(item);
                                     item.unreadMessageCount = null;
                                 }}>
-                                    <Avatar src={friend.profilePhotoUrl} alt="photoURL" />
-                                    <Box sx={{ flexGrow: 0.03 }} />
-                                    <ListItemText primary={item.secondUser} />
                                     {isUserOnline(item.secondUser) && (
-                                        <ListItemText secondary="Online" style={{ color: "green", fontSize: "small" }} />
+                                        <FiberManualRecordIcon style={{ color: 'green' }} fontSize="small" />
                                     )}
+                                    <Avatar src={friend.profilePhotoUrl} alt="photoURL" />
+                                    <Box sx={{ ml: 1 }}>  {/* Burada ml özelliğini kullanarak avatar ile yazı arasında boşluk bıraktım */}
+                                        <ListItemText primary={item.secondUser.length> 10 ? item.secondUser.substring(0, 10) + '...' : item.secondUser} />
+                                    </Box>
                                     {item.unreadMessageCount && (
                                         <ListItemText primary={item.unreadMessageCount} />
                                     )}
                                 </ListItem>
                                 <Divider />
                             </React.Fragment>
+
                         );
                     })}
                 </List>
@@ -310,6 +332,7 @@ export default function Messages() {
             <Box sx={{ flexGrow: 1 }}>
                 {selectedConversation ? (
                     <ConservationPage
+
                         isNewConservation={selectedConversation.isNewConservation}
                         sender={username}
                         receiver={selectedConversation.secondUser}

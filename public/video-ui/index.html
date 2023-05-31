@@ -12,6 +12,12 @@
         <script src="https://kit.fontawesome.com/d2f1016e6f.js" crossorigin="anonymous"></script>
         <script src="RoomClient.js"></script>
 
+        <style>
+            #login, #exitButton, #copyButton {
+                display: none;
+            }
+        </style>
+
         <link href="modules/bootstrap.min.css" rel="stylesheet" />
         <script src="modules/bootstrap.bundle.min.js"></script>
     </head>
@@ -28,7 +34,7 @@
             </div>
         </div>
 
-        <div class="container">
+        <div class="flex-button-container " >
             <div id="control" class="hidden">
                 <br />
                 <button id="exitButton" class="hidden" onclick="rc.exit()">
@@ -61,10 +67,10 @@
                     <i class="fas fa-camera"></i> Close video
                 </button>
                 <button id="startScreenButton" class="hidden" onclick="rc.produce(RoomClient.mediaType.screen)">
-                    <i class="fas fa-desktop"></i> Open screen
+                    <i class="fas fa-desktop"></i> Share screen
                 </button>
                 <button id="stopScreenButton" class="hidden" onclick="rc.closeProducer(RoomClient.mediaType.screen)">
-                    <i class="fas fa-desktop"></i> Close screen
+                    <i class="fas fa-desktop"></i> Stop screen share
                 </button>
                 <br /><br />
                 <div id="devicesList" class="hidden">
@@ -86,7 +92,7 @@
                     <!--<video id="localScreen" autoplay inline class="vid"></video>-->
                 </div>
                 <br />
-                <h4><i class="fab fa-youtube"></i> Remote media</h4>
+                <h4><i class="fab fa-youtube"></i> </h4>
                 <div id="remoteVideos" class="containers"></div>
                 <div id="remoteAudios"></div>
             </div>

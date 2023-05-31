@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain, dialog ,desktopCapturer} = require('electron');
+const { app, BrowserWindow, screen, ipcMain, dialog , desktopCapturer, systemPreferences} = require('electron');
 const path = require('path');
 const axios = require('axios');
 //const isDev = require('electron-is-dev');
@@ -14,7 +14,6 @@ const store = new Store();
 const fs = require('fs');
 
 let win;
-
 const BASE_URL = process.env.REACT_APP_URL
 
 const getAssetsPath = () => {
@@ -68,7 +67,6 @@ steamAuthApp.get(
 );
 steamAuthApp.use('/video',express.static(path.join(__dirname, './', 'video-ui')))
 
-
 steamAuthApp.listen(3001);
 
 passport.serializeUser(function(user, done) {
@@ -94,6 +92,11 @@ if (isDev) {
         watchRenderer: true,
     });
 }
+
+ipcMain.handle('open-devtools', async (event) => {
+    BrowserWindow.getFocusedWindow().webContents.openDevTools();
+});
+
 
 ipcMain.handle('open-file-dialog', async (event, options) => {
     const result = await dialog.showOpenDialog(options);
@@ -124,7 +127,16 @@ ipcMain.handle('getToken', () => {
     return store.get('token');
 });
 
-ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
+ipcMain.handle('setSteamId', async (event, steamId) => {
+    store.set('steamid', steamId);
+});
+
+ipcMain.handle('deleteSteamId', async (event) => {
+    store.delete('steamid');
+});
+
+
+ipcMain.handle('setCredentials', async (event, { token, userId, username, steamId }) => {
     if (token !== null && token !== undefined) {
         store.set('token', token);
     } else {
@@ -141,6 +153,12 @@ ipcMain.handle('setCredentials', async (event, { token, userId, username }) => {
         store.set('username', username);
     } else {
         store.delete('username');
+    }
+
+    if (steamId !== null && steamId !== undefined) {
+        store.set('steamid', steamId);
+    } else {
+        store.delete('steamid');
     }
 });
 
@@ -181,12 +199,39 @@ ipcMain.handle('logout', async () => {
     store.delete('userId');
     store.delete('username');
     store.delete('steamid');
+
+    const allWindows = BrowserWindow.getAllWindows();
+    if(allWindows.length) {
+        const win = allWindows[0];
+        const cookies = await win.webContents.session.cookies.get({});
+        cookies.forEach((cookie) => {
+            if (cookie.name.includes('steamLogin')) {
+                win.webContents.session.cookies.remove(cookie.domain, cookie.name);
+            }
+        });
+    }
     return "Logged out";
 });
 
 ipcMain.handle('get-window-size', (event) => {
     return win.getSize();
 });
+
+ipcMain.handle('deleteCookie', async () => {
+    const { session } = require('electron')
+
+    const url = 'http://localhost:3001';
+    const cookieName = 'steamLogin';
+
+    return session.defaultSession.cookies.remove(url, cookieName)
+        .then(() => {
+            console.log('Cookie is deleted');
+        })
+        .catch((error) => {
+            console.error('Error deleting cookie:', error);
+        });
+});
+
 
 ipcMain.handle('open-auth-window', async () => {
     const authWindow = new BrowserWindow({
@@ -212,9 +257,9 @@ ipcMain.handle('open-auth-window', async () => {
                             const steamid = steamCookie.value.split('%')[0];
                             store.set('steamid', steamid);
                             authWindow.close();
-                            resolve(true);
+                            resolve(steamid);
                         } else {
-                            resolve(false);
+                            resolve(null);
                         }
                     }
                 })
@@ -233,14 +278,13 @@ function createWindow() {
     const windowWidth = Math.round(screenWidth * 0.8); // Set width to 80% of the screen width
     const windowHeight = Math.round(screenHeight * 0.8); // Set height to 80% of the screen height
 
-
     win = new BrowserWindow({
         width: windowWidth,
         height: windowHeight, // Adjust height as needed
         minWidth: 1300, // Set minimum width (optional)
         minHeight: 800, // Set minimum height (optional)
         webPreferences: {
-            nodeIntegration: true,
+            nodeIntegration: false,
             contextIsolation: true,
             //preload: path.join(app.getAppPath(), 'public', 'preload.js'), //devdeyken çalışan
             //preload: path.join(app.getAppPath(), 'build', 'preload.js'), // winde setupla çalışan
@@ -268,9 +312,13 @@ function createWindow() {
         win.webContents.send('baseURL', BASE_URL);
     });
 
-    const url = isDev
-        ? 'http://localhost:3000'
-        : `file://${path.join(__dirname, '../build/index.html')}`;
+    //TODO prod ve dev'de burası kesinlikle değişiyior!
+
+    // const url = isDev
+    //     ? 'http://localhost:3000'
+    //     : `file://${path.join(__dirname, '../build/index.html')}`;
+
+    const url = `file://${path.join(__dirname, '../build/index.html')}`;
 
     win.on('resize', () => {
         win.webContents.send('window-resize', win.getSize());
@@ -280,19 +328,29 @@ function createWindow() {
         win.loadURL(url);
     }
     //TODO unutma
-    win.webContents.on('did-finish-load', () => {
-        win.webContents.openDevTools();
-    });
-
+    // win.webContents.on('did-finish-load', () => {
+    //     win.webContents.openDevTools();
+    // });
 }
-
 
 ipcMain.handle(
     'DESKTOP_CAPTURER_GET_SOURCES',
     (event, opts) => desktopCapturer.getSources(opts)
 )
 
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+    if (process.platform === 'darwin') {
+        const microphonePermission = await systemPreferences.askForMediaAccess('microphone');
+        const cameraPermission = await systemPreferences.askForMediaAccess('camera');
+        const screenPermission = await systemPreferences.askForMediaAccess('screen');
+
+        if (!microphonePermission || !cameraPermission || !screenPermission) {
+            console.error('Kamera, mikrofon ve ekran paylaşımı izinleri verilmedi.');
+        }
+    }
+
+    createWindow();
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

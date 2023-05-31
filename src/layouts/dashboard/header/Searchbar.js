@@ -69,6 +69,7 @@ export default function Searchbar() {
 
   const handleSearch = async (query) => {
     if (query !== "") {
+      const loggedinusername = await window.electron.ipcRenderer.invoke('getUsername');
       const token = await window.electron.ipcRenderer.invoke('getToken');
 
       const config = {
@@ -80,7 +81,7 @@ export default function Searchbar() {
       setResults(response.data.map(user => ({
         ...user,
         profilePhotoUrl: user.profilePhotoUrl || ''
-      })));
+      })).filter(user => user.username !== loggedinusername));
     } else {
       setResults([]);
     }

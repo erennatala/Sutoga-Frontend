@@ -1,0 +1,52 @@
+{
+  "appId": "com.sutoga.sutoga",
+  "productName": "Sutoga",
+  "directories": {
+    "output": "dist",
+    "buildResources": "build"
+  },
+  "win": {
+    "target": "nsis",
+    "icon": "public/main-logo.ico"
+  },
+  "mac": {
+    "category": "public.app-category.utilities",
+    "target": "default",
+    "entitlements": "entitlements.mac.plist"
+  },
+  "dmg": {
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ]
+  },
+  "files": [
+    "**/*",
+    "!**/*.ts",
+    "!*.code-workspace",
+    "!LICENSE.md",
+    "!package.json",
+    "!package-lock.json",
+    "!src/",
+    "!e2e/",
+    "!hooks/",
+    "!angular.json",
+    "!_config.yml",
+    "!karma.conf.js",
+    "!tsconfig.json",
+    "!tslint.json",
+    "build/**/*",
+    "public/**/*",
+    "node_modules/**/*",
+    "package.json"
+  ],
+  "asar": true
+}

@@ -32,7 +32,7 @@ import {useNavigate} from "react-router-dom";
 // ----------------------------------------------------------------------
 const BASE_URL = process.env.REACT_APP_URL;
 
-export default function NotificationsPopover() {
+export default function NotificationsPopover({onSuccess}) {
   const [notifications, setNotifications] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [open, setOpen] = useState(null);
@@ -70,6 +70,7 @@ export default function NotificationsPopover() {
           Authorization: `${token}`,
         },});
       console.log(response.data)
+      setTotalUnRead(response.data.length)
       setNotifications(response.data);
     };
 
@@ -79,11 +80,12 @@ export default function NotificationsPopover() {
 
   useEffect(() => {
     const initializeSocket = async () => {
-      //const newSocket = ioV2("http://13.53.101.21:9092/");
+      //const newSocket = ioV2("http://13.51.177.125:9092/");
 
       const username1 = await window.electron.ipcRenderer.invoke('getUsername');
+      const id = await window.electron.ipcRenderer.invoke('getId');
 
-      const newSocket = ioV2("http://localhost:9092/", {
+      const newSocket = ioV2("http://16.170.204.127:9092/", {
         timeout: 5000,
         transports: ['websocket']
       });
@@ -96,13 +98,23 @@ export default function NotificationsPopover() {
         console.log('Connection Error: ' + error);
       });
 
-      newSocket.on('notification', (newNotification) => {
+      newSocket.on('notification'+id, (newNotification) => {
         const notificationObj = JSON.parse(newNotification);
 
         if (notificationObj.senderUsername !== username1) {
           setNotifications((prevNotifications) => [notificationObj, ...prevNotifications]);
           setTotalUnRead(totalUnRead + 1);
         }
+      });
+
+      newSocket.on('cancelNotification'+id, (cancelledNotification) => {
+        const notificationObj = JSON.parse(cancelledNotification);
+
+        setNotifications((prevNotifications) =>
+            prevNotifications.filter(
+                (notification) => notification.id !== notificationObj.id
+            )
+        );
       });
 
       setSocket(newSocket);
@@ -120,6 +132,7 @@ export default function NotificationsPopover() {
     setNotifications((prevNotifications) =>
         prevNotifications.filter(notification => notification.id !== notificationId)
     );
+    onSuccess()
   };
 
   const navigateToProfile = (username) => {
@@ -137,9 +150,10 @@ export default function NotificationsPopover() {
     }, 0);
   };
 
-
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
+    setTotalUnRead(0);
+    setNotifications(notifications.map(notification => ({ ...notification, isUnRead: false })));
   };
 
   const handleClose = () => {
@@ -326,12 +340,14 @@ function renderContent(notification, handleSuccess, navigateToProfile) {
     );
   } else if (notification) {
     title = (
-        <FriendRequestNotificationItem
-            key={notification.friendRequestActivity.id}
-            friendRequest={notification}
-            onSuccess={handleSuccess}
-            onClick={() => navigateToProfile(notification.senderUsername)}
-        />
+        (notification.friendRequestActivity !== null &&
+              <FriendRequestNotificationItem
+                  key={notification.friendRequestActivity.id}
+                  friendRequest={notification}
+                  onSuccess={handleSuccess}
+                  navigateToProfile={navigateToProfile}
+              />
+        )
     );
     avatar = notification.senderPhotoUrl ? (
         <Avatar alt={notification.senderUsername} src={notification.senderPhotoUrl} />

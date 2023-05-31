@@ -89,7 +89,6 @@ export default function UserProfile() {
     const [games, setGames] = useState([])
     const [gamePage, setGamePage] = useState(0)
     const [loadingGame, setLoadingGame] = useState(false)
-    const [hasMoreGames, setHasMoreGames] = useState(true);
 
     const [likes, setLikes] = useState([])
     const [likePage, setLikePage] = useState(0)
@@ -101,9 +100,23 @@ export default function UserProfile() {
     const [loadingDeclineRequest, setLoadingDeclineRequest] = useState(false);
 
     const [isHovered, setIsHovered] = useState(false);
-    const [showNotification, setShowNotification] = useState(false);
 
     const [friends, setFriends] = useState([])
+    const [friendCardText, setFriendCardText] = useState("")
+
+    const [snackbarMessage, setSnackbarMessage] = useState("")
+    const [snackbarSeverity, setSnackbarSeverity] = useState(null)
+    const [snackbarOpen, setSnackbarOpen] = useState(false)
+
+    const handleSnackbar = (message, severity) => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbarOpen(false);
+    };
 
     useEffect(() => {
         switch (tab) {
@@ -119,8 +132,7 @@ export default function UserProfile() {
                 setLikes([])
                 if (games.length === 0) {
                     setGamePage(0);
-                    setHasMoreGames(true)
-                    loadMoreGames();
+                    getUserGames();
                 }
                 break;
             case 4:
@@ -280,15 +292,15 @@ export default function UserProfile() {
     }, [friends]);
 
     useEffect(() => {
+        setPosts([])
+        setGames([])
+        setFriends([])
+        setLikes([])
+
         const fetchUser = async () => {
             try {
                 const token = await window.electron.ipcRenderer.invoke("getToken");
-                const usernameParam = window.location.pathname.split("/")[2];
-
-                console.log(window.location.pathname)
-
-                console.log("window.location.pathname:", window.location.pathname);
-                console.log("Username Param:", usernameParam);
+                const usernameParam = location.pathname.split("/")[2];
 
                 const response = await axios.get(`${BASE_URL}users/getByUsername/${usernameParam}`, {
                     headers: { 'Authorization': `${token}` },
@@ -297,7 +309,21 @@ export default function UserProfile() {
                 setUser(userData);
                 getPostCount(userData.id)
                 getFriendCount(userData.id)
+                getGameCount(userData.id)
                 setLoadingUser(false);
+
+                if (tab === 4) {
+                    setHasMoreLikes(true)
+                    setLikePage(0)
+                    setLoadingLike(false)
+                    loadMoreLikes()
+                } else if (tab === 6) {
+                    setHasMoreFriends(true)
+                    setFriendPage(0)
+                    setLoadingFriend(false)
+                    getFriends(0)
+                }
+
             } catch (error) {
                 console.log("Error fetching user data:", error);
                 setUser(null);
@@ -308,6 +334,26 @@ export default function UserProfile() {
 
         fetchUser();
     }, [location.pathname]);
+
+    const getGameCount = async (id) => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = id;
+
+            const response = await axios.get(`${BASE_URL}games/getUserGameCount/${userId}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            setUser((prevUser) => ({
+                ...prevUser,
+                gameCount: response.data,
+            }));
+        } catch (error) {
+            console.error('Error fetching friend count:', error);
+        }
+    };
 
     const getFriendCount = async (id) => {
         try {
@@ -357,8 +403,10 @@ export default function UserProfile() {
         }
     };
 
-    const getFriends = async () => {
+    const getFriends = async (page) => {
         if (loadingFriend) return;
+
+        let friendpage1 = page !== undefined ? (friendPage) : (page)
 
         setLoadingFriend(true);
 
@@ -367,7 +415,7 @@ export default function UserProfile() {
 
         try {
             const response = await axios.get(`${BASE_URL}users/getFriendsByUsername`, {
-                params: { username: user.userName, userId: userId, page: friendPage, size: 10 },
+                params: { username: user.userName, userId: userId, page: friendpage1, size: 10 },
                 headers: { 'Authorization': `${token}` },
             });
 
@@ -403,13 +451,32 @@ export default function UserProfile() {
             setIsSent(true);
             setIsSender(true);
             setLoadingFriendRequest(false);
+            handleSnackbar('Friend request sent!!', 'success');
         } catch (error) {
             console.log(error);
         }
     };
 
     const handleRemoveSentRequest = async () => {
+        try {
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = await window.electron.ipcRenderer.invoke('getId');
 
+            const response = await axios.delete(`${BASE_URL}users/${userId}/removeRequest/${user.userName}`, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            if (response.status === 200) {
+                setIsSent(false);
+                setIsSender(false);
+            } else {
+                console.log('Failed to remove friend request');
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     const handleAcceptRequest = async () => {
@@ -539,23 +606,36 @@ export default function UserProfile() {
         setPosts(prevPosts => prevPosts.map(post => post.id === postId ? { ...post, likeCount: newValue } : post));
     };
 
+    const getUserGames = async () => {
+        try {
+            setLoadingGame(true)
+            const token = await window.electron.ipcRenderer.invoke('getToken');
+            const userId = user.id;
+
+            const response = await axios.get(`${BASE_URL}games/getUserGames/${userId}`, {
+                headers: { 'Authorization': `${token}` },
+            });
+
+            setGames(response.data);
+
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setLoadingGame(false);
+        }
+    };
+
     return(
         <>
             <Helmet>
                 <title> {user.userName} </title>
             </Helmet>
 
-            <Snackbar open={toastOpen} autoHideDuration={3000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-                    This is a success message!
+            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleCloseSnackbar}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
                 </Alert>
             </Snackbar>
-
-            {showNotification && (
-                <Snackbar open={showNotification} onClose={() => setShowNotification(false)}>
-                    <Alert severity="success">Friend request sent!</Alert>
-                </Snackbar>
-            )}
 
 
             <Grid container columns={16} sx={{px: 7}}>
@@ -617,7 +697,7 @@ export default function UserProfile() {
                                     <Grid item sx={{mt: 1}}>
                                         <Stack direction={"row"}>
                                             <Typography fontWeight={"bold"} fontSize={22}>
-                                                53
+                                                {user.gameCount}
                                             </Typography>
 
                                             <Typography>
@@ -647,11 +727,11 @@ export default function UserProfile() {
                                             isSender ? (
                                                 <Button
                                                     variant="contained"
-                                                    color="success"
+                                                    color="warning"
                                                     sx={{ height: 50 }}
                                                     onClick={handleRemoveSentRequest}
                                                 >
-                                                    Sent!
+                                                    Pending
                                                 </Button>
                                             ) : (
                                                 <>
@@ -748,19 +828,17 @@ export default function UserProfile() {
                             </TabPanel>
                             <TabPanel value={tab-1} index={1}>
                                 <Grid container justifyContent={"center"}>
-                                    <Grid item>
-                                        <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
-                                    </Grid>
-                                    <Grid item>
-                                        <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
-                                    </Grid>
-                                    <Grid item>
-                                        <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
-                                    </Grid>
-
-                                    <Grid item>
-                                        <GameCard publisher={"Snowbird Games"} title={"Eador: Genesis"} img={"https://cdn.akamai.steamstatic.com/steam/apps/235660/header.jpg?t=1563274911"}/>
-                                    </Grid>
+                                    {games.length !== 0 ? (
+                                        games.map((game) => (
+                                            <Grid item key={game.id} xs={12} sm={6} md={4}>
+                                                <Box sx={{ px: { xs: 0, sm: 0, md: -1 } }}>
+                                                    <GameCard game={game} />
+                                                </Box>
+                                            </Grid>
+                                        ))
+                                    ) : (<Typography>
+                                        This profile is sooo boring...
+                                    </Typography>)}
                                 </Grid>
                             </TabPanel>
                             <TabPanel value={tab - 2} index={2}>
@@ -813,7 +891,13 @@ export default function UserProfile() {
                                         {friends.map((friend) => (
                                             <Grid key={friend.id} item xs={12} sm={6}>
                                                 <ProfileCardSm
-                                                    onSuccess={() => setShowNotification(true)}
+                                                    onSuccess={(e) => {
+                                                        if (e === "add") {
+                                                            handleSnackbar('Friend request sent!!', 'success');
+                                                        } else {
+                                                            handleSnackbar('Friend removed', 'success');
+                                                        }
+                                                    }}
                                                     username={friend.username} profilePhotoUrl={friend.profilePhotoUrl} isFriend={friend.isFriend}/>
                                             </Grid>
                                         ))}

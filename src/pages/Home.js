@@ -23,7 +23,7 @@ const BASE_URL = process.env.REACT_APP_URL
 export default function Home() {
     const theme = useTheme();
     const userName = useSelector((state)=> state.auth.userName);
-    const [friendRec, setFriendRec] = useState([{id: 1}])
+    const [refreshing, setRefreshing] = useState(false);
 
     const [openCreate, setOpenCreate] = useState(false);
     const [collapse, setCollapse] = useState(false);
@@ -86,6 +86,21 @@ export default function Home() {
     };
 
     useEffect(() => {
+        if(refreshing){
+            loadMorePosts();
+            setRefreshing(false);
+        }
+    }, [refreshing]);
+
+    const refreshPosts = async () => {
+        setRefreshing(true);
+        setPosts([]);
+        setPage(0);
+        setHasMore(true);
+    };
+
+
+    useEffect(() => {
         (async () => {
             try {
                 const id = await window.electron.ipcRenderer.invoke('getId');
@@ -127,7 +142,7 @@ export default function Home() {
             const options = {
                 properties: ['openFile'],
                 filters: [
-                    { name: 'Media Files', extensions: ['jpg', 'png', 'gif', 'mp4', 'mov', 'avi'] },
+                    { name: 'Media Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov', 'avi'] },
                     { name: 'All Files', extensions: ['*'] },
                 ],
             };
@@ -387,6 +402,10 @@ export default function Home() {
                             </Grid>
                         </ClickAwayListener>
                     </Grid>
+
+                    <IconButton onClick={refreshPosts} disabled={refreshing}>
+                        <Iconify icon="mdi:refresh" />
+                    </IconButton>
 
                     <Grid item spacing={2} sx={{px: 15}}>
                         <InfiniteScroll
